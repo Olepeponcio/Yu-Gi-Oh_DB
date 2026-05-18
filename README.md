@@ -24,18 +24,22 @@ Infraestructura base completada:
 - Permisos del usuario corregidos sobre `yugioh_db`.
 - Conexion Python -> MySQL validada desde `src/database/connection.py`.
 - Muestra JSON de la API YGOPRODeck analizada antes de disenar el esquema SQL.
+- Esquema SQL inicial creado y ejecutado manualmente en MySQL.
+- Separado el reinicio destructivo del esquema en un archivo independiente.
 
 ## Estructura inicial
 
 ```text
 proyecto_SQL-DB_Yu-Gi-Oh/
 ├── docs/
+│   └── api_json_analysis.md
 ├── notebooks/
 ├── sql/
+│   ├── schema.sql
+│   └── reset_schema.sql
 ├── src/
 │   └── database/
-│       ├── connection.py
-│       └── create_tables.py
+│       └── connection.py
 ├── .env
 ├── .env.example
 ├── .gitignore
@@ -63,7 +67,62 @@ proyecto_SQL-DB_Yu-Gi-Oh/
    - `DB_USER`
    - `DB_PASSWORD`
 9. Se analizo una muestra real del endpoint `cardinfo.php` de YGOPRODeck para detectar campos principales, campos opcionales y listas anidadas.
+10. Se diseno un primer esquema SQL normalizado, separando:
+   - cartas,
+   - sets,
+   - imagenes,
+   - precios,
+   - banlist,
+   - typeline,
+   - linkmarkers.
+11. Se dejo `sql/schema.sql` como archivo de creacion no destructiva usando `CREATE TABLE IF NOT EXISTS`.
+12. Se movio la parte de borrado a `sql/reset_schema.sql` para evitar eliminar datos por accidente antes de cargas reales.
+
+## Uso de SQL
+
+### Crear estructura
+
+Uso normal:
+
+```sql
+USE yugioh_db;
+SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+```
+
+Este archivo puede ejecutarse varias veces porque usa `CREATE TABLE IF NOT EXISTS`.
+Si las tablas ya existen, MySQL no las vuelve a crear y no borra datos.
+
+Comprobacion basica:
+
+```sql
+SHOW TABLES;
+DESCRIBE cards;
+```
+
+### Reiniciar estructura
+
+Uso destructivo:
+
+```sql
+USE yugioh_db;
+SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/reset_schema.sql;
+SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+```
+
+`reset_schema.sql` borra tablas y datos. Solo debe usarse en pruebas o cuando se quiera reconstruir la base desde cero.
+
+### Cambios futuros
+
+`schema.sql` sirve para crear la estructura inicial, pero no modifica tablas ya existentes.
+
+Si mas adelante se anade una columna o se cambia una tabla, conviene crear archivos de migracion con `ALTER TABLE`, por ejemplo:
+
+```text
+sql/migrations/001_add_column_example.sql
+```
 
 ## Documentacion generada
 
 - `docs/api_json_analysis.md`: analisis de estructura del JSON de YGOPRODeck y entidades candidatas para SQL.
+- `sql/schema.sql`: esquema inicial no destructivo.
+- `sql/reset_schema.sql`: reinicio completo del esquema, destructivo.
