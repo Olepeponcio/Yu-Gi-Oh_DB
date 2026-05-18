@@ -1,0 +1,22 @@
+# Entorno virtual
+.venv/
+venv/
+
+# Variables sensibles
+.env
+
+# Python
+__pycache__/
+*.pyc
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Datos locales
+data/*.json
+data/*.csv
+data/*.xlsx
+
+# Sistema
+.DS_Store
+Thumbs.db
