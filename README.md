@@ -23,6 +23,7 @@ Infraestructura base completada:
 - Usuario dedicado para ETL creado: `yugioh_user`.
 - Permisos del usuario corregidos sobre `yugioh_db`.
 - Conexion Python -> MySQL validada desde `src/database/connection.py`.
+- Muestra JSON de la API YGOPRODeck analizada antes de disenar el esquema SQL.
 
 ## Estructura inicial
 
@@ -61,3 +62,8 @@ proyecto_SQL-DB_Yu-Gi-Oh/
    - `DB_NAME`
    - `DB_USER`
    - `DB_PASSWORD`
+9. Se analizo una muestra real del endpoint `cardinfo.php` de YGOPRODeck para detectar campos principales, campos opcionales y listas anidadas.
+
+## Documentacion generada
+
+- `docs/api_json_analysis.md`: analisis de estructura del JSON de YGOPRODeck y entidades candidatas para SQL.
