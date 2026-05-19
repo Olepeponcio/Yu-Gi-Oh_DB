@@ -126,3 +126,81 @@ sql/migrations/001_add_column_example.sql
 - `docs/api_json_analysis.md`: analisis de estructura del JSON de YGOPRODeck y entidades candidatas para SQL.
 - `sql/schema.sql`: esquema inicial no destructivo.
 - `sql/reset_schema.sql`: reinicio completo del esquema, destructivo.
+
+## ETL
+
+Punto de entrada principal:
+
+```text
+src/etl/run_etl.py
+```
+
+Objetivo: ejecutar el flujo API -> raw JSON local -> transformacion -> MySQL.
+
+Responsabilidades:
+
+- `src/api/ygoprodeck_client.py`: extraccion desde API y guardado del JSON original.
+- `src/etl/transform.py`: normalizacion de datos por tabla.
+- `src/etl/load.py`: carga SQL en MySQL.
+- `src/etl/run_etl.py`: orquestacion del proceso.
+
+Estructura de datos locales:
+
+```text
+data/
+├── raw/
+│   ├── cardinfo_YYYYMMDD_HHMMSS.json
+│   └── cardinfo_latest.json
+└── processed/
+```
+
+El JSON raw incluye metadatos:
+
+- `ingested_at`: fecha/hora en que se descargo el JSON.
+- `source_last_updated`: cabecera `Last-Modified` si la API la informa.
+- `record_count`: numero de cartas recibidas.
+
+Prueba sin insertar datos:
+
+```powershell
+python -m src.etl.run_etl --dry-run
+```
+
+Carga real:
+
+```powershell
+python -m src.etl.run_etl
+```
+
+Cargar desde un JSON raw local:
+
+```powershell
+python -m src.etl.run_etl --source file --raw-path data/raw/cardinfo_latest.json
+```
+
+Validacion SQL:
+
+```sql
+USE yugioh_db;
+SELECT COUNT(*) FROM cards;
+SELECT id, name, card_type, archetype FROM cards LIMIT 10;
+
+SELECT COUNT(*) FROM card_images;
+
+SELECT c.name, i.image_url_small
+FROM cards c
+JOIN card_images i ON i.card_id = c.id
+LIMIT 10;
+
+SELECT COUNT(*) FROM card_prices;
+
+SELECT c.name, p.cardmarket_price, p.tcgplayer_price, p.ebay_price
+FROM cards c
+JOIN card_prices p ON p.card_id = c.id
+LIMIT 10;
+
+SELECT COUNT(*) FROM card_sets;
+SELECT COUNT(*) FROM card_banlist;
+SELECT COUNT(*) FROM card_typelines;
+SELECT COUNT(*) FROM card_linkmarkers;
+```
