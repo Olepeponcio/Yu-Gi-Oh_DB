@@ -6,7 +6,7 @@ Indice del marco tecnico del proyecto. El README raiz contiene la guia operativa
 
 ```text
 MySQL ejecuta sql/schema.sql -> crea tablas
-Python ejecuta src/etl/run_etl.py -> descarga, transforma y carga datos
+Python ejecuta python -m src.etl.run_etl -> descarga, transforma y carga datos
 Power BI / SQL -> consumen la base resultante
 ```
 
@@ -29,4 +29,4 @@ Power BI / SQL -> consumen la base resultante
 
 ## Nota sobre migraciones
 
-`sql/schema.sql` representa el esquema completo para una base nueva y `sql/reset_schema.sql` reconstruye la base de forma destructiva. Para bases existentes, los cambios incrementales se guardan en `sql/migrations/`.
+`sql/schema.sql` representa el esquema completo vigente para construir la base desde cero y `sql/reset_schema.sql` reconstruye la base de forma destructiva. `sql/migrations/` queda reservado para futuras escaladas incrementales del modelo.

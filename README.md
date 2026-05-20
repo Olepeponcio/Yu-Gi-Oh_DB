@@ -5,33 +5,31 @@ Proyecto de datos para construir una base MySQL de cartas de Yu-Gi-Oh desde la A
 ## Piezas del proyecto
 
 ```text
-sql/schema.sql       -> esquema completo para crear una base nueva
-sql/migrations/      -> cambios incrementales para bases existentes
+sql/schema.sql       -> esquema completo vigente para crear la DB desde cero
+sql/migrations/      -> reservado para futuras escaladas del modelo
 sql/reset_schema.sql -> reinicio destructivo de tablas
 sql/queries/         -> consultas de calidad de datos
 sql/analysis/        -> vistas y consultas de la fase analitica
 src/api/             -> extraccion desde YGOPRODeck
 src/etl/             -> transformacion y carga en MySQL
 src/database/        -> conexion Python -> MySQL
-data/raw/            -> copias JSON descargadas
+data/raw/            -> ultimo JSON raw descargado
 docs/                -> documentacion tecnica y analitica
 ```
 
 ## Idea clave
 
 ```text
-schema.sql = estado final completo de la base
-migrations/ = camino para actualizar una base anterior sin destruir datos
+schema.sql = esquema completo actual
+migrations/ = cambios futuros cuando el modelo vuelva a evolucionar
 ```
 
-Si alguien clona el repo y parte de MySQL vacio, usa `schema.sql`.
-
-Si ya existe una base cargada con una version anterior, usa la migracion correspondiente antes de volver a ejecutar el ETL.
+El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma parte de `sql/schema.sql`.
 
 ## Flujo general
 
 ```text
-1. MySQL crea o actualiza estructura
+1. MySQL crea la estructura desde sql/schema.sql
 2. Python ETL extrae datos de YGOPRODeck
 3. Python transforma y normaliza datos
 4. Python carga/actualiza MySQL
@@ -61,9 +59,7 @@ MYSQL_DATABASE=yugioh_db
 
 `localhost` es el servidor MySQL local. Python se conecta a MySQL solo cuando ejecuta la carga.
 
-## 2. Construir la base
-
-### Caso A: instalacion nueva
+## 2. Construir la base desde cero
 
 Crear la base:
 
@@ -80,16 +76,22 @@ USE yugioh_db;
 SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
 ```
 
-### Caso B: base existente
+Este paso crea las tablas actuales del proyecto:
 
-Si ya tenias la base cargada antes de crear `sets`, `rarities` y `card_price_history`, ejecuta la migracion:
-
-```sql
-USE yugioh_db;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/migrations/001_add_market_dimensions_and_price_history.sql;
+```text
+cards
+sets
+rarities
+card_sets
+card_images
+card_prices
+card_price_history
+card_banlist
+card_typelines
+card_linkmarkers
 ```
 
-No uses `reset_schema.sql` salvo que quieras borrar tablas y datos.
+No uses `reset_schema.sql` salvo que quieras borrar tablas y datos para reconstruir desde cero.
 
 ## 3. Probar el ETL sin escribir en MySQL
 
@@ -152,22 +154,7 @@ SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/an
 
 Power BI se conecta a MySQL y consume preferentemente vistas.
 
-## Tablas principales
-
-- `cards`
-- `sets`
-- `rarities`
-- `card_sets`
-- `card_images`
-- `card_prices`
-- `card_price_history`
-- `card_banlist`
-- `card_typelines`
-- `card_linkmarkers`
-
 ## Orden rapido
-
-Base nueva:
 
 ```text
 1. Crear yugioh_db
@@ -175,15 +162,7 @@ Base nueva:
 3. python -m src.etl.run_etl --dry-run
 4. python -m src.etl.run_etl
 5. SOURCE sql/queries/01_data_quality.sql
-```
-
-Base existente:
-
-```text
-1. SOURCE sql/migrations/001_add_market_dimensions_and_price_history.sql
-2. python -m src.etl.run_etl --dry-run
-3. python -m src.etl.run_etl
-4. SOURCE sql/queries/01_data_quality.sql
+6. Crear consultas/vistas en sql/analysis/
 ```
 
 ## Documentacion

@@ -67,16 +67,10 @@ El archivo valida:
 
 ## Cambios futuros
 
-`schema.sql` crea la estructura inicial, pero no modifica tablas existentes.
+`schema.sql` contiene el esquema completo vigente para construir la base desde cero.
 
-Si se cambia el modelo, conviene crear migraciones:
+Si en el futuro se cambia el modelo sobre una base ya en uso, crear una migracion incremental en:
 
 ```text
 sql/migrations/001_add_column_example.sql
-```
-
-La migracion actual para historico de precios, sets y rarezas es:
-
-```text
-sql/migrations/001_add_market_dimensions_and_price_history.sql
 ```
