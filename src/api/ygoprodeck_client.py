@@ -29,17 +29,12 @@ def fetch_cardinfo():
 
 def save_raw_payload(payload):
     RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    raw_path = RAW_DATA_DIR / f"cardinfo_{timestamp}.json"
-
-    with raw_path.open("w", encoding="utf-8") as file:
-        json.dump(payload, file, ensure_ascii=False, indent=2)
-
     latest_path = RAW_DATA_DIR / "cardinfo_latest.json"
+
     with latest_path.open("w", encoding="utf-8") as file:
         json.dump(payload, file, ensure_ascii=False, indent=2)
 
-    return raw_path
+    return latest_path
 
 
 def load_raw_payload(raw_path):

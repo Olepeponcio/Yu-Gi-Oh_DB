@@ -2,11 +2,13 @@
 
 ## Objetivo
 
-Ejecutar el flujo completo:
+Ejecutar el flujo completo de datos:
 
 ```text
 API YGOPRODeck -> JSON raw local -> transformacion Python -> MySQL
 ```
+
+El ETL no crea el esquema. `sql/schema.sql` no es generado por Python: es el modelo SQL definido en el proyecto. Las tablas deben existir previamente en MySQL mediante ese script.
 
 ## Punto de entrada
 
@@ -18,8 +20,11 @@ src/etl/run_etl.py
 
 - `src/api/ygoprodeck_client.py`: extrae datos desde la API y guarda el JSON original.
 - `src/etl/transform.py`: normaliza datos por tabla SQL.
-- `src/etl/load.py`: carga datos en MySQL.
+- `src/etl/load.py`: inserta o actualiza datos en MySQL.
 - `src/etl/run_etl.py`: coordina extraccion, transformacion y carga.
+- `sql/schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
+
+El ETL depende del modelo definido en `sql/schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform.py` y `src/etl/load.py`.
 
 ## Datos raw
 
@@ -27,9 +32,10 @@ Los datos originales se guardan en:
 
 ```text
 data/raw/
-├── cardinfo_YYYYMMDD_HHMMSS.json
 └── cardinfo_latest.json
 ```
+
+`cardinfo_latest.json` se sobrescribe en cada ejecucion del ETL. No se conservan snapshots raw historicos porque el historico analitico relevante se almacena en MySQL, especialmente en `card_price_history`.
 
 El JSON raw incluye:
 
@@ -39,6 +45,13 @@ El JSON raw incluye:
 - `data`: lista original de cartas.
 
 ## Ejecucion
+
+Crear tablas antes de la primera carga:
+
+```sql
+USE yugioh_db;
+SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+```
 
 Prueba sin cargar MySQL:
 
@@ -52,6 +65,8 @@ Carga completa:
 python -m src.etl.run_etl
 ```
 
+Este comando es tambien el flujo normal de actualizacion.
+
 Reproducir desde JSON local:
 
 ```powershell
@@ -61,9 +76,19 @@ python -m src.etl.run_etl --source file --raw-path data/raw/cardinfo_latest.json
 ## Tablas cargadas
 
 - `cards`
+- `sets`
+- `rarities`
 - `card_sets`
 - `card_images`
 - `card_prices`
+- `card_price_history`
 - `card_banlist`
 - `card_typelines`
 - `card_linkmarkers`
+
+## Criterio de escritura
+
+- `cards`, `card_images`, `card_prices` y `card_banlist` usan insercion/actualizacion idempotente.
+- `sets` y `rarities` se actualizan como dimensiones de mercado.
+- `card_price_history` guarda una foto historica de precios por cada ejecucion real.
+- `card_sets`, `card_typelines` y `card_linkmarkers` se eliminan y recargan por carta para evitar registros obsoletos.

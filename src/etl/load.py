@@ -19,10 +19,13 @@ def load_all_tables(tables):
 
         affected = {
             "cards": load_cards(cursor, tables["cards"]),
+            "sets": load_sets(cursor, tables["sets"]),
+            "rarities": load_rarities(cursor, tables["rarities"]),
             "deleted_child_rows": delete_replaceable_child_rows(cursor, card_ids),
             "card_sets": insert_many(cursor, card_sets_sql(), tables["card_sets"]),
             "card_images": load_card_images(cursor, tables["card_images"]),
             "card_prices": load_card_prices(cursor, tables["card_prices"]),
+            "card_price_history": load_card_price_history(cursor, tables["card_price_history"]),
             "card_banlist": load_card_banlist(cursor, tables["card_banlist"]),
             "card_typelines": insert_many(cursor, card_typelines_sql(), tables["card_typelines"]),
             "card_linkmarkers": insert_many(cursor, card_linkmarkers_sql(), tables["card_linkmarkers"]),
@@ -78,12 +81,24 @@ def load_cards(cursor, cards):
     return insert_many(cursor, cards_sql(), cards)
 
 
+def load_sets(cursor, sets):
+    return insert_many(cursor, sets_sql(), sets)
+
+
+def load_rarities(cursor, rarities):
+    return insert_many(cursor, rarities_sql(), rarities)
+
+
 def load_card_images(cursor, card_images):
     return insert_many(cursor, card_images_sql(), card_images)
 
 
 def load_card_prices(cursor, card_prices):
     return insert_many(cursor, card_prices_sql(), card_prices)
+
+
+def load_card_price_history(cursor, card_price_history):
+    return insert_many(cursor, card_price_history_sql(), card_price_history)
 
 
 def load_card_banlist(cursor, card_banlist):
@@ -153,6 +168,8 @@ def card_sets_sql():
     return """
         INSERT INTO card_sets (
             card_id,
+            set_id,
+            rarity_id,
             set_name,
             set_code,
             set_rarity,
@@ -160,12 +177,46 @@ def card_sets_sql():
             set_price
         ) VALUES (
             %(card_id)s,
+            (SELECT id FROM sets WHERE set_name = %(set_name)s),
+            (
+                SELECT id
+                FROM rarities
+                WHERE rarity_name = %(set_rarity)s
+                    AND rarity_code = COALESCE(%(set_rarity_code)s, '')
+            ),
             %(set_name)s,
             %(set_code)s,
             %(set_rarity)s,
             %(set_rarity_code)s,
             %(set_price)s
         )
+    """
+
+
+def sets_sql():
+    return """
+        INSERT INTO sets (
+            set_name
+        ) VALUES (
+            %(set_name)s
+        )
+        ON DUPLICATE KEY UPDATE
+            set_name = VALUES(set_name)
+    """
+
+
+def rarities_sql():
+    return """
+        INSERT INTO rarities (
+            rarity_name,
+            rarity_code
+        ) VALUES (
+            %(rarity_name)s,
+            %(rarity_code)s
+        )
+        ON DUPLICATE KEY UPDATE
+            rarity_name = VALUES(rarity_name),
+            rarity_code = VALUES(rarity_code)
     """
 
 
@@ -203,6 +254,34 @@ def card_prices_sql():
             coolstuffinc_price
         ) VALUES (
             %(card_id)s,
+            %(cardmarket_price)s,
+            %(tcgplayer_price)s,
+            %(ebay_price)s,
+            %(amazon_price)s,
+            %(coolstuffinc_price)s
+        )
+        ON DUPLICATE KEY UPDATE
+            cardmarket_price = VALUES(cardmarket_price),
+            tcgplayer_price = VALUES(tcgplayer_price),
+            ebay_price = VALUES(ebay_price),
+            amazon_price = VALUES(amazon_price),
+            coolstuffinc_price = VALUES(coolstuffinc_price)
+    """
+
+
+def card_price_history_sql():
+    return """
+        INSERT INTO card_price_history (
+            card_id,
+            snapshot_at,
+            cardmarket_price,
+            tcgplayer_price,
+            ebay_price,
+            amazon_price,
+            coolstuffinc_price
+        ) VALUES (
+            %(card_id)s,
+            %(snapshot_at)s,
             %(cardmarket_price)s,
             %(tcgplayer_price)s,
             %(ebay_price)s,

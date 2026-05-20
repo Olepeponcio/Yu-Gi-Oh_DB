@@ -23,6 +23,26 @@ Campos clave:
 
 ## Tablas hijas
 
+### `sets`
+
+Catalogo unico de sets detectados desde `card_sets`.
+
+Relacion:
+
+```text
+sets.id -> card_sets.set_id
+```
+
+### `rarities`
+
+Catalogo unico de rarezas detectadas desde `card_sets`.
+
+Relacion:
+
+```text
+rarities.id -> card_sets.rarity_id
+```
+
 ### `card_sets`
 
 Apariciones de cartas en productos o sets.
@@ -31,6 +51,8 @@ Relacion:
 
 ```text
 cards.id -> card_sets.card_id
+sets.id -> card_sets.set_id
+rarities.id -> card_sets.rarity_id
 ```
 
 ### `card_images`
@@ -51,6 +73,16 @@ Relacion 1:1:
 
 ```text
 cards.id -> card_prices.card_id
+```
+
+### `card_price_history`
+
+Historico de precios por ejecucion del ETL.
+
+Relacion:
+
+```text
+cards.id -> card_price_history.card_id
 ```
 
 ### `card_banlist`
@@ -86,5 +118,8 @@ cards.id -> card_linkmarkers.card_id
 ## Criterio de carga
 
 - `cards`, `card_images`, `card_prices` y `card_banlist` se cargan de forma idempotente.
+- `sets` y `rarities` se cargan de forma idempotente como dimensiones.
+- `card_price_history` inserta una foto de precios por ejecucion del ETL.
 - `card_sets`, `card_typelines` y `card_linkmarkers` se refrescan por carta para evitar acumulacion de datos obsoletos.
-- Las claves foraneas usan `ON DELETE CASCADE`.
+- Las claves foraneas hacia `cards` usan `ON DELETE CASCADE`.
+- Las dimensiones `sets` y `rarities` usan `ON DELETE SET NULL` desde `card_sets`.

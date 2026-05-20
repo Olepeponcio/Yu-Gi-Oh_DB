@@ -1,4 +1,5 @@
 import argparse
+from datetime import datetime
 
 from src.api.ygoprodeck_client import fetch_cardinfo, load_raw_payload, save_raw_payload
 from src.etl.load import load_all_tables
@@ -49,9 +50,12 @@ def get_payload(args):
 
 def print_table_counts(tables):
     print(f"cards: {len(tables['cards'])}")
+    print(f"sets: {len(tables['sets'])}")
+    print(f"rarities: {len(tables['rarities'])}")
     print(f"card_sets: {len(tables['card_sets'])}")
     print(f"card_images: {len(tables['card_images'])}")
     print(f"card_prices: {len(tables['card_prices'])}")
+    print(f"card_price_history: {len(tables['card_price_history'])}")
     print(f"card_banlist: {len(tables['card_banlist'])}")
     print(f"card_typelines: {len(tables['card_typelines'])}")
     print(f"card_linkmarkers: {len(tables['card_linkmarkers'])}")
@@ -62,11 +66,13 @@ def main():
     payload, raw_path = get_payload(args)
     raw_cards = payload["data"]
     metadata = payload.get("metadata", {})
-    tables = transform_cards(raw_cards)
+    snapshot_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    tables = transform_cards(raw_cards, snapshot_at=snapshot_at)
 
     print(f"Fuente: {metadata.get('source', 'raw file')}")
     print(f"Fecha de ingesta raw: {metadata.get('ingested_at', 'no disponible')}")
     print(f"Ultima actualizacion fuente: {metadata.get('source_last_updated') or 'no disponible'}")
+    print(f"Snapshot de precios: {snapshot_at}")
     if raw_path is not None:
         print(f"JSON raw guardado: {raw_path}")
 

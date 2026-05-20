@@ -2,6 +2,10 @@
 
 ## Crear estructura
 
+El esquema se crea desde MySQL ejecutando el script del proyecto. Este paso enlaza la base de datos local con las tablas definidas en el repositorio.
+
+`schema.sql` no lo genera el programa Python. Primero se disena el modelo SQL, despues se crean las tablas en MySQL y finalmente el ETL carga datos en esa estructura.
+
 Uso normal:
 
 ```sql
@@ -9,7 +13,7 @@ USE yugioh_db;
 SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
 ```
 
-`schema.sql` usa `CREATE TABLE IF NOT EXISTS`, por tanto puede ejecutarse varias veces sin borrar datos.
+`schema.sql` usa `CREATE TABLE IF NOT EXISTS`, por tanto puede ejecutarse varias veces sin borrar datos. El programa Python actual no crea automaticamente las tablas.
 
 Comprobacion basica:
 
@@ -17,6 +21,18 @@ Comprobacion basica:
 SHOW TABLES;
 DESCRIBE cards;
 ```
+
+## Cargar datos
+
+Despues de crear las tablas, los datos se empujan desde Python:
+
+```powershell
+python -m src.etl.run_etl
+```
+
+Ese comando extrae datos desde YGOPRODeck, guarda el JSON raw, transforma la informacion y la inserta/actualiza en MySQL.
+
+Si se modifica el esquema, hay que validar que la transformacion y la carga Python sigan coincidiendo con las columnas reales de MySQL.
 
 ## Reiniciar estructura
 
@@ -57,4 +73,10 @@ Si se cambia el modelo, conviene crear migraciones:
 
 ```text
 sql/migrations/001_add_column_example.sql
+```
+
+La migracion actual para historico de precios, sets y rarezas es:
+
+```text
+sql/migrations/001_add_market_dimensions_and_price_history.sql
 ```

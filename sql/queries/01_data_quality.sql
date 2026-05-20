@@ -7,11 +7,17 @@ USE yugioh_db;
 -- 1. Conteo total por tabla.
 SELECT 'cards' AS table_name, COUNT(*) AS row_count FROM cards
 UNION ALL
+SELECT 'sets', COUNT(*) FROM sets
+UNION ALL
+SELECT 'rarities', COUNT(*) FROM rarities
+UNION ALL
 SELECT 'card_sets', COUNT(*) FROM card_sets
 UNION ALL
 SELECT 'card_images', COUNT(*) FROM card_images
 UNION ALL
 SELECT 'card_prices', COUNT(*) FROM card_prices
+UNION ALL
+SELECT 'card_price_history', COUNT(*) FROM card_price_history
 UNION ALL
 SELECT 'card_banlist', COUNT(*) FROM card_banlist
 UNION ALL
@@ -52,6 +58,11 @@ UNION ALL
 SELECT 'card_prices', COUNT(*)
 FROM card_prices cp
 LEFT JOIN cards c ON c.id = cp.card_id
+WHERE c.id IS NULL
+UNION ALL
+SELECT 'card_price_history', COUNT(*)
+FROM card_price_history cph
+LEFT JOIN cards c ON c.id = cph.card_id
 WHERE c.id IS NULL
 UNION ALL
 SELECT 'card_banlist', COUNT(*)
@@ -122,7 +133,25 @@ WHERE cardmarket_price < 0
    OR amazon_price < 0
    OR coolstuffinc_price < 0;
 
--- 10. Posiciones duplicadas en listas normalizadas.
+-- 10. Referencias de sets y rarezas no resueltas.
+SELECT
+    COUNT(*) AS card_sets_without_set_id
+FROM card_sets
+WHERE set_id IS NULL;
+
+SELECT
+    COUNT(*) AS card_sets_with_rarity_text_without_rarity_id
+FROM card_sets
+WHERE set_rarity IS NOT NULL
+  AND rarity_id IS NULL;
+
+-- 11. Snapshots de precios sin fecha.
+SELECT
+    COUNT(*) AS price_history_without_snapshot
+FROM card_price_history
+WHERE snapshot_at IS NULL;
+
+-- 12. Posiciones duplicadas en listas normalizadas.
 SELECT
     'card_typelines' AS table_name,
     card_id,
