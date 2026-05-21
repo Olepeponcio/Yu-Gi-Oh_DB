@@ -5,9 +5,10 @@ Indice del marco tecnico del proyecto. El README raiz contiene la guia operativa
 ## Flujo documentado
 
 ```text
-MySQL ejecuta sql/schema.sql -> crea tablas
+MySQL ejecuta sql/main_schema.sql -> crea tablas
 Python ejecuta python -m src.etl.run_etl -> descarga, transforma y carga datos
-Power BI / SQL -> consumen la base resultante
+SQL crea views analiticas sobre las tablas base
+Power BI consume MySQL views o CSV locales como snapshots
 ```
 
 ## Documentos
@@ -16,17 +17,21 @@ Power BI / SQL -> consumen la base resultante
 - `analytic_objective.md`: objetivo de negocio, preguntas analiticas y marco Power BI.
 - `data_model.md`: tablas, relaciones, claves y criterio de carga.
 - `etl_flow.md`: flujo API -> JSON raw -> transformacion Python -> MySQL.
-- `sql_usage.md`: creacion del esquema, reinicio y consultas de validacion.
+- `sql_usage.md`: creacion del esquema, reinicio y uso analitico.
 
 ## Criterio de organizacion
 
 - `README.md` en raiz: comandos principales y estado actual.
 - `docs/`: marco tecnico reutilizable.
 - `sql/`: scripts ejecutables en MySQL.
-- `sql/analysis/`: vistas y consultas de la fase analitica.
-- `src/`: codigo Python del ETL.
+- `sql/analysis/`: views oficiales, consultas exploratorias y CSV locales.
+- `src/`: codigo Python del ETL y utilidades auxiliares.
 - `data/raw/`: copias JSON descargadas desde la API.
+
+## Utilidades no principales
+
+`src/csv_sql_scripts/` queda aislado del flujo principal. Sirve para una escalada futura: recuperar CSV analiticos como scripts SQL de staging/view sin ejecutar nada contra MySQL.
 
 ## Nota sobre migraciones
 
-`sql/schema.sql` representa el esquema completo vigente para construir la base desde cero y `sql/reset_schema.sql` reconstruye la base de forma destructiva. `sql/migrations/` queda reservado para futuras escaladas incrementales del modelo.
+`sql/main_schema.sql` representa el esquema principal vigente para construir la base desde cero y `sql/reset_main_schema.sql` reconstruye la base de forma destructiva. `sql/migrations/` queda reservado para futuras escaladas incrementales del modelo.

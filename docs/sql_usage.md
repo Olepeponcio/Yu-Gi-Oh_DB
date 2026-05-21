@@ -4,16 +4,16 @@
 
 El esquema se crea desde MySQL ejecutando el script del proyecto. Este paso enlaza la base de datos local con las tablas definidas en el repositorio.
 
-`schema.sql` no lo genera el programa Python. Primero se disena el modelo SQL, despues se crean las tablas en MySQL y finalmente el ETL carga datos en esa estructura.
+`main_schema.sql` no lo genera el programa Python. Primero se disena el modelo SQL, despues se crean las tablas en MySQL y finalmente el ETL carga datos en esa estructura.
 
 Uso normal:
 
 ```sql
 USE yugioh_db;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 ```
 
-`schema.sql` usa `CREATE TABLE IF NOT EXISTS`, por tanto puede ejecutarse varias veces sin borrar datos. El programa Python actual no crea automaticamente las tablas.
+`main_schema.sql` usa `CREATE TABLE IF NOT EXISTS`, por tanto puede ejecutarse varias veces sin borrar datos. El programa Python actual no crea automaticamente las tablas.
 
 Comprobacion basica:
 
@@ -40,34 +40,44 @@ Uso destructivo:
 
 ```sql
 USE yugioh_db;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/reset_schema.sql;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/reset_main_schema.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 ```
 
-`reset_schema.sql` borra tablas y datos. Solo debe usarse cuando se quiera reconstruir la base desde cero.
+`reset_main_schema.sql` borra tablas y datos. Solo debe usarse cuando se quiera reconstruir la base desde cero.
 
-## Consultas de calidad
+## Power BI y analisis
 
-Ejecutar:
+La fuente principal para Power BI deben ser las views de MySQL definidas en:
 
-```sql
-USE yugioh_db;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/queries/01_data_quality.sql;
+```text
+sql/analysis/views/
 ```
 
-El archivo valida:
+Estas views conservan la logica SQL sobre las tablas base.
 
-- conteos por tabla,
-- campos obligatorios vacios,
-- duplicados logicos,
-- filas huerfanas,
-- cartas sin imagen o precios,
-- precios invalidos,
-- posiciones duplicadas en listas normalizadas.
+Los CSV de `sql/analysis/CSV/` son snapshots locales de resultados exportados. Power BI puede leerlos como tablas independientes, pero no contienen la logica original de joins, filtros o agrupaciones.
+
+## Utilidad auxiliar desde CSV
+
+`src.csv_sql_scripts` no forma parte del flujo principal. Puede usarse en el futuro para generar scripts SQL de recuperacion desde CSV:
+
+```powershell
+python -m src.csv_sql_scripts --dry-run
+python -m src.csv_sql_scripts
+```
+
+El comando escribe en:
+
+```text
+sql/generated/from_csv/
+```
+
+No ejecuta SQL ni usa credenciales.
 
 ## Cambios futuros
 
-`schema.sql` contiene el esquema completo vigente para construir la base desde cero.
+`main_schema.sql` contiene el esquema completo vigente para construir la base desde cero.
 
 Si en el futuro se cambia el modelo sobre una base ya en uso, crear una migracion incremental en:
 

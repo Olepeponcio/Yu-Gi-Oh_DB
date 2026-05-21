@@ -8,7 +8,7 @@ Ejecutar el flujo completo de datos:
 API YGOPRODeck -> JSON raw local -> transformacion Python -> MySQL
 ```
 
-El ETL no crea el esquema. `sql/schema.sql` no es generado por Python: es el modelo SQL definido en el proyecto. Las tablas deben existir previamente en MySQL mediante ese script.
+El ETL no crea el esquema. `sql/main_schema.sql` no es generado por Python: es el modelo SQL definido en el proyecto. Las tablas deben existir previamente en MySQL mediante ese script.
 
 ## Punto de entrada
 
@@ -22,9 +22,9 @@ src/etl/run_etl.py
 - `src/etl/transform.py`: normaliza datos por tabla SQL.
 - `src/etl/load.py`: inserta o actualiza datos en MySQL.
 - `src/etl/run_etl.py`: coordina extraccion, transformacion y carga.
-- `sql/schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
+- `sql/main_schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
 
-El ETL depende del modelo definido en `sql/schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform.py` y `src/etl/load.py`.
+El ETL depende del modelo definido en `sql/main_schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform.py` y `src/etl/load.py`.
 
 ## Datos raw
 
@@ -50,7 +50,7 @@ Crear tablas antes de la primera carga:
 
 ```sql
 USE yugioh_db;
-SOURCE C:/Users/PEPIN/D_JOSE/DESAROLLO/Proyectos/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 ```
 
 Prueba sin cargar MySQL:
