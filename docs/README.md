@@ -6,7 +6,7 @@ Indice del marco tecnico del proyecto. El README raiz contiene la guia operativa
 
 ```text
 MySQL ejecuta sql/main_schema.sql -> crea tablas
-Python ejecuta python -m src.etl.run_etl -> descarga, transforma y carga datos
+Python ejecuta python -m src.etl -> descarga, transforma y carga datos
 SQL crea views analiticas sobre las tablas base
 Power BI consume MySQL views o CSV locales como snapshots
 ```

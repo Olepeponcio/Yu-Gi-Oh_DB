@@ -45,6 +45,16 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 - Archivo `.env` con credenciales MySQL.
 - Power BI para la fase de dashboard.
 
+## 0. Preparar entorno Python
+
+Desde PowerShell, en la raiz del proyecto:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
+```
+
 ## 1. Configurar conexion
 
 Crear `.env` a partir de `.env.example`:
@@ -98,13 +108,19 @@ No uses `reset_main_schema.sql` salvo que quieras borrar tablas y datos para rec
 Desde la raiz del proyecto:
 
 ```powershell
-python -m src.etl.run_etl --dry-run
+python -m src.etl --dry-run
 ```
 
 Con JSON local:
 
 ```powershell
-python -m src.etl.run_etl --source file --raw-path data/raw/cardinfo_latest.json --dry-run
+python -m src.etl --source file --raw-path data/raw/cardinfo_latest.json --dry-run
+```
+
+Ejecutar tests del ETL:
+
+```powershell
+python -m unittest discover
 ```
 
 ## 4. Cargar o actualizar datos
@@ -112,7 +128,7 @@ python -m src.etl.run_etl --source file --raw-path data/raw/cardinfo_latest.json
 Ejecutar ingesta completa:
 
 ```powershell
-python -m src.etl.run_etl
+python -m src.etl
 ```
 
 Este comando:
@@ -167,8 +183,8 @@ Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
 ```text
 1. Crear yugioh_db
 2. SOURCE sql/main_schema.sql
-3. python -m src.etl.run_etl --dry-run
-4. python -m src.etl.run_etl
+3. python -m src.etl --dry-run
+4. python -m src.etl
 5. Crear o ejecutar views oficiales desde sql/analysis/views/
 6. Conectar Power BI a MySQL views o a CSV locales si se necesita snapshot
 ```

@@ -27,7 +27,7 @@ DESCRIBE cards;
 Despues de crear las tablas, los datos se empujan desde Python:
 
 ```powershell
-python -m src.etl.run_etl
+python -m src.etl
 ```
 
 Ese comando extrae datos desde YGOPRODeck, guarda el JSON raw, transforma la informacion y la inserta/actualiza en MySQL.

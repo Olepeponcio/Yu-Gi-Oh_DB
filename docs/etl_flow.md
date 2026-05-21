@@ -13,15 +13,18 @@ El ETL no crea el esquema. `sql/main_schema.sql` no es generado por Python: es e
 ## Punto de entrada
 
 ```text
-src/etl/run_etl.py
+src/etl/main.py
 ```
 
 ## Responsabilidades
 
 - `src/api/ygoprodeck_client.py`: extrae datos desde la API y guarda el JSON original.
+- `src/etl/cli.py`: define argumentos de consola.
+- `src/etl/main.py`: punto de entrada del paquete ETL.
+- `src/etl/pipeline.py`: coordina extraccion, transformacion y carga.
+- `src/etl/reporting.py`: muestra resumen de ejecucion.
 - `src/etl/transform.py`: normaliza datos por tabla SQL.
 - `src/etl/load.py`: inserta o actualiza datos en MySQL.
-- `src/etl/run_etl.py`: coordina extraccion, transformacion y carga.
 - `sql/main_schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
 
 El ETL depende del modelo definido en `sql/main_schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform.py` y `src/etl/load.py`.
@@ -56,13 +59,13 @@ SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 Prueba sin cargar MySQL:
 
 ```powershell
-python -m src.etl.run_etl --dry-run
+python -m src.etl --dry-run
 ```
 
 Carga completa:
 
 ```powershell
-python -m src.etl.run_etl
+python -m src.etl
 ```
 
 Este comando es tambien el flujo normal de actualizacion.
@@ -70,7 +73,7 @@ Este comando es tambien el flujo normal de actualizacion.
 Reproducir desde JSON local:
 
 ```powershell
-python -m src.etl.run_etl --source file --raw-path data/raw/cardinfo_latest.json
+python -m src.etl --source file --raw-path data/raw/cardinfo_latest.json
 ```
 
 ## Tablas cargadas
