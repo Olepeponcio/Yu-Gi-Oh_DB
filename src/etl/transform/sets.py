@@ -41,10 +41,11 @@ def normalize_rarities(raw_card):
             continue
 
         rarity = {
+            "set_code": raw_set.get("set_code"),
             "rarity_name": raw_set.get("set_rarity"),
             "rarity_code": raw_set.get("set_rarity_code") or "",
         }
-        validate_required(rarity, ("rarity_name",), "Rarity")
+        validate_required(rarity, ("set_code", "rarity_name"), "Rarity")
         rarities.append(rarity)
 
     return rarities

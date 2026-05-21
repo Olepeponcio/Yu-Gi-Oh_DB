@@ -2,6 +2,7 @@ from argparse import Namespace
 import unittest
 from unittest.mock import patch
 
+from src.etl.load import rarities_sql
 from src.etl.pipeline import get_payload, run_pipeline
 
 
@@ -106,6 +107,15 @@ class RunPipelineTest(unittest.TestCase):
         save_run_report.assert_called_once()
         self.assertFalse(save_run_report.call_args.kwargs["dry_run"])
         self.assertEqual(save_run_report.call_args.kwargs["affected"], affected)
+
+
+class LoadSqlTest(unittest.TestCase):
+    def test_rarities_sql_uses_set_code_not_card_id(self):
+        sql = rarities_sql()
+
+        self.assertIn("set_code", sql)
+        self.assertIn("%(set_code)s", sql)
+        self.assertNotIn("%(card_id)s", sql)
 
 
 if __name__ == "__main__":

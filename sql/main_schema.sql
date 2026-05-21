@@ -44,12 +44,14 @@ CREATE TABLE IF NOT EXISTS sets (
 
 CREATE TABLE IF NOT EXISTS rarities (
     id INT NOT NULL AUTO_INCREMENT,
+    set_code VARCHAR(100) NOT NULL,
     rarity_name VARCHAR(100) NOT NULL,
     rarity_code VARCHAR(50) NOT NULL DEFAULT '',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (id),
-    UNIQUE KEY uq_rarities_name_code (rarity_name, rarity_code)
+    INDEX idx_rarities_set_code (set_code),
+    UNIQUE KEY uq_rarities_set_code_name_code (set_code, rarity_name, rarity_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS card_sets (

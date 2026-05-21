@@ -35,12 +35,13 @@ sets.id -> card_sets.set_id
 
 ### `rarities`
 
-Catalogo unico de rarezas detectadas desde `card_sets`.
+Catalogo de rarezas por codigo de impresion detectadas desde `card_sets`.
 
 Relacion:
 
 ```text
 rarities.id -> card_sets.rarity_id
+rarities.set_code -> card_sets.set_code
 ```
 
 ### `card_sets`

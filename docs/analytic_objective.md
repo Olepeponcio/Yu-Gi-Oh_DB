@@ -63,7 +63,7 @@ Mantienen la informacion estructural de la API:
 Permiten analizar productos y valor percibido:
 
 - `sets`: catalogo unico de sets.
-- `rarities`: catalogo unico de rarezas.
+- `rarities`: catalogo de rarezas por codigo de impresion.
 
 `card_sets` conserva los textos originales y anade referencias a estas dimensiones mediante `set_id` y `rarity_id`.
 

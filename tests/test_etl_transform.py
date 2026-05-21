@@ -79,7 +79,9 @@ class TransformCardsTest(unittest.TestCase):
 
         self.assertEqual(len(tables["cards"]), 2)
         self.assertEqual(len(tables["sets"]), 1)
-        self.assertEqual(len(tables["rarities"]), 1)
+        self.assertEqual(len(tables["rarities"]), 2)
+        self.assertEqual(tables["rarities"][0]["set_code"], "SET-1")
+        self.assertNotIn("card_id", tables["rarities"][0])
         self.assertEqual(len(tables["card_sets"]), 2)
         self.assertEqual(len(tables["card_images"]), 2)
         self.assertEqual(len(tables["card_prices"]), 2)

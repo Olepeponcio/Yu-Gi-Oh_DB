@@ -4,6 +4,7 @@ from pathlib import Path
 
 REPORTING_DIR = Path("data/reporting")
 REPORT_FILENAME_PREFIX = "etl_report"
+MAX_REPORT_FILES = 10
 
 
 def save_run_report(
@@ -21,11 +22,28 @@ def save_run_report(
 
     report_path = build_report_path(created_at, report_dir)
     report_path.parent.mkdir(parents=True, exist_ok=True)
+    rotate_report_files(report_path.parent)
     report_path.write_text(
         build_report_text(metadata, snapshot_at, raw_path, tables, dry_run, affected, created_at),
         encoding="utf-8",
     )
     return report_path
+
+
+def rotate_report_files(report_dir=REPORTING_DIR, max_files=MAX_REPORT_FILES):
+    report_dir = Path(report_dir)
+    reports = sorted(report_dir.glob(f"{REPORT_FILENAME_PREFIX}_*.txt"))
+    files_to_delete = len(reports) - max_files + 1
+
+    if files_to_delete <= 0:
+        return []
+
+    deleted = []
+    for report_path in reports[:files_to_delete]:
+        report_path.unlink()
+        deleted.append(report_path)
+
+    return deleted
 
 
 def build_report_path(created_at, report_dir=REPORTING_DIR):

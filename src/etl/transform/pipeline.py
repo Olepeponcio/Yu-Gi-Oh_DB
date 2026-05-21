@@ -44,6 +44,6 @@ def transform_cards(raw_cards, snapshot_at=None):
         tables["card_linkmarkers"].extend(normalize_card_linkmarkers(raw_card))
 
     tables["sets"] = deduplicate_rows(tables["sets"], ("set_name",))
-    tables["rarities"] = deduplicate_rows(tables["rarities"], ("rarity_name", "rarity_code"))
+    tables["rarities"] = deduplicate_rows(tables["rarities"], ("set_code", "rarity_name", "rarity_code"))
 
     return tables

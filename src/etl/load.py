@@ -1,6 +1,5 @@
 from src.database.connection import get_connection
 
-
 CHUNK_SIZE = 1000
 
 
@@ -25,10 +24,16 @@ def load_all_tables(tables):
             "card_sets": insert_many(cursor, card_sets_sql(), tables["card_sets"]),
             "card_images": load_card_images(cursor, tables["card_images"]),
             "card_prices": load_card_prices(cursor, tables["card_prices"]),
-            "card_price_history": load_card_price_history(cursor, tables["card_price_history"]),
+            "card_price_history": load_card_price_history(
+                cursor, tables["card_price_history"]
+            ),
             "card_banlist": load_card_banlist(cursor, tables["card_banlist"]),
-            "card_typelines": insert_many(cursor, card_typelines_sql(), tables["card_typelines"]),
-            "card_linkmarkers": insert_many(cursor, card_linkmarkers_sql(), tables["card_linkmarkers"]),
+            "card_typelines": insert_many(
+                cursor, card_typelines_sql(), tables["card_typelines"]
+            ),
+            "card_linkmarkers": insert_many(
+                cursor, card_linkmarkers_sql(), tables["card_linkmarkers"]
+            ),
         }
 
         connection.commit()
@@ -59,7 +64,9 @@ def delete_replaceable_child_rows(cursor, card_ids):
     for table in tables:
         for ids in chunked(card_ids):
             placeholders = ", ".join(["%s"] * len(ids))
-            cursor.execute(f"DELETE FROM {table} WHERE card_id IN ({placeholders})", ids)
+            cursor.execute(
+                f"DELETE FROM {table} WHERE card_id IN ({placeholders})", ids
+            )
             total_deleted += cursor.rowcount
 
     return total_deleted
@@ -181,7 +188,8 @@ def card_sets_sql():
             (
                 SELECT id
                 FROM rarities
-                WHERE rarity_name = %(set_rarity)s
+                WHERE set_code = %(set_code)s
+                    AND rarity_name = %(set_rarity)s
                     AND rarity_code = COALESCE(%(set_rarity_code)s, '')
             ),
             %(set_name)s,
@@ -208,13 +216,16 @@ def sets_sql():
 def rarities_sql():
     return """
         INSERT INTO rarities (
+            set_code,
             rarity_name,
             rarity_code
         ) VALUES (
+            %(set_code)s,
             %(rarity_name)s,
             %(rarity_code)s
         )
         ON DUPLICATE KEY UPDATE
+            set_code = VALUES(set_code),
             rarity_name = VALUES(rarity_name),
             rarity_code = VALUES(rarity_code)
     """
