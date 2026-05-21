@@ -2,8 +2,10 @@ CREATE OR REPLACE VIEW vw_price_outliers AS
 SELECT
     c.card_id,
     c.name,
+    cs.set_code,
     cs.set_name,
     r.rarity_name,
+    r.rarity_code,
     cs.set_price
 FROM card_sets cs
 INNER JOIN cards c

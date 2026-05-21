@@ -6,6 +6,7 @@ SELECT
     c.archetype,
     COUNT(DISTINCT c.card_id) AS total_cards,
     COUNT(cs.id) AS total_printings,
+    COUNT(DISTINCT cs.set_code) AS total_set_codes,
     ROUND(AVG(cs.set_price), 2) AS avg_set_price,
     ROUND(MAX(cs.set_price), 2) AS max_set_price,
     ROUND(SUM(cs.set_price), 2) AS estimated_market_weight
