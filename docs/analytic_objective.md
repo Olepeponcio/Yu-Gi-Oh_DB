@@ -4,7 +4,7 @@
 
 La practica simula una empresa contratada por Konami para analizar el mercado de cartas coleccionables de Yu-Gi-Oh.
 
-La finalidad de negocio es apoyar decisiones sobre venta de cartas, packs y sobres. El analisis debe ayudar a entender que factores pueden impulsar el interes del publico objetivo, el ticket medio, la diversificacion de compra y la venta cruzada.
+La finalidad de negocio es apoyar decisiones sobre venta de cartas, packs y sobres. El analisis debe ayudar a entender que factores pueden impulsar el interes del publico objetivo, el ticket medio, la diversificacion de compra.
 
 ## Premisa de negocio
 

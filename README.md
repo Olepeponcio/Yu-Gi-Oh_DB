@@ -50,11 +50,11 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 Crear `.env` a partir de `.env.example`:
 
 ```env
-MYSQL_HOST=localhost
-MYSQL_PORT=3306
-MYSQL_USER=tu_usuario
-MYSQL_PASSWORD=tu_password
-MYSQL_DATABASE=yugioh_db
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=yugioh_db
+DB_USER=tu_usuario
+DB_PASSWORD=tu_password
 ```
 
 `localhost` es el servidor MySQL local. Python se conecta a MySQL solo cuando ejecuta la carga.
