@@ -19,6 +19,7 @@ data/*.xlsx
 data/**/*.json
 data/**/*.csv
 data/**/*.xlsx
+data/reporting/*.txt
 sql/analysis/CSV/
 sql/generated/from_csv/
 

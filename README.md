@@ -139,6 +139,13 @@ actualiza data/raw/cardinfo_latest.json
 normaliza cartas, sets, rarezas, precios, banlist e imagenes
 actualiza tablas base en MySQL
 inserta snapshot historico en card_price_history
+guarda un reporte .txt en data/reporting/
+```
+
+Los reportes se nombran con formato ordenable por fecha:
+
+```text
+data/reporting/etl_report_YYYYMMDD_HHMMSS.txt
 ```
 
 Para actualizar la DB, se vuelve a ejecutar el mismo comando.

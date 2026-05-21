@@ -2,6 +2,7 @@ from datetime import datetime
 
 from src.api.ygoprodeck_client import fetch_cardinfo, load_raw_payload, save_raw_payload
 from src.etl.load import load_all_tables
+from src.etl.report_file import save_run_report
 from src.etl.reporting import print_load_summary, print_run_summary, print_table_counts
 from src.etl.transform import transform_cards
 
@@ -18,10 +19,14 @@ def run_pipeline(args):
 
     if args.dry_run:
         print("Dry-run completado sin cargar en MySQL.")
+        report_path = save_run_report(metadata, snapshot_at, raw_path, tables, dry_run=True)
+        print(f"Reporte ETL guardado: {report_path}")
         return tables
 
     affected = load_all_tables(tables)
     print_load_summary(affected)
+    report_path = save_run_report(metadata, snapshot_at, raw_path, tables, dry_run=False, affected=affected)
+    print(f"Reporte ETL guardado: {report_path}")
     return tables
 
 

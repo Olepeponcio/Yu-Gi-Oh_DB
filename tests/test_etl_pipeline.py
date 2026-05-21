@@ -40,6 +40,7 @@ class GetPayloadTest(unittest.TestCase):
 
 
 class RunPipelineTest(unittest.TestCase):
+    @patch("src.etl.pipeline.save_run_report")
     @patch("src.etl.pipeline.print_table_counts")
     @patch("src.etl.pipeline.print_run_summary")
     @patch("src.etl.pipeline.transform_cards")
@@ -52,6 +53,7 @@ class RunPipelineTest(unittest.TestCase):
         transform_cards,
         print_run_summary,
         print_table_counts,
+        save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
         tables = {"cards": [{"id": 1}]}
@@ -66,8 +68,11 @@ class RunPipelineTest(unittest.TestCase):
         transform_cards.assert_called_once()
         print_run_summary.assert_called_once()
         print_table_counts.assert_called_once_with(tables)
+        save_run_report.assert_called_once()
+        self.assertTrue(save_run_report.call_args.kwargs["dry_run"])
         load_all_tables.assert_not_called()
 
+    @patch("src.etl.pipeline.save_run_report")
     @patch("src.etl.pipeline.print_load_summary")
     @patch("src.etl.pipeline.print_table_counts")
     @patch("src.etl.pipeline.print_run_summary")
@@ -82,6 +87,7 @@ class RunPipelineTest(unittest.TestCase):
         print_run_summary,
         print_table_counts,
         print_load_summary,
+        save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
         tables = {"cards": [{"id": 1}]}
@@ -91,11 +97,15 @@ class RunPipelineTest(unittest.TestCase):
         transform_cards.return_value = tables
         load_all_tables.return_value = affected
 
-        result = run_pipeline(args)
+        with patch("builtins.print"):
+            result = run_pipeline(args)
 
         self.assertIs(result, tables)
         load_all_tables.assert_called_once_with(tables)
         print_load_summary.assert_called_once_with(affected)
+        save_run_report.assert_called_once()
+        self.assertFalse(save_run_report.call_args.kwargs["dry_run"])
+        self.assertEqual(save_run_report.call_args.kwargs["affected"], affected)
 
 
 if __name__ == "__main__":
