@@ -3,7 +3,7 @@ from src.etl.transform.common import to_int, validate_required
 
 def normalize_card(raw_card):
     card = {
-        "id": to_int(raw_card.get("id")),
+        "card_id": to_int(raw_card.get("id")),
         "name": raw_card.get("name"),
         "card_type": raw_card.get("type"),
         "human_readable_card_type": raw_card.get("humanReadableCardType"),
@@ -21,7 +21,7 @@ def normalize_card(raw_card):
         "monster_description": raw_card.get("monster_desc"),
         "link_value": to_int(raw_card.get("linkval")),
     }
-    validate_required(card, ("id", "name", "card_type"), "Card")
+    validate_required(card, ("card_id", "name", "card_type"), "Card")
     return card
 
 

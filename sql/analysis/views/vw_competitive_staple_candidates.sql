@@ -3,7 +3,7 @@
 
 CREATE OR REPLACE VIEW vw_competitive_staple_candidates AS
 SELECT
-    c.id AS card_id,
+    c.card_id,
     c.name,
     c.card_type,
     c.human_readable_card_type,
@@ -14,16 +14,16 @@ SELECT
     ROUND(MAX(cs.set_price), 2) AS max_set_price
 FROM cards c
 LEFT JOIN card_sets cs
-    ON c.id = cs.card_id
+    ON c.card_id = cs.card_id
 LEFT JOIN card_banlist b
-    ON c.id = b.card_id
+    ON c.card_id = b.card_id
 WHERE cs.set_price IS NOT NULL
   AND (
         b.ban_tcg IS NULL
         OR b.ban_tcg NOT IN ('Banned', 'Forbidden')
       )
 GROUP BY
-    c.id,
+    c.card_id,
     c.name,
     c.card_type,
     c.human_readable_card_type,

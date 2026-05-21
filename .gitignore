@@ -22,6 +22,7 @@ data/**/*.xlsx
 data/reporting/*.txt
 sql/analysis/CSV/
 sql/generated/from_csv/
+sql/analysis/views/
 
 # Sistema
 .DS_Store

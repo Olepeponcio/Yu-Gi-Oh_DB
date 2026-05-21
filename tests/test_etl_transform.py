@@ -44,7 +44,7 @@ class NormalizeCardTest(unittest.TestCase):
 
         card = normalize_card(raw_card)
 
-        self.assertEqual(card["id"], 123)
+        self.assertEqual(card["card_id"], 123)
         self.assertEqual(card["name"], "Dark Magician")
         self.assertEqual(card["card_type"], "Normal Monster")
         self.assertEqual(card["atk"], 2500)

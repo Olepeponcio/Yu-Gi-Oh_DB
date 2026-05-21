@@ -6,7 +6,7 @@
 SET NAMES utf8mb4;
 
 CREATE TABLE IF NOT EXISTS cards (
-    id INT NOT NULL,
+    card_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     card_type VARCHAR(100) NOT NULL,
     human_readable_card_type VARCHAR(150) NULL,
@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS cards (
     link_value INT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
+    PRIMARY KEY (card_id),
     INDEX idx_cards_name (name),
     INDEX idx_cards_card_type (card_type),
     INDEX idx_cards_frame_type (frame_type),
@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS card_sets (
     INDEX idx_card_sets_set_name (set_name),
     INDEX idx_card_sets_set_code (set_code),
     CONSTRAINT fk_card_sets_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
     CONSTRAINT fk_card_sets_set
@@ -91,7 +91,7 @@ CREATE TABLE IF NOT EXISTS card_images (
     PRIMARY KEY (image_id),
     INDEX idx_card_images_card_id (card_id),
     CONSTRAINT fk_card_images_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -105,7 +105,7 @@ CREATE TABLE IF NOT EXISTS card_prices (
     coolstuffinc_price DECIMAL(10,2) NULL,
     PRIMARY KEY (card_id),
     CONSTRAINT fk_card_prices_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS card_price_history (
     INDEX idx_card_price_history_snapshot_at (snapshot_at),
     UNIQUE KEY uq_card_price_history_snapshot (card_id, snapshot_at),
     CONSTRAINT fk_card_price_history_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -136,7 +136,7 @@ CREATE TABLE IF NOT EXISTS card_banlist (
     ban_goat VARCHAR(50) NULL,
     PRIMARY KEY (card_id),
     CONSTRAINT fk_card_banlist_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -148,7 +148,7 @@ CREATE TABLE IF NOT EXISTS card_typelines (
     PRIMARY KEY (card_id, typeline),
     INDEX idx_card_typelines_typeline (typeline),
     CONSTRAINT fk_card_typelines_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -160,7 +160,7 @@ CREATE TABLE IF NOT EXISTS card_linkmarkers (
     PRIMARY KEY (card_id, linkmarker),
     INDEX idx_card_linkmarkers_linkmarker (linkmarker),
     CONSTRAINT fk_card_linkmarkers_card
-        FOREIGN KEY (card_id) REFERENCES cards (id)
+        FOREIGN KEY (card_id) REFERENCES cards (card_id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

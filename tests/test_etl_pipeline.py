@@ -56,7 +56,7 @@ class RunPipelineTest(unittest.TestCase):
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
-        tables = {"cards": [{"id": 1}]}
+        tables = {"cards": [{"card_id": 1}]}
         args = Namespace(source="file", raw_path="raw.json", skip_save_raw=False, dry_run=True)
         get_payload_mock.return_value = (payload, None)
         transform_cards.return_value = tables
@@ -90,7 +90,7 @@ class RunPipelineTest(unittest.TestCase):
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
-        tables = {"cards": [{"id": 1}]}
+        tables = {"cards": [{"card_id": 1}]}
         affected = {"cards": 1}
         args = Namespace(source="file", raw_path="raw.json", skip_save_raw=False, dry_run=False)
         get_payload_mock.return_value = (payload, None)

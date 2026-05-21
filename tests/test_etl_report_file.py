@@ -20,7 +20,7 @@ class ReportFileTest(unittest.TestCase):
             metadata={"source": "test"},
             snapshot_at="2026-05-21 08:09:10",
             raw_path="data/raw/cardinfo_latest.json",
-            tables={"cards": [{"id": 1}], "sets": []},
+            tables={"cards": [{"card_id": 1}], "sets": []},
             dry_run=True,
             affected=None,
             created_at=created_at,

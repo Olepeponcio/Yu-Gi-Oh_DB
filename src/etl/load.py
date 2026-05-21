@@ -15,7 +15,7 @@ def load_all_tables(tables):
 
     try:
         cursor = connection.cursor()
-        card_ids = [card["id"] for card in tables["cards"]]
+        card_ids = [card["card_id"] for card in tables["cards"]]
 
         affected = {
             "cards": load_cards(cursor, tables["cards"]),
@@ -108,7 +108,7 @@ def load_card_banlist(cursor, card_banlist):
 def cards_sql():
     return """
         INSERT INTO cards (
-            id,
+            card_id,
             name,
             card_type,
             human_readable_card_type,
@@ -126,7 +126,7 @@ def cards_sql():
             monster_description,
             link_value
         ) VALUES (
-            %(id)s,
+            %(card_id)s,
             %(name)s,
             %(card_type)s,
             %(human_readable_card_type)s,
