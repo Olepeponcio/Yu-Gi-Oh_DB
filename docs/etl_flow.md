@@ -23,11 +23,24 @@ src/etl/main.py
 - `src/etl/main.py`: punto de entrada del paquete ETL.
 - `src/etl/pipeline.py`: coordina extraccion, transformacion y carga.
 - `src/etl/reporting.py`: muestra resumen de ejecucion.
-- `src/etl/transform.py`: normaliza datos por tabla SQL.
+- `src/etl/transform/`: normaliza datos por dominio y tabla SQL.
 - `src/etl/load.py`: inserta o actualiza datos en MySQL.
 - `sql/main_schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
 
-El ETL depende del modelo definido en `sql/main_schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform.py` y `src/etl/load.py`.
+El ETL depende del modelo definido en `sql/main_schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform/` y `src/etl/load.py`.
+
+## Transformacion
+
+```text
+src/etl/transform/
+├── __init__.py   -> API publica compatible: from src.etl.transform import transform_cards
+├── common.py     -> conversiones, validacion y deduplicacion
+├── cards.py      -> carta base, imagenes y banlist
+├── sets.py       -> sets, rarezas y relacion carta-set
+├── prices.py     -> precios actuales
+├── relations.py  -> typelines y linkmarkers
+└── pipeline.py   -> coordinador transform_cards
+```
 
 ## Datos raw
 

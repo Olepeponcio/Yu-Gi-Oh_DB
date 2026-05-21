@@ -20,7 +20,7 @@ Las cartas pueden tener valor por varios motivos:
 
 El objetivo no es solo listar cartas, sino preparar una base que permita analizar combinaciones utiles para construir productos comerciales.
 
-## Preguntas de analisis recomendadas
+## Preguntas de analisis:
 
 - Que rarezas elevan mas el precio medio?
 - Que cartas son staples competitivas?
