@@ -1,0 +1,167 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .table { fill: #ffffff; stroke: #2f3a4a; stroke-width: 2; rx: 8; }
+      .header { fill: #27364a; }
+      .title { fill: #ffffff; font: 700 18px Arial, sans-serif; }
+      .field { fill: #1f2937; font: 14px Consolas, monospace; }
+      .pk { fill: #0f766e; font: 700 14px Consolas, monospace; }
+      .fk { fill: #b45309; font: 700 14px Consolas, monospace; }
+      .note { fill: #475569; font: 13px Arial, sans-serif; }
+      .line { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .logical { stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 6; fill: none; marker-end: url(#arrow-soft); }
+      .label { fill: #334155; font: 12px Arial, sans-serif; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    </marker>
+    <marker id="arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" width="1600" height="1000"/>
+
+  <text x="60" y="50" style="fill:#111827;font:700 30px Arial,sans-serif;">Yu-Gi-Oh DB - Modelo relacional base</text>
+  <text x="60" y="78" class="note">Lineas solidas: claves foraneas declaradas. Linea discontinua: relacion logica por set_code usada por el ETL.</text>
+
+  <!-- Relationship lines -->
+  <path class="line" d="M 450 265 C 535 265 535 430 620 430"/>
+  <text x="490" y="252" class="label">cards.card_id -> card_sets.card_id</text>
+
+  <path class="line" d="M 450 312 C 540 312 540 595 620 595"/>
+  <text x="478" y="340" class="label">cards.card_id -> child tables</text>
+
+  <path class="line" d="M 450 332 C 545 332 545 770 620 770"/>
+  <path class="line" d="M 450 352 C 548 352 548 875 620 875"/>
+  <path class="line" d="M 450 372 C 548 372 548 705 620 705"/>
+  <path class="line" d="M 450 392 C 548 392 548 835 620 835"/>
+  <path class="line" d="M 450 412 C 548 412 548 915 620 915"/>
+
+  <path class="line" d="M 980 430 C 1065 430 1065 195 1150 195"/>
+  <text x="1010" y="405" class="label">card_sets.set_id -> sets.id</text>
+
+  <path class="line" d="M 980 490 C 1065 490 1065 370 1150 370"/>
+  <text x="1010" y="475" class="label">card_sets.rarity_id -> rarities.id</text>
+
+  <path class="logical" d="M 980 520 C 1080 520 1080 430 1150 430"/>
+  <text x="1010" y="535" class="label">card_sets.set_code ~= rarities.set_code</text>
+
+  <!-- cards -->
+  <g transform="translate(90 130)">
+    <rect class="table" width="360" height="320"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">cards</text>
+    <text class="pk" x="18" y="70">PK card_id</text>
+    <text class="field" x="18" y="96">name</text>
+    <text class="field" x="18" y="122">card_type</text>
+    <text class="field" x="18" y="148">human_readable_card_type</text>
+    <text class="field" x="18" y="174">frame_type</text>
+    <text class="field" x="18" y="200">archetype</text>
+    <text class="field" x="18" y="226">atk, def, attribute, level</text>
+    <text class="field" x="18" y="252">scale, link_value</text>
+    <text class="field" x="18" y="278">created_at, updated_at</text>
+  </g>
+
+  <!-- card_sets -->
+  <g transform="translate(620 335)">
+    <rect class="table" width="360" height="260"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_sets</text>
+    <text class="pk" x="18" y="70">PK id</text>
+    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
+    <text class="fk" x="18" y="122">FK set_id -> sets.id</text>
+    <text class="fk" x="18" y="148">FK rarity_id -> rarities.id</text>
+    <text class="field" x="18" y="174">set_code</text>
+    <text class="field" x="18" y="200">set_name</text>
+    <text class="field" x="18" y="226">set_rarity, set_rarity_code</text>
+    <text class="field" x="18" y="252">set_price</text>
+  </g>
+
+  <!-- sets -->
+  <g transform="translate(1150 130)">
+    <rect class="table" width="330" height="150"/>
+    <rect class="header" width="330" height="42" rx="8"/>
+    <text class="title" x="18" y="27">sets</text>
+    <text class="pk" x="18" y="70">PK id</text>
+    <text class="field" x="18" y="96">set_name UNIQUE</text>
+    <text class="field" x="18" y="122">created_at, updated_at</text>
+  </g>
+
+  <!-- rarities -->
+  <g transform="translate(1150 330)">
+    <rect class="table" width="330" height="190"/>
+    <rect class="header" width="330" height="42" rx="8"/>
+    <text class="title" x="18" y="27">rarities</text>
+    <text class="pk" x="18" y="70">PK id</text>
+    <text class="field" x="18" y="96">set_code</text>
+    <text class="field" x="18" y="122">rarity_name</text>
+    <text class="field" x="18" y="148">rarity_code</text>
+    <text class="field" x="18" y="174">UNIQUE set_code + rarity</text>
+  </g>
+
+  <!-- card_images -->
+  <g transform="translate(620 635)">
+    <rect class="table" width="360" height="145"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_images</text>
+    <text class="pk" x="18" y="70">PK image_id</text>
+    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="122">image_url, small, cropped</text>
+  </g>
+
+  <!-- card_prices -->
+  <g transform="translate(90 540)">
+    <rect class="table" width="360" height="210"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_prices</text>
+    <text class="pk" x="18" y="70">PK/FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="96">cardmarket_price</text>
+    <text class="field" x="18" y="122">tcgplayer_price</text>
+    <text class="field" x="18" y="148">ebay_price</text>
+    <text class="field" x="18" y="174">amazon_price</text>
+    <text class="field" x="18" y="200">coolstuffinc_price</text>
+  </g>
+
+  <!-- card_price_history -->
+  <g transform="translate(90 790)">
+    <rect class="table" width="360" height="170"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_price_history</text>
+    <text class="pk" x="18" y="70">PK id</text>
+    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="122">snapshot_at</text>
+    <text class="field" x="18" y="148">marketplace prices</text>
+  </g>
+
+  <!-- card_banlist -->
+  <g transform="translate(620 805)">
+    <rect class="table" width="360" height="150"/>
+    <rect class="header" width="360" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_banlist</text>
+    <text class="pk" x="18" y="70">PK/FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="96">ban_tcg</text>
+    <text class="field" x="18" y="122">ban_ocg, ban_goat</text>
+  </g>
+
+  <!-- card_typelines -->
+  <g transform="translate(1150 605)">
+    <rect class="table" width="330" height="150"/>
+    <rect class="header" width="330" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_typelines</text>
+    <text class="pk" x="18" y="70">PK card_id + typeline</text>
+    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="122">position</text>
+  </g>
+
+  <!-- card_linkmarkers -->
+  <g transform="translate(1150 810)">
+    <rect class="table" width="330" height="150"/>
+    <rect class="header" width="330" height="42" rx="8"/>
+    <text class="title" x="18" y="27">card_linkmarkers</text>
+    <text class="pk" x="18" y="70">PK card_id + linkmarker</text>
+    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
+    <text class="field" x="18" y="122">position</text>
+  </g>
+</svg>

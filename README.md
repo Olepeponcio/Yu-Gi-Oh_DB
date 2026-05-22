@@ -199,7 +199,7 @@ Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
 ## Documentacion
 
 - [Indice tecnico](docs/README.md)
-- [Objetivo analitico](docs/analytic_objective.md)
-- [Flujo ETL](docs/etl_flow.md)
-- [Modelo de datos](docs/data_model.md)
-- [Uso SQL](docs/sql_usage.md)
+- [Flujo ETL](docs/01_programa_python_etl/etl_flow.md)
+- [Uso SQL](docs/01_programa_python_etl/sql_usage.md)
+- [Analisis JSON API](docs/02_marco_analisis_datos/api_json_analysis.md)
+- [Modelo de datos](docs/02_marco_analisis_datos/data_model.md)
