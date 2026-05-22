@@ -157,10 +157,18 @@ El analisis se ejecuta principalmente con SQL sobre MySQL.
 
 Niveles de analisis aplicables:
 
-- Descriptivo: que cartas, sets, tipos y rarezas existen.
-- Diagnostico: que variables explican diferencias de precio.
-- Predictivo: que cartas podrian ganar interes si se acumula historico suficiente.
-- Prescriptivo: que cartas o combinaciones recomendar para productos comerciales.
+- Descriptivo: que cartas, sets, tipos, rarezas y precios existen.
+- Diagnostico: que variables explican diferencias de precio entre cartas, rarezas, sets y marketplaces.
+- Predictivo: queda preparado tecnicamente, pero depende de acumular historico suficiente mediante cargas diarias del ETL.
+- Prescriptivo: se abordara despues, cuando exista base temporal suficiente para sostener recomendaciones por tendencia.
+
+Alcance actual:
+
+> El trabajo principal se centra en analisis descriptivo y diagnostico. La base predictiva se alimentara progresivamente con una carga diaria del ETL.
+
+Nota sobre historico:
+
+> El historico de precios utilizado no procede de una serie historica externa, sino de snapshots capturados por nuestra ETL. Por tanto, las conclusiones temporales solo son validas para el intervalo registrado en `card_price_history`.
 
 Artefactos previstos:
 
