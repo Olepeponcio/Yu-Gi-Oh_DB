@@ -199,6 +199,7 @@ Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
 ## Documentacion
 
 - [Indice tecnico](docs/README.md)
+- [Versionado y flujo Git](docs/00_gestion_proyecto/versionado_y_flujo_git.md)
 - [Flujo ETL](docs/01_programa_python_etl/etl_flow.md)
 - [Uso SQL](docs/01_programa_python_etl/sql_usage.md)
 - [Analisis JSON API](docs/02_marco_analisis_datos/api_json_analysis.md)

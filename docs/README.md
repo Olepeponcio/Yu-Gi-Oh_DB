@@ -20,6 +20,12 @@ SQL crea views analiticas sobre las tablas base
 Power BI consume MySQL views o CSV locales como snapshots
 ```
 
+## Grupo 0: gestion del proyecto
+
+Marco de trabajo del repositorio:
+
+- `00_gestion_proyecto/versionado_y_flujo_git.md`: historico hasta `v0.1.0`, modelo de ramas, SemVer y flujo practico.
+
 ## Grupo 1: programa Python ETL
 
 Documentacion de desarrollo y uso del programa Python:
@@ -39,6 +45,7 @@ Marco previo para el analisis. No se implementan nuevos documentos en este paso:
 ## Criterio de organizacion
 
 - `README.md` en raiz: comandos principales y estado actual.
+- `docs/00_gestion_proyecto/`: versionado, ramas y buenas practicas de gestion del repositorio.
 - `docs/01_programa_python_etl/`: documentacion del programa Python y uso operativo.
 - `docs/02_marco_analisis_datos/`: marco documental para analisis de datos.
 - `sql/`: scripts ejecutables en MySQL.
