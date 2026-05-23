@@ -1,7 +1,7 @@
 -- 2. Cartas potencialmente staples competitivas
 -- Proxy: cartas legales en TCG, con precio relevante y muchas reimpresiones/set appearances
 
-CREATE OR REPLACE VIEW vw_competitive_staple_candidates AS
+CREATE OR REPLACE VIEW vw_diag_competitive_staple_candidates AS
 SELECT
     c.card_id,
     c.name,

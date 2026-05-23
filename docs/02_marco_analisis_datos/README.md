@@ -166,6 +166,14 @@ Alcance actual:
 
 > El trabajo principal se centra en analisis descriptivo y diagnostico. La base predictiva se alimentara progresivamente con una carga diaria del ETL.
 
+Metodo de trabajo por pregunta:
+
+```text
+decision -> pregunta -> variable objetivo -> variables explicativas -> consulta/view -> tipo de analisis
+```
+
+Este metodo obliga a conectar cada consulta con una decision concreta antes de convertirla en resultado analitico. La consulta o view no debe existir solo porque la tabla lo permite, sino porque responde a una pregunta medible.
+
 Nota sobre historico:
 
 > El historico de precios utilizado no procede de una serie historica externa, sino de snapshots capturados por nuestra ETL. Por tanto, las conclusiones temporales solo son validas para el intervalo registrado en `card_price_history`.

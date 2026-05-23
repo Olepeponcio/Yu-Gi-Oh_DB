@@ -1,7 +1,7 @@
 -- 3. Arquetipos con alta demanda
 -- Proxy: arquetipos con muchas cartas, muchas impresiones y precio medio alto
 
-CREATE OR REPLACE VIEW vw_high_demand_archetypes AS
+CREATE OR REPLACE VIEW vw_diag_high_demand_archetypes AS
 SELECT
     c.archetype,
     COUNT(DISTINCT c.card_id) AS total_cards,

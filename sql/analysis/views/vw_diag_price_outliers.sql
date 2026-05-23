@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW vw_price_outliers AS
+CREATE OR REPLACE VIEW vw_diag_price_outliers AS
 SELECT
     c.card_id,
     c.name,
