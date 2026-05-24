@@ -1,7 +1,14 @@
 from pathlib import Path
+import re
+
+
+VALID_IDENTIFIER = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
 
 
 def quote_identifier(identifier: str) -> str:
+    if not VALID_IDENTIFIER.match(identifier):
+        raise ValueError(f"Identificador SQL no valido: {identifier!r}")
+
     return f"`{identifier}`"
 
 

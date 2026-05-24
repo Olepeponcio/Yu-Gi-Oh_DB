@@ -19,7 +19,7 @@ La etiqueta `v0.1.0` marca el inicio formal del modelo de trabajo. No implica qu
 
 ## Historico previo
 
-Hasta `v0.1.0`, el repositorio evoluciono de forma mayormente manual. Ese historico se conserva como trazabilidad real del proyecto.
+Hasta `v0.1.0`, el repositorio evoluciono de forma poco organizada según buenas practicas. Ese historico se conserva como trazabilidad real del proyecto.
 
 Hitos principales identificados:
 

@@ -4,15 +4,24 @@ venv/
 
 # Variables sensibles
 .env
+.env.*
+!.env.example
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
 # Jupyter
 .ipynb_checkpoints/
+notebooks/
+*.ipynb
 
 # Datos locales
+data/**
+!data/**/
+!data/**/.gitkeep
 data/*.json
 data/*.csv
 data/*.xlsx
@@ -22,6 +31,12 @@ data/**/*.xlsx
 data/reporting/*.txt
 sql/analysis/CSV/
 sql/generated/from_csv/
+
+# Dumps, backups y logs locales
+*.sql.gz
+*.dump
+*.bak
+*.log
 
 # Sistema
 .DS_Store

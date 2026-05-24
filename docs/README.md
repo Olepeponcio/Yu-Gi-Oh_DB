@@ -25,6 +25,7 @@ Power BI consume MySQL views o CSV locales como snapshots
 Marco de trabajo del repositorio:
 
 - `00_gestion_proyecto/versionado_y_flujo_git.md`: historico hasta `v0.1.0`, modelo de ramas, SemVer y flujo practico.
+- `00_gestion_proyecto/revision_seguridad_publicacion.md`: revision de secretos, datos locales y riesgos antes de publicacion publica.
 
 ## Grupo 1: programa Python ETL
 
