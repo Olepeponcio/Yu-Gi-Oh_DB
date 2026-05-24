@@ -4,6 +4,61 @@
 
 Representar la informacion de cartas de YGOPRODeck en tablas relacionales normalizadas.
 
+## Tipo de modelo
+
+El esquema actual de `yugioh_db` no es un modelo dimensional en estrella puro.
+
+Es un modelo relacional normalizado orientado a conservar datos limpios, consistentes y reutilizables desde MySQL. Su finalidad principal es servir como capa persistente del proyecto despues del ETL.
+
+Clasificacion:
+
+```text
+MySQL / yugioh_db = modelo relacional normalizado
+Power BI = capa analitica y modelo dimensional
+```
+
+Motivo:
+
+- `cards` funciona como tabla principal de entidad, no como tabla de hechos.
+- `card_images`, `card_prices`, `card_banlist`, `card_typelines` y `card_linkmarkers` son tablas hijas normalizadas.
+- `sets` y `rarities` funcionan como catalogos o dimensiones reutilizables.
+- `card_sets` actua como tabla de relacion entre cartas, sets y rarezas.
+- `card_price_history` es la tabla mas cercana a una tabla de hechos, porque almacena mediciones de precios por carta y fecha de snapshot.
+
+Decision de arquitectura:
+
+> Mantener MySQL como modelo relacional base y construir el modelo dimensional en Power BI.
+
+Esta decision evita forzar el diseno de MySQL hacia estrella antes de tener claras las preguntas analiticas definitivas. Power BI podra crear dimensiones, hechos, relaciones y medidas a partir de las tablas o views de MySQL.
+
+Modelo dimensional inicial sugerido para Power BI:
+
+```text
+FactPrices
+  -> DimCard
+  -> DimDate
+
+FactCardSets
+  -> DimCard
+  -> DimSet
+  -> DimRarity
+```
+
+Posibles dimensiones derivadas:
+
+- `DimCard`: desde `cards`.
+- `DimSet`: desde `sets`.
+- `DimRarity`: desde `rarities`.
+- `DimDate`: generada en Power BI desde `snapshot_at`.
+- `DimArchetype`: derivada de `cards.archetype` si el analisis lo requiere.
+- `DimCardType`: derivada de `cards.card_type` si el analisis lo requiere.
+
+Evolucion esperada:
+
+- Primero, mantener el modelo relacional de MySQL estable.
+- Despues, construir el modelo dimensional en Power BI segun las preguntas de negocio.
+- Si el modelo dimensional se consolida, crear views SQL especificas para alimentar Power BI con menos transformacion manual.
+
 ## Tabla principal
 
 ### `cards`
