@@ -9,15 +9,15 @@ Proyecto de aprendizaje y portfolio para practicar analisis de datos con un fluj
 - ETL en Python desde la API de YGOPRODeck.
 - Carga de datos normalizados en MySQL.
 - Analisis mediante SQL sobre la base cargada.
-- Comunicacion de resultados mediante Power BI.
+- Comunicacion de resultados mediante Power BI en una fase posterior.
 
 ## Flujo base
 
 ```text
 MySQL ejecuta sql/main_schema.sql -> crea tablas
 Python ejecuta python -m src.etl -> descarga, transforma y carga datos
-SQL crea views analiticas sobre las tablas base
-Power BI consume MySQL views o CSV locales como snapshots
+SQL crea views semanticas sobre las tablas base
+Power BI queda pausado hasta consolidar la capa SQL en MySQL
 ```
 
 ## Grupo 0: gestion del proyecto
@@ -40,8 +40,34 @@ Marco previo para el analisis. No se implementan nuevos documentos en este paso:
 
 - `02_marco_analisis_datos/README.md`: proceso de puesta en practica del analisis de datos.
 - `02_marco_analisis_datos/api_json_analysis.md`: estructura del JSON de YGOPRODeck y entidades candidatas.
-- `02_marco_analisis_datos/data_model.md`: tablas, relaciones, claves y criterio de carga.
+- `02_marco_analisis_datos/data_model.md`: tablas, relaciones, claves, criterio de carga y modelo semantico por views.
 - `02_marco_analisis_datos/relational_model.svg`: imagen del modelo relacional base.
+- `02_marco_analisis_datos/infografia_views_sql.svg`: mapa visual de views a construir para MySQL y Power BI.
+
+## Hilo marco: estructura de consultas y tablas SQL
+
+Este hilo organiza las consultas MySQL que despues podran alimentar Power BI. El criterio es separar la logica en capas reutilizables:
+
+| Prefijo | Para que sirve |
+|---|---|
+| `vw_dim_` | Entidades descriptivas: cartas, sets, rarezas, fechas. |
+| `vw_fact_` | Eventos o mediciones: precios, historico, apariciones. |
+| `vw_bridge_` | Relaciones muchos-a-muchos entre entidades. |
+| `vw_agg_` | Resumenes ya calculados para lectura rapida. |
+| `vw_desc_` | Analisis descriptivo auxiliar. |
+| `vw_diag_` | Diagnostico, validacion y calidad de datos. |
+| `vw_ref_` | Valores de referencia o normalizacion. |
+
+Regla practica:
+
+```text
+dim = quien es
+fact = que se mide
+bridge = como se relaciona
+agg = que resumen se consulta
+diag = que falta, falla o destaca
+ref = que valores controlan el modelo
+```
 
 ## Criterio de organizacion
 

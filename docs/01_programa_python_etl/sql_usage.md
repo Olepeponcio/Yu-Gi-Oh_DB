@@ -46,15 +46,37 @@ SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 
 `reset_main_schema.sql` borra tablas y datos. Solo debe usarse cuando se quiera reconstruir la base desde cero.
 
-## Power BI y analisis
+## Analisis SQL y capa semantica
 
-La fuente principal para Power BI deben ser las views de MySQL definidas en:
+La fuente principal de analisis deben ser las views de MySQL definidas en:
 
 ```text
 sql/analysis/views/
+sql/analysis/views/diagnostic/
 ```
 
-Estas views conservan la logica SQL sobre las tablas base.
+Estas views conservan la logica SQL sobre las tablas base. Power BI queda pausado; la criba vigente se trabaja primero dentro de MySQL `yugioh_db`:
+
+```text
+vw_dim_*       -> dimensiones
+vw_fact_*      -> hechos
+vw_bridge_*    -> relaciones muchos-a-muchos
+vw_agg_*       -> agregados
+vw_desc_*      -> descriptivo auxiliar
+vw_ref_*       -> referencias normalizadas
+views/diagnostic/vw_diag_* -> diagnostico auxiliar fuera del modelo relacional
+```
+
+Views y consultas actualmente localizadas:
+
+```text
+sql/analysis/views/vw_fact_card_prices.sql
+sql/analysis/views/diagnostic/vw_diag_competitive_staple_candidates.sql
+sql/analysis/views/diagnostic/vw_diag_high_demand_archetypes.sql
+sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql
+sql/analysis/views/diagnostic/vw_diag_price_outliers.sql
+sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql
+```
 
 Los CSV de `sql/analysis/CSV/` son snapshots locales de resultados exportados. Power BI puede leerlos como tablas independientes, pero no contienen la logica original de joins, filtros o agrupaciones.
 

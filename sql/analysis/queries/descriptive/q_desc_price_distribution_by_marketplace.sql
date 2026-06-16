@@ -1,5 +1,5 @@
 SELECT marketplace, COUNT(*) AS total_rows, price
-FROM vw_desc_card_price_by_marketplace
+FROM vw_fact_card_prices
 GROUP BY marketplace, price
 ORDER BY price DESC
 LIMIT 150;

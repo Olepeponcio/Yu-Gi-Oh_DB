@@ -14,7 +14,8 @@ Clasificacion:
 
 ```text
 MySQL / yugioh_db = modelo relacional normalizado
-Power BI = capa analitica y modelo dimensional
+Views MySQL = capa semantica y diagnostica
+Power BI = fase posterior de visualizacion y modelo dimensional
 ```
 
 Motivo:
@@ -27,21 +28,22 @@ Motivo:
 
 Decision de arquitectura:
 
-> Mantener MySQL como modelo relacional base y construir el modelo dimensional en Power BI.
+> Mantener MySQL como modelo relacional base y consolidar primero las views semanticas en `yugioh_db`.
 
-Esta decision evita forzar el diseno de MySQL hacia estrella antes de tener claras las preguntas analiticas definitivas. Power BI podra crear dimensiones, hechos, relaciones y medidas a partir de las tablas o views de MySQL.
+Esta decision evita forzar el diseno de MySQL hacia estrella antes de tener claras las preguntas analiticas definitivas. Power BI queda pausado hasta que la capa SQL este ordenada.
 
-Modelo dimensional inicial sugerido para Power BI:
+Modelo semantico inicial objetivo:
 
 ```text
-FactPrices
-  -> DimCard
-  -> DimDate
+vw_dim_card
+vw_dim_set
+vw_dim_rarity
+vw_ref_banlist_status
 
-FactCardSets
-  -> DimCard
-  -> DimSet
-  -> DimRarity
+vw_bridge_card_set
+vw_fact_card_prices
+vw_fact_price_history
+vw_agg_card_price_current
 ```
 
 Posibles dimensiones derivadas:
@@ -56,8 +58,57 @@ Posibles dimensiones derivadas:
 Evolucion esperada:
 
 - Primero, mantener el modelo relacional de MySQL estable.
-- Despues, construir el modelo dimensional en Power BI segun las preguntas de negocio.
-- Si el modelo dimensional se consolida, crear views SQL especificas para alimentar Power BI con menos transformacion manual.
+- Despues, crear views `vw_dim_*`, `vw_fact_*`, `vw_bridge_*` y `vw_agg_*` sobre las tablas base.
+- Finalmente, construir relaciones y medidas en Power BI sobre esas views.
+
+## Capa semantica en MySQL
+
+La capa semantica se trabajara primero en MySQL. Las tablas base son la capa persistente del ETL; las views son la capa de consumo analitico.
+
+Criba:
+
+```text
+cards, sets, rarities, card_sets, card_prices, card_price_history, card_banlist
+    -> tablas base MySQL
+
+vw_dim_*, vw_fact_*, vw_bridge_*, vw_agg_*
+    -> modelo semantico futuro
+
+vw_desc_*
+    -> views descriptivas auxiliares
+
+vw_ref_*
+    -> catalogos de referencia normalizados
+
+views/diagnostic/vw_diag_*
+    -> views de diagnostico, fuera del modelo relacional
+```
+
+Relaciones objetivo:
+
+```text
+vw_dim_card[card_id] 1 -> * vw_bridge_card_set[card_id]
+vw_dim_set[set_id] 1 -> * vw_bridge_card_set[set_id]
+vw_dim_rarity[rarity_id] 1 -> * vw_bridge_card_set[rarity_id]
+vw_dim_card[card_id] 1 -> * vw_fact_card_prices[card_id]
+vw_dim_card[card_id] 1 -> * vw_fact_price_history[card_id]
+DimDate[date] 1 -> * vw_fact_price_history[snapshot_date]
+```
+
+Direccion de filtro: de dimension a hecho.
+
+SQL localizado para apoyar el modelo:
+
+```text
+sql/analysis/views/vw_fact_card_prices.sql
+sql/analysis/views/diagnostic/vw_diag_competitive_staple_candidates.sql
+sql/analysis/views/diagnostic/vw_diag_high_demand_archetypes.sql
+sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql
+sql/analysis/views/diagnostic/vw_diag_price_outliers.sql
+sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql
+```
+
+`vw_fact_card_prices.sql` funciona como hecho de precios por marketplace. Las `views/diagnostic/vw_diag_*` son agregados o filtros diagnosticos, no el nucleo del esquema estrella.
 
 ## Tabla principal
 

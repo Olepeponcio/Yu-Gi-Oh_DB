@@ -32,6 +32,15 @@ data/reporting/*.txt
 sql/analysis/CSV/
 sql/generated/from_csv/
 
+# Power BI
+powerbi/exportaciones/**
+!powerbi/exportaciones/
+!powerbi/exportaciones/.gitkeep
+powerbi/**/*.csv
+powerbi/**/*.xlsx
+powerbi/**/*.pbix
+!powerbi/modelos/*.pbit
+
 # Dumps, backups y logs locales
 *.sql.gz
 *.dump

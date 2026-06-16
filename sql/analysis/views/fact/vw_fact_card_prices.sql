@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW vw_desc_card_price_by_marketplace AS
+CREATE OR REPLACE VIEW vw_fact_card_prices AS
 SELECT
     c.card_id,
     c.name,

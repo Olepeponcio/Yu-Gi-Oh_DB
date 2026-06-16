@@ -2,7 +2,7 @@
 
 Este directorio documenta el proceso para poner en practica el analisis de datos del proyecto SQL DB Yu-Gi-Oh.
 
-La finalidad es usar el proyecto como aprendizaje y portfolio: partir de una decision analitica, preparar datos con Python y MySQL, analizar con SQL y comunicar resultados en Power BI.
+La finalidad es usar el proyecto como aprendizaje y portfolio: partir de una decision analitica, preparar datos con Python y MySQL, analizar con SQL y dejar Power BI para una fase posterior.
 
 ## Flujo practico del analisis
 
@@ -55,10 +55,10 @@ Las preguntas convierten la decision en trabajo medible.
 Preguntas iniciales:
 
 - 1. Que cartas tienen mayor precio medio por marketplace?
-  - vw_desc_card_price_by_marketplace.sql
+  - `sql/analysis/views/vw_fact_card_prices.sql`
 
 - 2. Que rarezas se asocian con precios mas altos?
-  - views/vw_diag_price_by_rarity.sq
+  - `sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql`
 
 - 3. Que sets acumulan mas valor potencial?
 
@@ -67,8 +67,8 @@ Preguntas iniciales:
 - 5. Que cartas aparecen en mas sets?
 
 - 6. Que cartas muestran variacion de precio entre ejecuciones del ETL?
-  - queries/diagnostic/variacion_precios_USD.sql
-  - subidas_relevantes_precios.sql
+  - `sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql`
+  - `sql/analysis/queries/diagnostic/q_diag_relevant_price_increases.sql`
 
 - 7. Que diferencias existen entre precios de Cardmarket, TCGPlayer, eBay, Amazon y CoolStuffInc?
 
@@ -158,7 +158,7 @@ Tareas clave:
 Resultado esperado:
 
 ```text
-API YGOPRODeck -> Python ETL -> MySQL -> SQL analitico -> Power BI
+API YGOPRODeck -> Python ETL -> MySQL -> SQL views semanticas
 ```
 
 ## Paso 6: analizar
@@ -191,13 +191,31 @@ Nota sobre historico:
 Artefactos previstos:
 
 - Consultas exploratorias.
-- Views SQL para Power BI.
+- Views SQL semanticas: `vw_dim_*`, `vw_fact_*`, `vw_bridge_*`, `vw_agg_*`, `vw_desc_*`.
+- Views SQL diagnosticas fuera del modelo: `views/diagnostic/vw_diag_*`.
 - Tablas resumen por carta, set, rareza y marketplace.
 - Medidas de evolucion cuando haya historico suficiente.
 
+## Convencion de views analiticas
+
+| Nombre de view | Referencia a problemas que buscamos resolver |
+|---|---|
+| `vw_dim_card` | Centralizar la descripcion de cada carta y evitar repetir joins basicos. |
+| `vw_dim_set` | Analizar expansiones, productos y presencia de cartas por set. |
+| `vw_dim_rarity` | Comparar el impacto de la rareza sobre precios y disponibilidad. |
+| `vw_ref_banlist_status` | Normalizar estados competitivos para filtros consistentes. |
+| `vw_bridge_card_set` | Resolver la relacion carta-set-rareza-codigo de impresion. |
+| `vw_fact_card_prices` | Medir precios actuales por carta y marketplace sin mezclar monedas sin control. |
+| `vw_fact_price_history` | Analizar variaciones entre ejecuciones del ETL. |
+| `vw_agg_card_price_current` | Preparar precio actual resumido por carta para dashboards. |
+| `vw_agg_set_value` | Estimar que sets concentran mayor valor potencial. |
+| `vw_diag_cards_without_price` | Localizar cartas sin precios para revisar calidad de datos. |
+| `vw_diag_price_by_rarity` | Diagnosticar si la rareza explica diferencias de precio. |
+| `vw_diag_price_outliers` | Detectar precios extremos antes de usarlos como conclusion. |
+
 ## Paso 7: comunicar
 
-La comunicacion se realizara mediante Power BI.
+La comunicacion mediante Power BI queda pausada hasta consolidar la capa SQL en MySQL.
 
 Cada resultado debe responder:
 
@@ -219,6 +237,7 @@ Salidas esperadas:
 - [Analisis JSON API](api_json_analysis.md)
 - [Modelo de datos](data_model.md)
 - [Modelo relacional](relational_model.svg)
+- [Infografia de views SQL](infografia_views_sql.svg)
 
 ## Fuentes de referencia
 
