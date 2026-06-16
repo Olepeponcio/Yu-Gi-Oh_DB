@@ -54,13 +54,23 @@ Las preguntas convierten la decision en trabajo medible.
 
 Preguntas iniciales:
 
-- Que cartas tienen mayor precio medio por marketplace?
-- Que rarezas se asocian con precios mas altos?
-- Que sets acumulan mas valor potencial?
-- Que tipos de carta dominan el catalogo?
-- Que cartas aparecen en mas sets?
-- Que cartas muestran variacion de precio entre ejecuciones del ETL?
-- Que diferencias existen entre precios de Cardmarket, TCGPlayer, eBay, Amazon y CoolStuffInc?
+- 1. Que cartas tienen mayor precio medio por marketplace?
+  - vw_desc_card_price_by_marketplace.sql
+
+- 2. Que rarezas se asocian con precios mas altos?
+  - views/vw_diag_price_by_rarity.sq
+
+- 3. Que sets acumulan mas valor potencial?
+
+- 4. Que tipos de carta dominan el catalogo?
+
+- 5. Que cartas aparecen en mas sets?
+
+- 6. Que cartas muestran variacion de precio entre ejecuciones del ETL?
+  - queries/diagnostic/variacion_precios_USD.sql
+  - subidas_relevantes_precios.sql
+
+- 7. Que diferencias existen entre precios de Cardmarket, TCGPlayer, eBay, Amazon y CoolStuffInc?
 
 ## Paso 3: identificar datos necesarios
 
