@@ -55,7 +55,7 @@ sql/analysis/views/
 sql/analysis/views/diagnostic/
 ```
 
-Estas views conservan la logica SQL sobre las tablas base. Power BI queda pausado; la criba vigente se trabaja primero dentro de MySQL `yugioh_db`:
+Estas views conservan la logica SQL sobre las tablas base. Power BI consume las views oficiales en modo Importar:
 
 ```text
 vw_dim_*       -> dimensiones
@@ -67,15 +67,21 @@ vw_ref_*       -> referencias normalizadas
 views/diagnostic/vw_diag_* -> diagnostico auxiliar fuera del modelo relacional
 ```
 
-Views y consultas actualmente localizadas:
+Views principales actualmente localizadas:
 
 ```text
-sql/analysis/views/vw_fact_card_prices.sql
+sql/analysis/views/dim/vw_dim_card.sql
+sql/analysis/views/dim/vw_dim_set.sql
+sql/analysis/views/dim/vw_dim_rarity.sql
+sql/analysis/views/bridge/vw_bridge_card_set.sql
+sql/analysis/views/bridge/vw_bridge_card_banlist.sql
+sql/analysis/views/fact/vw_fact_card_prices.sql
+sql/analysis/views/fact/vw_fact_price_history.sql
+sql/analysis/views/ref/vw_ref_banlist_status.sql
 sql/analysis/views/diagnostic/vw_diag_competitive_staple_candidates.sql
 sql/analysis/views/diagnostic/vw_diag_high_demand_archetypes.sql
 sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql
 sql/analysis/views/diagnostic/vw_diag_price_outliers.sql
-sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql
 ```
 
 Los CSV de `sql/analysis/CSV/` son snapshots locales de resultados exportados. Power BI puede leerlos como tablas independientes, pero no contienen la logica original de joins, filtros o agrupaciones.

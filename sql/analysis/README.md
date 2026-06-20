@@ -25,7 +25,7 @@ CSV/ = resultados exportados, utiles como respaldo o fuente snapshot
 sql/generated/from_csv/ = recuperacion auxiliar fuera de analysis
 ```
 
-Power BI queda pausado. La criba actual se aplica primero en MySQL `yugioh_db`: separar views semanticas futuras de views diagnosticas.
+La criba se aplica en MySQL `yugioh_db`: separar views semanticas del modelo Power BI y views diagnosticas auxiliares.
 
 La capa esperada queda separada en:
 
@@ -60,12 +60,12 @@ queries/diagnostic/q_diag_... = consulta diagnostica
 Las views se segmentan por funcion:
 
 ```text
-views/vw_desc_... = view descriptiva
-views/vw_dim_... = dimension semantica
-views/vw_fact_... = hecho semantico
-views/vw_bridge_... = puente relacional
-views/vw_agg_... = agregado analitico
-views/vw_ref_... = referencia normalizada
+views/descriptive/vw_desc_... = view descriptiva si se consolida esa capa
+views/dim/vw_dim_... = dimension semantica
+views/fact/vw_fact_... = hecho semantico
+views/bridge/vw_bridge_... = puente relacional
+views/agg/vw_agg_... = agregado analitico si se crea
+views/ref/vw_ref_... = referencia normalizada
 views/diagnostic/vw_diag_... = view diagnostica
 ```
 
@@ -75,12 +75,19 @@ Flujo recomendado:
 query exploratoria -> validacion -> CREATE VIEW estable -> MySQL yugioh_db
 ```
 
-## Catalogo inicial de views
+## Catalogo actual de views
 
 Views actuales:
 
 ```text
-views/vw_fact_card_prices.sql
+views/dim/vw_dim_card.sql
+views/dim/vw_dim_set.sql
+views/dim/vw_dim_rarity.sql
+views/bridge/vw_bridge_card_set.sql
+views/bridge/vw_bridge_card_banlist.sql
+views/fact/vw_fact_card_prices.sql
+views/fact/vw_fact_price_history.sql
+views/ref/vw_ref_banlist_status.sql
 views/diagnostic/vw_diag_competitive_staple_candidates.sql
 views/diagnostic/vw_diag_high_demand_archetypes.sql
 views/diagnostic/vw_diag_price_by_rarity.sql
@@ -117,14 +124,15 @@ card_price_history
 card_banlist
 ```
 
-Views candidatas para convertir consultas en capa estable:
+Catalogo funcional de la capa estable:
 
-| Nombre de view | Problema que resuelve |
+| Nombre de view | Funcion tecnica |
 |---|---|
 | `vw_dim_card` | Carta como entidad principal de filtro y relacion. |
 | `vw_dim_set` | Set como entidad de analisis comercial. |
 | `vw_dim_rarity` | Rareza como categoria de segmentacion. |
 | `vw_ref_banlist_status` | Estados normalizados de banlist. |
+| `vw_bridge_card_banlist` | Relacion carta-formato-estado de banlist para Power BI. |
 | `vw_bridge_card_set` | Relacion carta-set-rareza-codigo. |
 | `vw_fact_card_prices` | Precios actuales por marketplace. |
 | `vw_fact_price_history` | Historico por snapshot de ETL. |
@@ -134,7 +142,7 @@ Views candidatas para convertir consultas en capa estable:
 | `vw_diag_orphan_relations` | Relaciones sin entidad padre valida. |
 | `vw_diag_price_outliers` | Valores de precio extremos. |
 
-Las futuras `vw_dim_*`, `vw_fact_*`, `vw_bridge_*` y `vw_agg_*` deben apoyarse en tablas base y producir salidas limpias. No se crean automaticamente en este repositorio en esta fase.
+Las preguntas analiticas no se definen en este README. La fuente canonica es `docs/02_marco_analisis_datos/README.md`; aqui solo se documenta la organizacion SQL que las soporta.
 
 ## Utilidad auxiliar desde CSV
 

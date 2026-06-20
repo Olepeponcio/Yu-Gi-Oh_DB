@@ -2,7 +2,9 @@
 
 Este directorio documenta el proceso para poner en practica el analisis de datos del proyecto SQL DB Yu-Gi-Oh.
 
-La finalidad es usar el proyecto como aprendizaje y portfolio: partir de una decision analitica, preparar datos con Python y MySQL, analizar con SQL y dejar Power BI para una fase posterior.
+La finalidad es usar el proyecto como aprendizaje y portfolio: partir de una decision analitica, preparar datos con Python y MySQL, analizar con SQL y comunicar resultados en Power BI.
+
+Este README es la fuente canonica de preguntas analiticas. Otros README pueden enlazar estas preguntas, pero no deben duplicarlas ni redefinirlas.
 
 ## Flujo practico del analisis
 
@@ -52,10 +54,10 @@ Ejemplos de decisiones derivadas:
 
 Las preguntas convierten la decision en trabajo medible.
 
-Preguntas iniciales:
+Preguntas marco:
 
 - 1. Que cartas tienen mayor precio medio por marketplace?
-  - `sql/analysis/views/vw_fact_card_prices.sql`
+  - `sql/analysis/views/fact/vw_fact_card_prices.sql`
 
 - 2. Que rarezas se asocian con precios mas altos?
   - `sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql`
@@ -215,7 +217,7 @@ Artefactos previstos:
 
 ## Paso 7: comunicar
 
-La comunicacion mediante Power BI queda pausada hasta consolidar la capa SQL en MySQL.
+La comunicacion mediante Power BI se construye sobre las views oficiales de MySQL y las medidas del modelo.
 
 Cada resultado debe responder:
 

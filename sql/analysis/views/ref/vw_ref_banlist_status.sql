@@ -2,6 +2,7 @@ CREATE OR REPLACE VIEW vw_ref_banlist_status AS
 SELECT
     format,
     ban_status,
+    CONCAT(format, '|', ban_status) AS banlist_status_key,
     ban_status AS normalized_status,
     CASE ban_status
         WHEN 'Forbidden' THEN 1

@@ -1,6 +1,6 @@
 # Proyecto SQL DB Yu-Gi-Oh
 
-Proyecto de datos para construir una base MySQL de cartas de Yu-Gi-Oh desde la API de YGOPRODeck y dejarla preparada para SQL, analisis y una fase posterior de Power BI.
+Proyecto de datos para construir una base MySQL de cartas de Yu-Gi-Oh desde la API de YGOPRODeck, analizarla con SQL y comunicar resultados en Power BI.
 
 ## Piezas del proyecto
 
@@ -35,8 +35,8 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 3. Python transforma y normaliza datos
 4. Python carga/actualiza MySQL
 5. MySQL expone views semanticas y diagnosticas
-6. Power BI queda pausado hasta consolidar la capa SQL
-7. Power BI podra consumir views o CSV locales como snapshots
+6. Power BI consume las views oficiales en modo Importar
+7. Power BI construye el modelo relacional, medidas y narrativa
 ```
 
 ## Herramientas necesarias
@@ -45,7 +45,7 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 - Cliente MySQL, MySQL Workbench o terminal MySQL.
 - Python con dependencias de `requirements.txt`.
 - Archivo `.env` con credenciales MySQL.
-- Power BI para una fase posterior de dashboard.
+- Power BI Desktop para construir el modelo y exportar plantilla `.pbit`.
 
 ## 0. Preparar entorno Python
 
@@ -152,80 +152,28 @@ data/reporting/etl_report_YYYYMMDD_HHMMSS.txt
 
 Para actualizar la DB, se vuelve a ejecutar el mismo comando.
 
-## 5. Preparar analisis SQL
+## 5. Preparar analisis SQL y Power BI
 
-Los artefactos analiticos se guardan en:
-
-```text
-sql/analysis/views/            -> views descriptivas y futuras views semanticas sobre MySQL
-sql/analysis/views/diagnostic/ -> views diagnosticas fuera del modelo relacional
-sql/analysis/CSV/              -> CSV locales exportados, utiles como snapshots
-```
-
-Power BI queda pausado. El trabajo activo vuelve a MySQL `yugioh_db`: primero se consolida la capa SQL y despues se retomara el modelo semantico para Power BI.
-
-Modelo semantico objetivo, pendiente de implementar como views SQL:
+El origen de preguntas, problemas y decisiones analiticas vive en:
 
 ```text
-vw_dim_*       -> dimensiones limpias para filtros y relaciones
-vw_fact_*      -> hechos granulares para metricas
-vw_bridge_*    -> relaciones muchos-a-muchos
-vw_agg_*       -> agregados preparados para lectura rapida
-vw_desc_*      -> views descriptivas auxiliares
-vw_ref_*       -> catalogos de referencia
-views/diagnostic/vw_diag_* -> views diagnosticas auxiliares, fuera del modelo relacional
+docs/02_marco_analisis_datos/README.md
 ```
 
-Convencion de nombres para el hilo `Estructura de consultas y tablas SQL`:
-
-| Prefijo | Uso | Ejemplo |
-|---|---|---|
-| `vw_dim_` | Dimensiones estables para filtrar y relacionar en Power BI. | `vw_dim_card` |
-| `vw_fact_` | Hechos medibles y granulares. | `vw_fact_card_prices` |
-| `vw_bridge_` | Puentes para relaciones muchos-a-muchos. | `vw_bridge_card_set` |
-| `vw_agg_` | Resumenes calculados sobre facts o dimensiones. | `vw_agg_deck_summary` |
-| `vw_desc_` | Consultas descriptivas auxiliares. | `vw_desc_card_catalog_summary` |
-| `vw_diag_` | Diagnostico, calidad de datos o hipotesis analiticas. | `vw_diag_price_outliers` |
-| `vw_ref_` | Catalogos de control o equivalencias. | `vw_ref_banlist_status` |
-
-Views candidatas del modelo semantico:
-
-| Nombre de view | Problema que resuelve |
-|---|---|
-| `vw_dim_card` | Una fila por carta con atributos descriptivos principales. |
-| `vw_dim_set` | Catalogo de sets para analizar producto, expansion y presencia historica. |
-| `vw_dim_rarity` | Catalogo de rarezas para filtros y comparativas de precio. |
-| `vw_ref_banlist_status` | Normalizar estados de legalidad competitiva. |
-| `vw_bridge_card_set` | Relacionar cartas, sets, codigos de impresion y rarezas. |
-| `vw_fact_card_prices` | Medir precios actuales por carta y marketplace. |
-| `vw_fact_price_history` | Medir snapshots historicos de precio por ejecucion del ETL. |
-| `vw_agg_card_price_current` | Resumir precio actual por carta para consumo rapido. |
-| `vw_diag_cards_without_price` | Detectar cartas sin precio asociado. |
-| `vw_diag_price_outliers` | Detectar precios anomalos o extremos. |
-
-Views actuales localizadas:
+Los artefactos de implementacion se separan por capa:
 
 ```text
-sql/analysis/views/vw_fact_card_prices.sql
-sql/analysis/views/diagnostic/vw_diag_competitive_staple_candidates.sql
-sql/analysis/views/diagnostic/vw_diag_high_demand_archetypes.sql
-sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql
-sql/analysis/views/diagnostic/vw_diag_price_outliers.sql
+sql/analysis/README.md -> organizacion SQL, queries y views
+powerbi/README.md      -> modelo Power BI, relaciones, medidas y plantilla
 ```
 
-Consulta candidata a convertirse en view estable:
-
-```text
-sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql
-```
-
-Los CSV son una fuente secundaria: conservan resultados exportados, pero no la logica SQL original.
+Los README de SQL y Power BI no deben redefinir las preguntas marco; solo explican como se implementan.
 
 Ejemplo:
 
 ```sql
 USE yugioh_db;
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/analysis/views/vw_fact_card_prices.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/analysis/views/fact/vw_fact_card_prices.sql;
 ```
 
 ## Utilidades auxiliares
@@ -254,7 +202,8 @@ Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
 4. python -m src.etl
 5. Crear o ejecutar views oficiales desde sql/analysis/views/
 6. Mantener views diagnosticas en sql/analysis/views/diagnostic/
-7. Retomar Power BI cuando la capa SQL este consolidada
+7. Cargar views en Power BI en modo Importar
+8. Exportar plantilla `.pbit` sin datos cargados
 ```
 
 ## Documentacion

@@ -2,88 +2,33 @@
 
 Indice documental del proyecto SQL DB Yu-Gi-Oh.
 
-## Finalidad
+## Funcion de este README
 
-Proyecto de aprendizaje y portfolio para practicar analisis de datos con un flujo completo:
+Este archivo solo sirve como mapa de documentos. No define preguntas analiticas, flujo operativo ni convenciones SQL.
 
-- ETL en Python desde la API de YGOPRODeck.
-- Carga de datos normalizados en MySQL.
-- Analisis mediante SQL sobre la base cargada.
-- Comunicacion de resultados mediante Power BI en una fase posterior.
-
-## Flujo base
+Referencias principales:
 
 ```text
-MySQL ejecuta sql/main_schema.sql -> crea tablas
-Python ejecuta python -m src.etl -> descarga, transforma y carga datos
-SQL crea views semanticas sobre las tablas base
-Power BI queda pausado hasta consolidar la capa SQL en MySQL
+README.md                         -> entrada rapida y comandos principales
+docs/02_marco_analisis_datos/README.md -> decision, alcance y preguntas marco
+sql/analysis/README.md            -> organizacion de queries y views SQL
+powerbi/README.md                 -> modelo Power BI, relaciones y artefactos
 ```
 
 ## Grupo 0: gestion del proyecto
 
-Marco de trabajo del repositorio:
-
-- `00_gestion_proyecto/versionado_y_flujo_git.md`: historico hasta `v0.1.0`, modelo de ramas, SemVer y flujo practico.
+- `00_gestion_proyecto/versionado_y_flujo_git.md`: versionado, ramas, SemVer y flujo practico.
 - `00_gestion_proyecto/revision_seguridad_publicacion.md`: revision de secretos, datos locales y riesgos antes de publicacion publica.
 
 ## Grupo 1: programa Python ETL
 
-Documentacion de desarrollo y uso del programa Python:
-
 - `01_programa_python_etl/etl_flow.md`: flujo API -> JSON raw -> transformacion Python -> MySQL.
 - `01_programa_python_etl/sql_usage.md`: creacion del esquema, reinicio y uso SQL conectado al ETL.
 
-## Grupo 2: marco documental de analisis de datos
+## Grupo 2: marco de analisis de datos
 
-Marco previo para el analisis. No se implementan nuevos documentos en este paso:
-
-- `02_marco_analisis_datos/README.md`: proceso de puesta en practica del analisis de datos.
+- `02_marco_analisis_datos/README.md`: fuente canonica de decision, alcance y preguntas marco.
 - `02_marco_analisis_datos/api_json_analysis.md`: estructura del JSON de YGOPRODeck y entidades candidatas.
 - `02_marco_analisis_datos/data_model.md`: tablas, relaciones, claves, criterio de carga y modelo semantico por views.
 - `02_marco_analisis_datos/relational_model.svg`: imagen del modelo relacional base.
-- `02_marco_analisis_datos/infografia_views_sql.svg`: mapa visual de views a construir para MySQL y Power BI.
-
-## Hilo marco: estructura de consultas y tablas SQL
-
-Este hilo organiza las consultas MySQL que despues podran alimentar Power BI. El criterio es separar la logica en capas reutilizables:
-
-| Prefijo | Para que sirve |
-|---|---|
-| `vw_dim_` | Entidades descriptivas: cartas, sets, rarezas, fechas. |
-| `vw_fact_` | Eventos o mediciones: precios, historico, apariciones. |
-| `vw_bridge_` | Relaciones muchos-a-muchos entre entidades. |
-| `vw_agg_` | Resumenes ya calculados para lectura rapida. |
-| `vw_desc_` | Analisis descriptivo auxiliar. |
-| `vw_diag_` | Diagnostico, validacion y calidad de datos. |
-| `vw_ref_` | Valores de referencia o normalizacion. |
-
-Regla practica:
-
-```text
-dim = quien es
-fact = que se mide
-bridge = como se relaciona
-agg = que resumen se consulta
-diag = que falta, falla o destaca
-ref = que valores controlan el modelo
-```
-
-## Criterio de organizacion
-
-- `README.md` en raiz: comandos principales y estado actual.
-- `docs/00_gestion_proyecto/`: versionado, ramas y buenas practicas de gestion del repositorio.
-- `docs/01_programa_python_etl/`: documentacion del programa Python y uso operativo.
-- `docs/02_marco_analisis_datos/`: marco documental para analisis de datos.
-- `sql/`: scripts ejecutables en MySQL.
-- `sql/analysis/`: views oficiales, consultas exploratorias y CSV locales.
-- `src/`: codigo Python del ETL y utilidades auxiliares.
-- `data/raw/`: copias JSON descargadas desde la API.
-
-## Utilidades no principales
-
-`src/csv_sql_scripts/` queda aislado del flujo principal. Sirve para una escalada futura: recuperar CSV analiticos como scripts SQL de staging/view sin ejecutar nada contra MySQL.
-
-## Nota sobre migraciones
-
-`sql/main_schema.sql` representa el esquema principal vigente para construir la base desde cero y `sql/reset_main_schema.sql` reconstruye la base de forma destructiva. `sql/migrations/` queda reservado para futuras escaladas incrementales del modelo.
+- `02_marco_analisis_datos/infografia_views_sql.svg`: mapa visual de views SQL.
