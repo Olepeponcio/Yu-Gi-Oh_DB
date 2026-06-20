@@ -1,167 +1,226 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000">
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200">
   <defs>
     <style>
-      .bg { fill: #f7f8fb; }
-      .table { fill: #ffffff; stroke: #2f3a4a; stroke-width: 2; rx: 8; }
-      .header { fill: #27364a; }
-      .title { fill: #ffffff; font: 700 18px Arial, sans-serif; }
-      .field { fill: #1f2937; font: 14px Consolas, monospace; }
-      .pk { fill: #0f766e; font: 700 14px Consolas, monospace; }
-      .fk { fill: #b45309; font: 700 14px Consolas, monospace; }
-      .note { fill: #475569; font: 13px Arial, sans-serif; }
-      .line { stroke: #334155; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
-      .logical { stroke: #64748b; stroke-width: 2; stroke-dasharray: 8 6; fill: none; marker-end: url(#arrow-soft); }
-      .label { fill: #334155; font: 12px Arial, sans-serif; }
+      .bg { fill: #f5f7fb; }
+      .title { font-family: Segoe UI, Arial, sans-serif; font-size: 42px; font-weight: 750; fill: #142033; }
+      .subtitle { font-family: Segoe UI, Arial, sans-serif; font-size: 19px; fill: #526070; }
+      .bandTitle { font-family: Segoe UI, Arial, sans-serif; font-size: 20px; font-weight: 750; fill: #142033; }
+      .table { fill: #ffffff; stroke: #cfd8e6; stroke-width: 2; rx: 10; }
+      .headDim { fill: #2267d8; }
+      .headBridge { fill: #7357dc; }
+      .headFact { fill: #168a68; }
+      .headRef { fill: #c06c16; }
+      .headDate { fill: #5c6675; }
+      .headDiag { fill: #8a3ffc; }
+      .headText { font-family: Segoe UI, Arial, sans-serif; font-size: 17px; font-weight: 750; fill: #ffffff; }
+      .field { font-family: Consolas, Menlo, monospace; font-size: 14px; fill: #2b3548; }
+      .key { font-family: Consolas, Menlo, monospace; font-size: 14px; font-weight: 750; fill: #0f766e; }
+      .caption { font-family: Segoe UI, Arial, sans-serif; font-size: 14px; fill: #526070; }
+      .note { font-family: Segoe UI, Arial, sans-serif; font-size: 15px; fill: #526070; }
+      .rel { stroke: #344054; stroke-width: 2.5; fill: none; marker-end: url(#arrow); }
+      .relDate { stroke: #667085; stroke-width: 2.5; fill: none; stroke-dasharray: 8 7; marker-end: url(#arrowDate); }
+      .label { font-family: Segoe UI, Arial, sans-serif; font-size: 13px; font-weight: 650; fill: #344054; }
+      .legend { font-family: Segoe UI, Arial, sans-serif; font-size: 15px; fill: #253044; }
     </style>
-    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#334155"/>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#344054"/>
     </marker>
-    <marker id="arrow-soft" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
-      <path d="M 0 0 L 10 5 L 0 10 z" fill="#64748b"/>
+    <marker id="arrowDate" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#667085"/>
     </marker>
   </defs>
 
-  <rect class="bg" width="1600" height="1000"/>
+  <rect class="bg" width="1800" height="1200"/>
 
-  <text x="60" y="50" style="fill:#111827;font:700 30px Arial,sans-serif;">Yu-Gi-Oh DB - Modelo relacional base</text>
-  <text x="60" y="78" class="note">Lineas solidas: claves foraneas declaradas. Linea discontinua: relacion logica por set_code usada por el ETL.</text>
+  <text class="title" x="70" y="72">Modelo relacional Power BI</text>
+  <text class="subtitle" x="72" y="106">Views semánticas importadas desde MySQL · Proyecto SQL DB Yu-Gi-Oh · Filtro recomendado: dirección única desde dimensiones/referencias hacia hechos.</text>
 
-  <!-- Relationship lines -->
-  <path class="line" d="M 450 265 C 535 265 535 430 620 430"/>
-  <text x="490" y="252" class="label">cards.card_id -> card_sets.card_id</text>
+  <rect x="70" y="135" width="1660" height="68" rx="10" fill="#162033"/>
+  <text x="100" y="164" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="750" fill="#ffffff">Decisión que guía el modelo</text>
+  <text x="100" y="190" font-family="Segoe UI, Arial, sans-serif" font-size="17" fill="#dce6f2">Identificar cartas, rarezas, sets y precios del mercado secundario que orienten decisiones sobre productos comerciales de Yu-Gi-Oh.</text>
 
-  <path class="line" d="M 450 312 C 540 312 540 595 620 595"/>
-  <text x="478" y="340" class="label">cards.card_id -> child tables</text>
+  <text class="bandTitle" x="70" y="250">Núcleo relacional del modelo</text>
+  <text class="caption" x="70" y="275">Dimensiones y referencias filtran puentes y hechos. Las tablas diagnósticas quedan fuera del núcleo.</text>
 
-  <path class="line" d="M 450 332 C 545 332 545 770 620 770"/>
-  <path class="line" d="M 450 352 C 548 352 548 875 620 875"/>
-  <path class="line" d="M 450 372 C 548 372 548 705 620 705"/>
-  <path class="line" d="M 450 392 C 548 392 548 835 620 835"/>
-  <path class="line" d="M 450 412 C 548 412 548 915 620 915"/>
+  <!-- Relation lines -->
+  <path class="rel" d="M 360 375 C 445 375 445 375 530 375"/>
+  <text class="label" x="407" y="360">1 → *</text>
 
-  <path class="line" d="M 980 430 C 1065 430 1065 195 1150 195"/>
-  <text x="1010" y="405" class="label">card_sets.set_id -> sets.id</text>
+  <path class="rel" d="M 360 565 C 445 565 445 435 530 435"/>
+  <text class="label" x="407" y="532">1 → *</text>
 
-  <path class="line" d="M 980 490 C 1065 490 1065 370 1150 370"/>
-  <text x="1010" y="475" class="label">card_sets.rarity_id -> rarities.id</text>
+  <path class="rel" d="M 360 742 C 445 742 445 495 530 495"/>
+  <text class="label" x="407" y="704">1 → *</text>
 
-  <path class="logical" d="M 980 520 C 1080 520 1080 430 1150 430"/>
-  <text x="1010" y="535" class="label">card_sets.set_code ~= rarities.set_code</text>
+  <path class="rel" d="M 360 375 C 445 375 445 665 530 665"/>
+  <text class="label" x="407" y="636">1 → *</text>
 
-  <!-- cards -->
-  <g transform="translate(90 130)">
-    <rect class="table" width="360" height="320"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">cards</text>
-    <text class="pk" x="18" y="70">PK card_id</text>
-    <text class="field" x="18" y="96">name</text>
-    <text class="field" x="18" y="122">card_type</text>
-    <text class="field" x="18" y="148">human_readable_card_type</text>
-    <text class="field" x="18" y="174">frame_type</text>
-    <text class="field" x="18" y="200">archetype</text>
-    <text class="field" x="18" y="226">atk, def, attribute, level</text>
-    <text class="field" x="18" y="252">scale, link_value</text>
-    <text class="field" x="18" y="278">created_at, updated_at</text>
+  <path class="rel" d="M 850 665 C 935 665 935 665 1020 665"/>
+  <text class="label" x="910" y="650">* ← 1</text>
+
+  <path class="rel" d="M 360 375 C 715 375 715 346 1070 346"/>
+  <text class="label" x="700" y="332">1 → *</text>
+
+  <path class="rel" d="M 360 375 C 715 375 715 512 1070 512"/>
+  <text class="label" x="700" y="498">1 → *</text>
+
+  <path class="relDate" d="M 1450 512 C 1510 512 1510 604 1450 604"/>
+  <text class="label" x="1518" y="560">1 → *</text>
+
+  <!-- Dimensions -->
+  <g transform="translate(70 310)">
+    <rect class="table" width="290" height="160"/>
+    <rect class="headDim" width="290" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_dim_card</text>
+    <text class="key" x="16" y="68">card_id</text>
+    <text class="field" x="16" y="94">name</text>
+    <text class="field" x="16" y="120">card_type</text>
+    <text class="field" x="16" y="146">archetype, atk, def...</text>
   </g>
 
-  <!-- card_sets -->
-  <g transform="translate(620 335)">
-    <rect class="table" width="360" height="260"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_sets</text>
-    <text class="pk" x="18" y="70">PK id</text>
-    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
-    <text class="fk" x="18" y="122">FK set_id -> sets.id</text>
-    <text class="fk" x="18" y="148">FK rarity_id -> rarities.id</text>
-    <text class="field" x="18" y="174">set_code</text>
-    <text class="field" x="18" y="200">set_name</text>
-    <text class="field" x="18" y="226">set_rarity, set_rarity_code</text>
-    <text class="field" x="18" y="252">set_price</text>
+  <g transform="translate(70 515)">
+    <rect class="table" width="290" height="120"/>
+    <rect class="headDim" width="290" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_dim_set</text>
+    <text class="key" x="16" y="68">set_id</text>
+    <text class="field" x="16" y="94">set_name</text>
   </g>
 
-  <!-- sets -->
-  <g transform="translate(1150 130)">
-    <rect class="table" width="330" height="150"/>
-    <rect class="header" width="330" height="42" rx="8"/>
-    <text class="title" x="18" y="27">sets</text>
-    <text class="pk" x="18" y="70">PK id</text>
-    <text class="field" x="18" y="96">set_name UNIQUE</text>
-    <text class="field" x="18" y="122">created_at, updated_at</text>
+  <g transform="translate(70 695)">
+    <rect class="table" width="290" height="145"/>
+    <rect class="headDim" width="290" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_dim_rarity</text>
+    <text class="key" x="16" y="68">rarity_id</text>
+    <text class="field" x="16" y="94">set_code</text>
+    <text class="field" x="16" y="120">rarity_name, rarity_code</text>
   </g>
 
-  <!-- rarities -->
-  <g transform="translate(1150 330)">
-    <rect class="table" width="330" height="190"/>
-    <rect class="header" width="330" height="42" rx="8"/>
-    <text class="title" x="18" y="27">rarities</text>
-    <text class="pk" x="18" y="70">PK id</text>
-    <text class="field" x="18" y="96">set_code</text>
-    <text class="field" x="18" y="122">rarity_name</text>
-    <text class="field" x="18" y="148">rarity_code</text>
-    <text class="field" x="18" y="174">UNIQUE set_code + rarity</text>
+  <!-- Bridges -->
+  <g transform="translate(530 315)">
+    <rect class="table" width="320" height="215"/>
+    <rect class="headBridge" width="320" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_bridge_card_set</text>
+    <text class="key" x="16" y="68">card_set_id</text>
+    <text class="key" x="16" y="94">card_id</text>
+    <text class="key" x="16" y="120">set_id</text>
+    <text class="key" x="16" y="146">rarity_id</text>
+    <text class="field" x="16" y="172">set_code, set_rarity</text>
+    <text class="field" x="16" y="198">set_price</text>
   </g>
 
-  <!-- card_images -->
-  <g transform="translate(620 635)">
-    <rect class="table" width="360" height="145"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_images</text>
-    <text class="pk" x="18" y="70">PK image_id</text>
-    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="122">image_url, small, cropped</text>
+  <g transform="translate(530 610)">
+    <rect class="table" width="320" height="150"/>
+    <rect class="headBridge" width="320" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_bridge_card_banlist</text>
+    <text class="key" x="16" y="68">card_id</text>
+    <text class="field" x="16" y="94">format</text>
+    <text class="field" x="16" y="120">ban_status</text>
+    <text class="key" x="16" y="146">banlist_status_key</text>
   </g>
 
-  <!-- card_prices -->
-  <g transform="translate(90 540)">
-    <rect class="table" width="360" height="210"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_prices</text>
-    <text class="pk" x="18" y="70">PK/FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="96">cardmarket_price</text>
-    <text class="field" x="18" y="122">tcgplayer_price</text>
-    <text class="field" x="18" y="148">ebay_price</text>
-    <text class="field" x="18" y="174">amazon_price</text>
-    <text class="field" x="18" y="200">coolstuffinc_price</text>
+  <!-- Facts -->
+  <g transform="translate(1070 280)">
+    <rect class="table" width="380" height="170"/>
+    <rect class="headFact" width="380" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_fact_card_prices</text>
+    <text class="key" x="16" y="68">card_id</text>
+    <text class="field" x="16" y="94">marketplace</text>
+    <text class="field" x="16" y="120">price</text>
+    <text class="field" x="16" y="146">currency</text>
   </g>
 
-  <!-- card_price_history -->
-  <g transform="translate(90 790)">
-    <rect class="table" width="360" height="170"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_price_history</text>
-    <text class="pk" x="18" y="70">PK id</text>
-    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="122">snapshot_at</text>
-    <text class="field" x="18" y="148">marketplace prices</text>
+  <g transform="translate(1070 475)">
+    <rect class="table" width="380" height="190"/>
+    <rect class="headFact" width="380" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_fact_price_history</text>
+    <text class="key" x="16" y="68">card_id</text>
+    <text class="field" x="16" y="94">snapshot_at</text>
+    <text class="key" x="16" y="120">snapshot_date</text>
+    <text class="field" x="16" y="146">marketplace, price</text>
+    <text class="field" x="16" y="172">currency</text>
   </g>
 
-  <!-- card_banlist -->
-  <g transform="translate(620 805)">
-    <rect class="table" width="360" height="150"/>
-    <rect class="header" width="360" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_banlist</text>
-    <text class="pk" x="18" y="70">PK/FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="96">ban_tcg</text>
-    <text class="field" x="18" y="122">ban_ocg, ban_goat</text>
+  <!-- Reference and date -->
+  <g transform="translate(1020 610)">
+    <rect class="table" width="350" height="165"/>
+    <rect class="headRef" width="350" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_ref_banlist_status</text>
+    <text class="field" x="16" y="68">format</text>
+    <text class="field" x="16" y="94">ban_status</text>
+    <text class="key" x="16" y="120">banlist_status_key</text>
+    <text class="field" x="16" y="146">is_playable, sort_order</text>
   </g>
 
-  <!-- card_typelines -->
-  <g transform="translate(1150 605)">
-    <rect class="table" width="330" height="150"/>
-    <rect class="header" width="330" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_typelines</text>
-    <text class="pk" x="18" y="70">PK card_id + typeline</text>
-    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="122">position</text>
+  <g transform="translate(1480 560)">
+    <rect class="table" width="250" height="150"/>
+    <rect class="headDate" width="250" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">Calendario</text>
+    <text class="key" x="16" y="68">Date</text>
+    <text class="field" x="16" y="94">Año, Mes</text>
+    <text class="field" x="16" y="120">Año Mes, Trimestre</text>
   </g>
 
-  <!-- card_linkmarkers -->
-  <g transform="translate(1150 810)">
-    <rect class="table" width="330" height="150"/>
-    <rect class="header" width="330" height="42" rx="8"/>
-    <text class="title" x="18" y="27">card_linkmarkers</text>
-    <text class="pk" x="18" y="70">PK card_id + linkmarker</text>
-    <text class="fk" x="18" y="96">FK card_id -> cards.card_id</text>
-    <text class="field" x="18" y="122">position</text>
+  <!-- Rules -->
+  <g transform="translate(1480 280)">
+    <rect x="0" y="0" width="250" height="210" rx="10" fill="#ffffff" stroke="#cfd8e6" stroke-width="2"/>
+    <text class="bandTitle" x="18" y="34">Reglas del modelo</text>
+    <text class="note" x="18" y="68">1. Filtro cruzado único.</text>
+    <text class="note" x="18" y="96">2. No mezclar EUR/USD.</text>
+    <text class="note" x="18" y="124">3. Diagnósticas fuera</text>
+    <text class="note" x="36" y="146">del núcleo.</text>
+    <text class="note" x="18" y="176">4. Calendario se crea</text>
+    <text class="note" x="36" y="198">en Power BI.</text>
   </g>
+
+  <!-- Diagnostics -->
+  <text class="bandTitle" x="70" y="910">Views diagnósticas para páginas auxiliares</text>
+  <text class="caption" x="70" y="935">Se pueden usar en visuales propios, pero no deben forzar relaciones bidireccionales con el núcleo.</text>
+
+  <g transform="translate(70 965)">
+    <rect class="table" width="380" height="125"/>
+    <rect class="headDiag" width="380" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_diag_price_by_rarity</text>
+    <text class="field" x="16" y="70">Precio por rareza y código de impresión</text>
+    <text class="field" x="16" y="96">avg_set_price, total_printings</text>
+  </g>
+
+  <g transform="translate(485 965)">
+    <rect class="table" width="350" height="125"/>
+    <rect class="headDiag" width="350" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_diag_price_outliers</text>
+    <text class="field" x="16" y="70">Precios extremos</text>
+    <text class="field" x="16" y="96">control antes de concluir</text>
+  </g>
+
+  <g transform="translate(870 965)">
+    <rect class="table" width="390" height="125"/>
+    <rect class="headDiag" width="390" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_diag_high_demand_archetypes</text>
+    <text class="field" x="16" y="70">Arquetipos con peso estimado</text>
+    <text class="field" x="16" y="96">total_cards, estimated_market_weight</text>
+  </g>
+
+  <g transform="translate(1295 965)">
+    <rect class="table" width="435" height="125"/>
+    <rect class="headDiag" width="435" height="42" rx="10"/>
+    <text class="headText" x="16" y="27">vw_diag_competitive_staple_candidates</text>
+    <text class="field" x="16" y="70">Cartas candidatas por legalidad, precio</text>
+    <text class="field" x="16" y="96">y reimpresiones</text>
+  </g>
+
+  <!-- Legend -->
+  <rect x="70" y="1120" width="1660" height="46" rx="10" fill="#e8eef7"/>
+  <circle cx="105" cy="1143" r="9" fill="#2267d8"/>
+  <text class="legend" x="122" y="1148">Dim</text>
+  <circle cx="178" cy="1143" r="9" fill="#7357dc"/>
+  <text class="legend" x="195" y="1148">Bridge</text>
+  <circle cx="285" cy="1143" r="9" fill="#168a68"/>
+  <text class="legend" x="302" y="1148">Fact</text>
+  <circle cx="370" cy="1143" r="9" fill="#c06c16"/>
+  <text class="legend" x="387" y="1148">Ref</text>
+  <circle cx="438" cy="1143" r="9" fill="#5c6675"/>
+  <text class="legend" x="455" y="1148">Calendario Power BI</text>
+  <circle cx="640" cy="1143" r="9" fill="#8a3ffc"/>
+  <text class="legend" x="657" y="1148">Diagnóstico</text>
+  <text class="legend" x="850" y="1148">Relaciones clave: card_id, set_id, rarity_id, banlist_status_key y snapshot_date.</text>
 </svg>
