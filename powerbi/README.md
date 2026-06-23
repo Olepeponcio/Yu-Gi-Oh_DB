@@ -125,8 +125,96 @@ En visuales monetarias, filtrar por `currency` o mostrar moneda en leyenda/segme
 | Rareza y set | `vw_bridge_card_set`, `vw_dim_set`, `vw_dim_rarity`, `vw_diag_price_by_rarity` | Justificar impacto de rareza o expansion. |
 | Calidad | `vw_diag_price_outliers` | Revisar precios extremos antes de recomendar. |
 | Mercado | `vw_diag_high_demand_archetypes` | Detectar arquetipos con peso estimado. |
-| Decision comercial | `vw_diag_competitive_staple_candidates` | Proponer cartas candidatas para destacar. |
+| Decision comercial | `vw_diag_competitive_staple_candidates` | Clasificar cartas candidatas por accion comercial. |
 | Historico | `vw_fact_price_history`, `Calendario` | Vigilar variacion cuando haya snapshots suficientes. |
+
+## Avance de paginas
+
+Bloques cerrados:
+
+```text
+descriptivo
+diagnostico
+```
+
+Evidencias:
+
+```text
+powerbi/exportaciones/analisis_desc_diag
+docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.md
+docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.docx
+```
+
+Pagina prescriptiva activa:
+
+```text
+decision comercial
+```
+
+Visuales actuales:
+
+- Tabla principal de cartas candidatas.
+- Segmentador por `clasificacion_comercial`.
+- Grafico de distribucion de cartas por clasificacion.
+- Resumen visual de clasificaciones.
+- Texto de lectura: reglas conservadoras, primera version prescriptiva.
+
+## Columnas DAX prescriptivas
+
+Tabla base:
+
+```text
+yugioh_db vw_diag_competitive_staple_candidates
+```
+
+Columnas creadas en Power BI:
+
+```DAX
+clasificacion_comercial =
+SWITCH(
+    TRUE(),
+
+    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] >= 50
+        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 20,
+        "Carta principal potencial",
+
+    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] >= 5
+        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 10,
+        "Carta destacada comercial",
+
+    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] < 5
+        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 20,
+        "Carta complementaria",
+
+    "Revisar antes de accionar"
+)
+```
+
+```DAX
+motivo_clasificacion =
+SWITCH(
+    'yugioh_db vw_diag_competitive_staple_candidates'[clasificacion_comercial],
+
+    "Carta principal potencial",
+        "Precio medio alto y alta presencia en impresiones.",
+
+    "Carta destacada comercial",
+        "Precio relevante y presencia suficiente para destacar.",
+
+    "Carta complementaria",
+        "Precio bajo o moderado con alta disponibilidad.",
+
+    "Revisar antes de accionar",
+        "No cumple criterios suficientes o requiere validacion adicional."
+)
+```
+
+Uso:
+
+- `clasificacion_comercial` etiqueta la accion comercial.
+- `motivo_clasificacion` explica por que la carta cae en esa categoria.
+- El segmentador permite revisar cada grupo sin duplicar tablas.
+- Las reglas siguen en validacion; no deben consolidarse como view SQL hasta comprobar que clasifican de forma util.
 
 ## Politica de versionado
 

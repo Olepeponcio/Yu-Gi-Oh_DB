@@ -39,8 +39,8 @@ Regla:
 |---|---|---|---|
 | Ingesta | Activo | ETL API/raw file, carga MySQL e historico en `card_price_history`. | Mantener ejecuciones periodicas para ampliar historico. |
 | Modelo SQL | Activo | Tablas base y views `vw_dim_*`, `vw_bridge_*`, `vw_fact_*`, `vw_ref_*`, `vw_diag_*`. | Crear solo nuevas views cuando respondan a una accion comercial. |
-| Power BI | Activo | Modelo consume views de MySQL en modo Importar. | Organizar paginas por bloque analitico y accion sugerida. |
-| Prescriptivo | En curso | Query `sql/analysis/queries/card_comercial_actions.sql` y view `vw_diag_competitive_staple_candidates`. | Consolidar reglas de clasificacion comercial en view o medida estable. |
+| Power BI | Activo | Modelo consume views de MySQL en modo Importar. Bloques descriptivo y diagnostico cerrados con informe de conclusiones. | Continuar pagina prescriptiva de decision comercial. |
+| Prescriptivo | En curso | Pagina Power BI con clasificacion comercial DAX sobre `vw_diag_competitive_staple_candidates`: `clasificacion_comercial` y `motivo_clasificacion`. | Validar reglas y consolidarlas en view o medida estable si se reutilizan. |
 
 ## Bloque descriptivo
 
@@ -70,6 +70,13 @@ Uso comercial:
 - Localizar cartas visibles para ranking inicial.
 - Separar mercados por moneda antes de comparar.
 
+Estado:
+
+- Bloque cerrado en Power BI.
+- Evidencias exportadas en `powerbi/exportaciones/analisis_desc_diag`.
+- Conclusiones documentadas en `docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.md`.
+- Version Word generada en `docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.docx`.
+
 ## Bloque diagnostico
 
 Objetivo: explicar diferencias, relaciones y riesgos de interpretacion.
@@ -97,6 +104,12 @@ Uso comercial:
 - Justificar por que una carta, rareza o set merece atencion.
 - Evitar recomendaciones basadas en datos extremos o incompletos.
 - Segmentar cartas por contexto competitivo.
+
+Estado:
+
+- Bloque cerrado en Power BI.
+- Modulos trabajados: cartas con mas sets, arquetipos con mayor interes estimado, outliers y candidatas competitivas.
+- El informe de conclusiones fija la regla de cierre: ningun ranking debe convertirse por si solo en recomendacion comercial.
 
 ## Bloque predictivo
 
@@ -158,6 +171,26 @@ Artefactos actuales:
 - `vw_diag_price_outliers`
 - `vw_diag_high_demand_archetypes`
 - Medidas Power BI sobre `vw_fact_card_prices` y `vw_fact_price_history`.
+- Columnas DAX en Power BI sobre `vw_diag_competitive_staple_candidates`:
+  - `clasificacion_comercial`
+  - `motivo_clasificacion`
+
+Reglas DAX en validacion:
+
+| Clasificacion | Criterio inicial |
+|---|---|
+| `Carta principal potencial` | `avg_set_price >= 50` y `total_printings >= 20`. |
+| `Carta destacada comercial` | `avg_set_price >= 5` y `total_printings >= 10`. |
+| `Carta complementaria` | `avg_set_price < 5` y `total_printings >= 20`. |
+| `Revisar antes de accionar` | No cumple criterios suficientes o requiere validacion adicional. |
+
+Avance Power BI:
+
+- Pagina prescriptiva de decision comercial creada.
+- Tabla principal con cartas, arquetipo, legalidad, impresiones, sets, precios, clasificacion y motivo.
+- Segmentador por `clasificacion_comercial`.
+- Visual de distribucion por clasificacion.
+- La primera lectura muestra reglas conservadoras: predominan cartas en `Revisar antes de accionar`, con pocas cartas accionables.
 
 Siguiente consolidacion:
 
@@ -198,6 +231,7 @@ Bloques recomendados:
 - Rareza, set y arquetipo.
 - Calidad y outliers.
 - Candidatas comerciales.
+- Decision comercial prescriptiva.
 - Evolucion temporal cuando haya historico suficiente.
 
 ## Documentos del marco
@@ -207,6 +241,7 @@ Bloques recomendados:
 - [Datos sensibles y calidad](privacidad_calidad_datos_modelo.md)
 - [Modelo relacional](relational_model.svg)
 - [Infografia de views SQL](infografia_views_sql.svg)
+- [Informe de conclusiones descriptivo y diagnostico](informes/informe_conclusiones_desc_diag.md)
 
 ## Fuentes de referencia
 

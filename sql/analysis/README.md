@@ -50,6 +50,13 @@ vw_diag_... = diagnostico auxiliar
 
 Las reglas prescriptivas pueden vivir temporalmente en `queries/` hasta que sean estables.
 
+Estado prescriptivo actual:
+
+- La primera clasificacion comercial se esta validando en Power BI mediante columnas DAX sobre `vw_diag_competitive_staple_candidates`.
+- Columnas: `clasificacion_comercial` y `motivo_clasificacion`.
+- No existe aun una view SQL estable para esa clasificacion.
+- Solo debe crearse una nueva `vw_*` cuando las reglas queden validadas como reutilizables.
+
 ## Views actuales
 
 ```text
@@ -83,6 +90,10 @@ queries/diagnostic/q_diag_relevant_price_increases.sql
 ```
 
 `queries/card_comercial_actions.sql` pertenece al bloque prescriptivo: convierte criterios analiticos en clasificaciones comerciales. Si se reutiliza en Power BI, debe consolidarse como view.
+
+Nota:
+
+La pagina prescriptiva actual no depende todavia de `queries/card_comercial_actions.sql`. Usa reglas DAX experimentales en Power BI para validar la clasificacion antes de moverla a SQL.
 
 ## Dependencias base
 
