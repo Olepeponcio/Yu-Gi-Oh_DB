@@ -1,249 +1,215 @@
 # Marco de analisis de datos
 
-Este directorio documenta el proceso para poner en practica el analisis de datos del proyecto SQL DB Yu-Gi-Oh.
+Este README es la fuente canonica del analisis de datos del proyecto SQL DB Yu-Gi-Oh.
 
-La finalidad es usar el proyecto como aprendizaje y portfolio: partir de una decision analitica, preparar datos con Python y MySQL, analizar con SQL y comunicar resultados en Power BI.
+Finalidad: convertir datos de cartas, sets, rarezas, precios y legalidad en acciones comerciales reutilizables para Power BI.
 
-Este README es la fuente canonica de preguntas analiticas. Otros README pueden enlazar estas preguntas, pero no deben duplicarlas ni redefinirlas.
+Los README de `sql/analysis/` y `powerbi/` solo documentan implementacion. No deben redefinir preguntas, decisiones ni avances del marco.
 
-## Flujo practico del analisis
-
-```text
-decision -> preguntas -> datos -> fuentes -> preparacion -> analisis -> comunicacion
-```
-
-## Paso 1: formular la decision
-
-El analisis debe empezar por una decision, no por una tabla.
-
-Decision marco del proyecto:
+## Decision marco
 
 > Identificar que cartas, rarezas, sets y precios del mercado secundario pueden orientar decisiones sobre productos comerciales de Yu-Gi-Oh.
 
-La decision parte de una segmentacion de mercado:
+Alcance actual:
 
-- Mercado secundario de cartas individuales: precios observados en marketplaces.
-- Mercado oficial TCG occidental: producto sellado publicado por Konami para America, Europa y otros territorios occidentales.
-
-Alcance operativo actual:
-
-- El proyecto analiza el mercado secundario.
-- El mercado oficial queda como contexto de referencia, no como capa ETL obligatoria.
-- No se cargan todavia productos sellados ni MSRP oficial en MySQL.
-
-Decision de alcance:
-
-> Si. Podemos prescindir de una ETL del mercado oficial para esta fase.
+- Mercado analizado: mercado secundario de cartas individuales.
+- Fuente principal: API publica de YGOPRODeck.
+- Capa de datos: Python ETL -> MySQL -> SQL views -> Power BI.
+- Mercado oficial TCG y MSRP: contexto futuro, no ETL obligatoria en esta fase.
 
 Motivo:
 
-- El objetivo actual se sostiene con datos de cartas, rarezas, sets y precios de mercado secundario.
-- El MSRP oficial corresponde a producto sellado, no a precio individual de carta.
-- Power BI puede comunicar decisiones sobre valor relativo, rareza, set y marketplace sin integrar aun MSRP.
-- El MSRP oficial puede incorporarse despues como benchmark para comparar producto sellado frente a valor estimado de cartas.
+- El objetivo actual se sostiene con precios observados por carta, set, rareza y marketplace.
+- El MSRP oficial aplica a producto sellado, no al precio individual de carta.
+- Power BI puede comunicar acciones sobre valor relativo, agrupacion y priorizacion sin integrar aun producto sellado.
 
-Ejemplos de decisiones derivadas:
-
-- Que cartas destacar en un dashboard comercial.
-- Que sets concentran mayor valor de mercado.
-- Que rarezas elevan el precio medio.
-- Que cartas pueden funcionar como cartas principales de un pack.
-- Que cartas baratas pueden complementar productos de mayor valor.
-
-## Paso 2: transformar la decision en preguntas analiticas
-
-Las preguntas convierten la decision en trabajo medible.
-
-Preguntas marco:
-
-- 1. Que cartas tienen mayor precio medio por marketplace?
-  - `sql/analysis/views/fact/vw_fact_card_prices.sql`
-
-- 2. Que rarezas se asocian con precios mas altos?
-  - `sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql`
-
-- 3. Que sets acumulan mas valor potencial?
-
-- 4. Que tipos de carta dominan el catalogo?
-
-- 5. Que cartas aparecen en mas sets?
-
-- 6. Que cartas muestran variacion de precio entre ejecuciones del ETL?
-  - `sql/analysis/queries/diagnostic/q_diag_price_variation_usd.sql`
-  - `sql/analysis/queries/diagnostic/q_diag_relevant_price_increases.sql`
-
-- 7. Que diferencias existen entre precios de Cardmarket, TCGPlayer, eBay, Amazon y CoolStuffInc?
-
-## Paso 3: identificar datos necesarios
-
-Datos necesarios para responder las preguntas:
-
-- Datos base de carta: nombre, tipo, atributo, nivel, ataque, defensa, arquetipo.
-- Apariciones en sets: set, codigo, rareza y precio declarado del set.
-- Precios por marketplace.
-- Historico de precios por ejecucion del ETL.
-- Restricciones de banlist.
-- Imagenes y enlaces para soporte visual en Power BI.
-
-Segmentacion de precios:
-
-- `cardmarket_price`: precio de Cardmarket en EUR.
-- `tcgplayer_price`: precio de TCGPlayer en USD.
-- `ebay_price`: precio de eBay en USD.
-- `amazon_price`: precio de Amazon en USD.
-- `coolstuffinc_price`: precio de CoolStuffInc en USD.
-- `set_price`: precio asociado al set en USD segun la API de YGOPRODeck.
-
-Por tanto, los datos obtenidos no son todos en USD:
-
-- Europa/Cardmarket usa EUR.
-- TCGPlayer, eBay, Amazon, CoolStuffInc y `set_price` usan USD.
-- Cualquier comparativa monetaria agregada debe separar moneda o aplicar conversion antes de mezclar mercados.
-
-Tipos de datos utilizados:
-
-- Estructurados: tablas MySQL normalizadas, views SQL y CSV analiticos.
-- Semi-estructurados: JSON descargado desde la API de YGOPRODeck.
-- No estructurados: imagenes de cartas, descripciones textuales y enlaces externos usados como apoyo visual o contextual.
-
-Documentos relacionados:
-
-- [Analisis JSON API](api_json_analysis.md)
-- [Modelo de datos](data_model.md)
-
-## Paso 4: localizar sistemas fuente
-
-Fuente principal:
-
-- API publica de YGOPRODeck.
-
-Fuentes oficiales de contexto:
-
-- Konami North America publica fichas de producto TCG con `MSRP` en USD, por ejemplo boosters con MSRP por pack.
-- Konami Europe mantiene catalogo oficial de productos TCG para Europa y territorios distribuidos desde Europa, pero las paginas revisadas no muestran un MSRP equivalente como campo estructurado.
-
-Estructura oficial de precios:
-
-- El MSRP oficial se publica a nivel de producto sellado: booster pack, structure deck, tin u otros productos.
-- El MSRP no define el valor individual de una carta.
-- El MSRP sirve para comparar precio recomendado de producto sellado frente a valor secundario estimado, pero requiere otra capa de datos.
-
-Decision tecnica:
-
-- No implementar ahora ETL de producto sellado oficial.
-- Mantener el modelo actual centrado en cartas y mercado secundario.
-- Registrar el MSRP oficial como posible escalada futura si el proyecto pasa de analisis de cartas a analisis de rentabilidad de producto sellado.
-
-Sistemas internos del proyecto:
-
-- Python ETL para extraer, transformar y cargar datos.
-- `data/raw/cardinfo_latest.json` como copia raw de la ultima descarga.
-- MySQL como base relacional de analisis.
-- `sql/analysis/` como capa SQL analitica.
-- Power BI como capa de comunicacion.
-
-## Paso 5: preparar los datos
-
-La preparacion ocurre principalmente en Python y MySQL.
-
-Tareas clave:
-
-- Extraer datos desde la API.
-- Guardar copia raw para trazabilidad.
-- Normalizar objetos anidados en tablas relacionales.
-- Convertir precios a valores numericos.
-- Separar dimensiones como sets y rarezas.
-- Cargar tablas base de forma idempotente.
-- Insertar historico de precios por ejecucion real del ETL.
-- Validar relaciones entre cartas, sets, rarezas, precios e imagenes.
-
-Resultado esperado:
+## Flujo de trabajo
 
 ```text
-API YGOPRODeck -> Python ETL -> MySQL -> SQL views semanticas
+decision -> pregunta -> datos -> preparacion -> analisis -> accion comercial -> comunicacion
 ```
 
-## Paso 6: analizar
+Regla:
 
-El analisis se ejecuta principalmente con SQL sobre MySQL.
+> Cada visual comercial debe terminar en una accion sugerida, no solo en una tabla o ranking.
 
-Niveles de analisis aplicables:
+## Avances registrados
 
-- Descriptivo: que cartas, sets, tipos, rarezas y precios existen.
-- Diagnostico: que variables explican diferencias de precio entre cartas, rarezas, sets y marketplaces.
-- Predictivo: queda preparado tecnicamente, pero depende de acumular historico suficiente mediante cargas diarias del ETL.
-- Prescriptivo: se abordara despues, cuando exista base temporal suficiente para sostener recomendaciones por tendencia.
+| Bloque | Estado | Evidencia actual | Siguiente paso |
+|---|---|---|---|
+| Ingesta | Activo | ETL API/raw file, carga MySQL e historico en `card_price_history`. | Mantener ejecuciones periodicas para ampliar historico. |
+| Modelo SQL | Activo | Tablas base y views `vw_dim_*`, `vw_bridge_*`, `vw_fact_*`, `vw_ref_*`, `vw_diag_*`. | Crear solo nuevas views cuando respondan a una accion comercial. |
+| Power BI | Activo | Modelo consume views de MySQL en modo Importar. | Organizar paginas por bloque analitico y accion sugerida. |
+| Prescriptivo | En curso | Query `sql/analysis/queries/card_comercial_actions.sql` y view `vw_diag_competitive_staple_candidates`. | Consolidar reglas de clasificacion comercial en view o medida estable. |
 
-Alcance actual:
+## Bloque descriptivo
 
-> El trabajo principal se centra en analisis descriptivo y diagnostico. La base predictiva se alimentara progresivamente con una carga diaria del ETL.
+Objetivo: saber que existe y como se distribuye.
 
-Metodo de trabajo por pregunta:
+Preguntas:
+
+- Que cartas, tipos, sets y rarezas existen?
+- Que cartas tienen mayor precio medio por marketplace?
+- Que sets tienen mas cartas o impresiones?
+- Como se distribuyen los precios por marketplace?
+
+Artefactos:
+
+- `vw_dim_card`
+- `vw_dim_set`
+- `vw_dim_rarity`
+- `vw_dim_card_image`
+- `vw_dim_card_typelines`
+- `vw_fact_card_prices`
+- `vw_bridge_card_set`
+- `queries/descriptive/q_desc_*`
+
+Uso comercial:
+
+- Crear vision general del catalogo.
+- Localizar cartas visibles para ranking inicial.
+- Separar mercados por moneda antes de comparar.
+
+## Bloque diagnostico
+
+Objetivo: explicar diferencias, relaciones y riesgos de interpretacion.
+
+Preguntas:
+
+- Que rarezas se asocian con precios mas altos?
+- Que cartas aparecen en mas sets?
+- Que arquetipos concentran mas interes estimado?
+- Que precios son outliers y deben revisarse antes de concluir?
+- Que cartas candidatas combinan precio, reimpresiones y legalidad competitiva?
+
+Artefactos:
+
+- `vw_diag_price_by_rarity`
+- `vw_diag_price_outliers`
+- `vw_diag_high_demand_archetypes`
+- `vw_diag_competitive_staple_candidates`
+- `vw_bridge_card_banlist`
+- `vw_ref_banlist_status`
+- `queries/diagnostic/q_diag_*`
+
+Uso comercial:
+
+- Justificar por que una carta, rareza o set merece atencion.
+- Evitar recomendaciones basadas en datos extremos o incompletos.
+- Segmentar cartas por contexto competitivo.
+
+## Bloque predictivo
+
+Objetivo: preparar tendencia temporal, no prometer prediccion sin historico suficiente.
+
+Preguntas:
+
+- Que cartas muestran variacion de precio entre ejecuciones del ETL?
+- Que cartas suben o bajan de forma relevante en los snapshots disponibles?
+- Hay suficiente historial para hablar de tendencia?
+
+Artefactos:
+
+- `vw_fact_price_history`
+- `queries/descriptive/q_desc_price_history_snapshots.sql`
+- `queries/diagnostic/q_diag_price_variation_usd.sql`
+- `queries/diagnostic/q_diag_relevant_price_increases.sql`
+
+Criterio:
+
+> El historico procede de snapshots de nuestra ETL, no de una serie historica externa. Las conclusiones temporales solo son validas para el intervalo registrado.
+
+Uso comercial:
+
+- Priorizar seguimiento de cartas con cambios relevantes.
+- Evitar usar tendencia cuando solo haya pocos snapshots.
+- Preparar alertas futuras de subida, bajada o volatilidad.
+
+## Bloque prescriptivo
+
+Objetivo: convertir hallazgos en acciones comerciales.
+
+Acciones previstas:
+
+| Accion comercial | Criterio medible | Salida esperada |
+|---|---|---|
+| Seleccionar carta principal de pack | Precio alto, rareza relevante, presencia en set, legalidad o tendencia positiva. | `Carta principal potencial` |
+| Seleccionar carta complementaria barata | Precio bajo, relacion tematica, disponibilidad o presencia en set. | `Carta complementaria` |
+| Destacar carta en dashboard comercial | Precio, rareza, marketplace, set, arquetipo, outlier controlado o variacion historica. | `Carta destacada comercial` |
+| Revisar calidad antes de recomendar | Precio extremo, moneda mezclada, falta de precio o relacion incompleta. | `Revisar antes de accionar` |
+
+Metodo:
 
 ```text
-decision -> pregunta -> variable objetivo -> variables explicativas -> consulta/view -> tipo de analisis
+pregunta comercial -> criterio medible -> SQL/medida -> clasificacion -> visual -> accion
 ```
 
-Este metodo obliga a conectar cada consulta con una decision concreta antes de convertirla en resultado analitico. La consulta o view no debe existir solo porque la tabla lo permite, sino porque responde a una pregunta medible.
+Criterios iniciales:
 
-Nota sobre historico:
+- Valor: precio medio, precio maximo, ranking o valor acumulado por set.
+- Contexto: set, rareza, marketplace, arquetipo y banlist.
+- Calidad: excluir outliers, precios sin moneda comparable y datos incompletos.
+- Uso: diferenciar carta gancho, carta de apoyo y carta destacable.
 
-> El historico de precios utilizado no procede de una serie historica externa, sino de snapshots capturados por nuestra ETL. Por tanto, las conclusiones temporales solo son validas para el intervalo registrado en `card_price_history`.
+Artefactos actuales:
 
-Artefactos previstos:
+- `sql/analysis/queries/card_comercial_actions.sql`
+- `vw_diag_competitive_staple_candidates`
+- `vw_diag_price_outliers`
+- `vw_diag_high_demand_archetypes`
+- Medidas Power BI sobre `vw_fact_card_prices` y `vw_fact_price_history`.
 
-- Consultas exploratorias.
-- Views SQL semanticas: `vw_dim_*`, `vw_fact_*`, `vw_bridge_*`, `vw_agg_*`, `vw_desc_*`.
-- Views SQL diagnosticas fuera del modelo: `views/diagnostic/vw_diag_*`.
-- Tablas resumen por carta, set, rareza y marketplace.
-- Medidas de evolucion cuando haya historico suficiente.
+Siguiente consolidacion:
 
-## Convencion de views analiticas
+- Convertir reglas prescriptivas estables en una view versionada si se usan de forma recurrente.
+- Mantener reglas experimentales como query hasta validarlas.
+- Documentar en Power BI el motivo de seleccion de cada carta destacada.
 
-| Nombre de view | Referencia a problemas que buscamos resolver |
-|---|---|
-| `vw_dim_card` | Centralizar la descripcion de cada carta y evitar repetir joins basicos. |
-| `vw_dim_set` | Analizar expansiones, productos y presencia de cartas por set. |
-| `vw_dim_rarity` | Comparar el impacto de la rareza sobre precios y disponibilidad. |
-| `vw_ref_banlist_status` | Normalizar estados competitivos para filtros consistentes. |
-| `vw_bridge_card_set` | Resolver la relacion carta-set-rareza-codigo de impresion. |
-| `vw_fact_card_prices` | Medir precios actuales por carta y marketplace sin mezclar monedas sin control. |
-| `vw_fact_price_history` | Analizar variaciones entre ejecuciones del ETL. |
-| `vw_agg_card_price_current` | Preparar precio actual resumido por carta para dashboards. |
-| `vw_agg_set_value` | Estimar que sets concentran mayor valor potencial. |
-| `vw_diag_cards_without_price` | Localizar cartas sin precios para revisar calidad de datos. |
-| `vw_diag_price_by_rarity` | Diagnosticar si la rareza explica diferencias de precio. |
-| `vw_diag_price_outliers` | Detectar precios extremos antes de usarlos como conclusion. |
+## Datos necesarios
 
-## Paso 7: comunicar
+- Carta: nombre, tipo, atributo, nivel, ataque, defensa, arquetipo.
+- Set: expansion, codigo, rareza, precio declarado del set.
+- Precio: marketplace, moneda, valor actual.
+- Historico: snapshots por ejecucion real del ETL.
+- Legalidad: formato y estado de banlist.
+- Imagenes: apoyo visual para Power BI.
 
-La comunicacion mediante Power BI se construye sobre las views oficiales de MySQL y las medidas del modelo.
+Monedas:
 
-Cada resultado debe responder:
+- `cardmarket_price`: EUR.
+- `tcgplayer_price`, `ebay_price`, `amazon_price`, `coolstuffinc_price`, `set_price`: USD.
+
+Regla:
+
+> No mezclar monedas en una misma conclusion sin conversion explicita o segmentacion visible.
+
+## Comunicacion en Power BI
+
+Cada pagina debe responder:
 
 1. Que se ha encontrado.
 2. Por que importa.
-3. Que accion o decision sugiere.
+3. Que accion sugiere.
 
-Salidas esperadas:
+Bloques recomendados:
 
-- Dashboard de vision general del catalogo.
-- Ranking de cartas por precio y rareza.
-- Analisis de sets con mayor valor potencial.
-- Comparativa de marketplaces.
-- Evolucion de precios cuando exista historico suficiente.
-- Conclusiones orientadas a portfolio: problema, metodo, hallazgos y recomendacion.
+- Catalogo y cobertura.
+- Precio actual por carta y marketplace.
+- Rareza, set y arquetipo.
+- Calidad y outliers.
+- Candidatas comerciales.
+- Evolucion temporal cuando haya historico suficiente.
 
 ## Documentos del marco
 
 - [Analisis JSON API](api_json_analysis.md)
 - [Modelo de datos](data_model.md)
+- [Datos sensibles y calidad](privacidad_calidad_datos_modelo.md)
 - [Modelo relacional](relational_model.svg)
 - [Infografia de views SQL](infografia_views_sql.svg)
 
 ## Fuentes de referencia
 
-- [YGOPRODeck API Guide](https://ygoprodeck.com/api-guide/): documenta monedas de `card_prices` y `set_price`.
-- [Konami North America - Blazing Dominion](https://www.yugioh-card.com/en/products/blzd/): ejemplo oficial de producto TCG con MSRP en USD.
-- [Konami Europe - Products](https://www.yugioh-card.com/eu/products/): catalogo oficial europeo de productos TCG.
-- [Konami Europe - Magnificent Monsters](https://www.yugioh-card.com/eu/product/magnificent-monsters/): ejemplo de distribucion occidental diferenciada entre Americas y mercados distribuidos desde Europa.
+- [YGOPRODeck API Guide](https://ygoprodeck.com/api-guide/)
+- [Konami North America - Blazing Dominion](https://www.yugioh-card.com/en/products/blzd/)
+- [Konami Europe - Products](https://www.yugioh-card.com/eu/products/)

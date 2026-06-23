@@ -167,7 +167,7 @@ sql/analysis/README.md -> organizacion SQL, queries y views
 powerbi/README.md      -> modelo Power BI, relaciones, medidas y plantilla
 ```
 
-Los README de SQL y Power BI no deben redefinir las preguntas marco; solo explican como se implementan.
+Los README de SQL y Power BI no deben redefinir el marco analitico; solo explican como se implementa.
 
 Ejemplo:
 

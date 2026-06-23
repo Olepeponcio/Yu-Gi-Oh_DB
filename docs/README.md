@@ -10,7 +10,7 @@ Referencias principales:
 
 ```text
 README.md                         -> entrada rapida y comandos principales
-docs/02_marco_analisis_datos/README.md -> decision, alcance y preguntas marco
+docs/02_marco_analisis_datos/README.md -> decision, avances y bloques de analisis
 sql/analysis/README.md            -> organizacion de queries y views SQL
 powerbi/README.md                 -> modelo Power BI, relaciones y artefactos
 ```
@@ -27,7 +27,7 @@ powerbi/README.md                 -> modelo Power BI, relaciones y artefactos
 
 ## Grupo 2: marco de analisis de datos
 
-- `02_marco_analisis_datos/README.md`: fuente canonica de decision, alcance y preguntas marco.
+- `02_marco_analisis_datos/README.md`: fuente canonica de decision, avances y bloques descriptivo, diagnostico, predictivo y prescriptivo.
 - `02_marco_analisis_datos/api_json_analysis.md`: estructura del JSON de YGOPRODeck y entidades candidatas.
 - `02_marco_analisis_datos/data_model.md`: tablas, relaciones, claves, criterio de carga y modelo semantico por views.
 - `02_marco_analisis_datos/relational_model.svg`: imagen del modelo relacional base.

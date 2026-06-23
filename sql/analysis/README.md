@@ -1,86 +1,61 @@
 # SQL de analisis
 
-Directorio para scripts SQL de la fase analitica.
-
-Uso previsto:
+Directorio de implementacion SQL para responder al marco canonico:
 
 ```text
-sql/analysis/queries/              -> consultas exploratorias y de validacion
-sql/analysis/queries/descriptive/  -> analisis descriptivo
-sql/analysis/queries/diagnostic/   -> analisis diagnostico
-sql/analysis/views/                -> views descriptivas y futuras views semanticas
-sql/analysis/views/diagnostic/     -> views diagnosticas fuera del modelo relacional
-sql/analysis/CSV/                  -> CSV locales exportados desde consultas previas, consumibles por Power BI como snapshots
+docs/02_marco_analisis_datos/README.md
 ```
 
-Los scripts de `views/` se ejecutan desde MySQL sobre `yugioh_db` y quedan versionados en el proyecto.
+Este README no define preguntas analiticas. Solo documenta organizacion, convenciones y artefactos SQL.
+
+## Estructura
+
+```text
+queries/              -> consultas exploratorias y reglas en validacion
+queries/descriptive/  -> analisis descriptivo
+queries/diagnostic/   -> analisis diagnostico
+views/                -> views estables sobre MySQL yugioh_db
+views/dim/            -> dimensiones del modelo semantico
+views/bridge/         -> relaciones muchos-a-muchos
+views/fact/           -> hechos granulares
+views/ref/            -> catalogos normalizados
+views/diagnostic/     -> diagnostico auxiliar fuera del nucleo relacional
+CSV/                  -> snapshots CSV locales si se necesitan
+```
 
 ## Criterio de uso
 
 ```text
-queries/ = exploracion previa, pruebas de logica y validacion de hipotesis
-views/ = logica SQL oficial, estable y reutilizable sobre MySQL
-views/diagnostic/ = diagnostico estable, no parte del modelo relacional
-CSV/ = resultados exportados, utiles como respaldo o fuente snapshot
-sql/generated/from_csv/ = recuperacion auxiliar fuera de analysis
+query exploratoria -> validacion -> view estable -> consumo Power BI
 ```
 
-La criba se aplica en MySQL `yugioh_db`: separar views semanticas del modelo Power BI y views diagnosticas auxiliares.
+- `queries/`: pruebas de logica, validacion de hipotesis y reglas prescriptivas no consolidadas.
+- `views/`: logica reutilizable, versionada y apta para Power BI.
+- `views/diagnostic/`: diagnostico, calidad y narrativa; no forman el nucleo estrella.
+- `CSV/`: foto fija exportada; no sustituye la logica SQL original.
 
-La capa esperada queda separada en:
+## Convenciones
+
+Prefijos:
 
 ```text
-vw_dim_*                  = dimensiones del modelo semantico
-vw_fact_*                 = hechos granulares del modelo semantico
-vw_bridge_*               = relaciones muchos-a-muchos
-vw_agg_*                  = agregados calculados sobre dimensiones/hechos
-vw_desc_*                 = descriptivo auxiliar
-vw_ref_*                  = catalogos de referencia
-views/diagnostic/vw_diag_* = diagnostico auxiliar fuera del modelo relacional
+q_desc_... = consulta descriptiva
+q_diag_... = consulta diagnostica
+vw_dim_... = dimension semantica
+vw_fact_... = hecho granular
+vw_bridge_... = puente relacional
+vw_ref_... = referencia normalizada
+vw_diag_... = diagnostico auxiliar
 ```
 
-Los CSV pueden usarse cuando interese trabajar con una foto fija del resultado.
+Las reglas prescriptivas pueden vivir temporalmente en `queries/` hasta que sean estables.
 
-## Convencion de nombres
-
-Las consultas exploratorias se agrupan por nivel de analisis:
-
-```text
-descriptive/ = que existe, cuanto hay, distribuciones basicas
-diagnostic/ = relaciones, diferencias, variaciones y posibles causas
-```
-
-Las consultas exploratorias usan prefijo de archivo:
-
-```text
-queries/descriptive/q_desc_... = consulta descriptiva
-queries/diagnostic/q_diag_... = consulta diagnostica
-```
-
-Las views se segmentan por funcion:
-
-```text
-views/descriptive/vw_desc_... = view descriptiva si se consolida esa capa
-views/dim/vw_dim_... = dimension semantica
-views/fact/vw_fact_... = hecho semantico
-views/bridge/vw_bridge_... = puente relacional
-views/agg/vw_agg_... = agregado analitico si se crea
-views/ref/vw_ref_... = referencia normalizada
-views/diagnostic/vw_diag_... = view diagnostica
-```
-
-Flujo recomendado:
-
-```text
-query exploratoria -> validacion -> CREATE VIEW estable -> MySQL yugioh_db
-```
-
-## Catalogo actual de views
-
-Views actuales:
+## Views actuales
 
 ```text
 views/dim/vw_dim_card.sql
+views/dim/vw_dim_card_image.sql
+views/dim/vw_dim_card_typelines.sql
 views/dim/vw_dim_set.sql
 views/dim/vw_dim_rarity.sql
 views/bridge/vw_bridge_card_set.sql
@@ -94,15 +69,10 @@ views/diagnostic/vw_diag_price_by_rarity.sql
 views/diagnostic/vw_diag_price_outliers.sql
 ```
 
-Consulta candidata a view estable:
+## Queries actuales
 
 ```text
-queries/diagnostic/q_diag_price_variation_usd.sql
-```
-
-Consultas exploratorias actuales:
-
-```text
+queries/card_comercial_actions.sql
 queries/descriptive/q_desc_card_avg_marketplace_price.sql
 queries/descriptive/q_desc_cards_by_set_count.sql
 queries/descriptive/q_desc_price_distribution_by_marketplace.sql
@@ -112,52 +82,29 @@ queries/diagnostic/q_diag_price_variation_usd.sql
 queries/diagnostic/q_diag_relevant_price_increases.sql
 ```
 
-Dependencias principales sobre tablas base:
+`queries/card_comercial_actions.sql` pertenece al bloque prescriptivo: convierte criterios analiticos en clasificaciones comerciales. Si se reutiliza en Power BI, debe consolidarse como view.
+
+## Dependencias base
 
 ```text
 cards
 sets
 rarities
 card_sets
+card_images
 card_prices
 card_price_history
 card_banlist
+card_typelines
 ```
-
-Catalogo funcional de la capa estable:
-
-| Nombre de view | Funcion tecnica |
-|---|---|
-| `vw_dim_card` | Carta como entidad principal de filtro y relacion. |
-| `vw_dim_set` | Set como entidad de analisis comercial. |
-| `vw_dim_rarity` | Rareza como categoria de segmentacion. |
-| `vw_ref_banlist_status` | Estados normalizados de banlist. |
-| `vw_bridge_card_banlist` | Relacion carta-formato-estado de banlist para Power BI. |
-| `vw_bridge_card_set` | Relacion carta-set-rareza-codigo. |
-| `vw_fact_card_prices` | Precios actuales por marketplace. |
-| `vw_fact_price_history` | Historico por snapshot de ETL. |
-| `vw_agg_card_price_current` | Precio actual resumido por carta. |
-| `vw_agg_set_value` | Valor potencial acumulado por set. |
-| `vw_diag_cards_without_price` | Cartas sin precio. |
-| `vw_diag_orphan_relations` | Relaciones sin entidad padre valida. |
-| `vw_diag_price_outliers` | Valores de precio extremos. |
-
-Las preguntas analiticas no se definen en este README. La fuente canonica es `docs/02_marco_analisis_datos/README.md`; aqui solo se documenta la organizacion SQL que las soporta.
 
 ## Utilidad auxiliar desde CSV
 
-`src.csv_sql_scripts` puede generar scripts SQL de staging/view desde CSV locales:
+`src.csv_sql_scripts` puede generar scripts SQL desde CSV locales:
 
 ```powershell
 python -m src.csv_sql_scripts --dry-run
 python -m src.csv_sql_scripts
 ```
 
-Por cada CSV se crea un script en `sql/generated/from_csv/` con:
-
-```text
-CREATE TABLE IF NOT EXISTS staging_...
-CREATE OR REPLACE VIEW vw_... AS SELECT ... FROM staging_...
-```
-
-El modulo solo genera archivos `.sql`; no conecta con MySQL ni ejecuta cambios en la base. Es una herramienta futura de recuperacion, no el flujo analitico principal.
+Genera archivos en `sql/generated/from_csv/`. Es recuperacion auxiliar, no flujo analitico principal.
