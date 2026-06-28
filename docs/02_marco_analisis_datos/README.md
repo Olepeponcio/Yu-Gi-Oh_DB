@@ -2,7 +2,7 @@
 
 Este README es la fuente canonica del analisis de datos del proyecto SQL DB Yu-Gi-Oh.
 
-Finalidad: convertir datos de cartas, sets, rarezas, precios y legalidad en acciones comerciales reutilizables para Power BI.
+Finalidad: convertir datos de cartas, sets, rarezas, precios y legalidad en decisiones comerciales reutilizables para Power BI.
 
 Los README de `sql/analysis/` y `powerbi/` solo documentan implementacion. No deben redefinir preguntas, decisiones ni avances del marco.
 
@@ -14,7 +14,8 @@ Alcance actual:
 
 - Mercado analizado: mercado secundario de cartas individuales.
 - Fuente principal: API publica de YGOPRODeck.
-- Capa de datos: Python ETL -> MySQL -> SQL views -> Power BI.
+- Capa de datos: Python ETL -> MySQL relacional -> SQL queries -> Power BI.
+- Fuente unica: tablas madre MySQL.
 - Mercado oficial TCG y MSRP: contexto futuro, no ETL obligatoria en esta fase.
 
 Motivo:
@@ -26,21 +27,24 @@ Motivo:
 ## Flujo de trabajo
 
 ```text
-decision -> pregunta -> datos -> preparacion -> analisis -> accion comercial -> comunicacion
+decision -> pregunta -> datos -> query -> medida/modelo -> accion comercial -> comunicacion
 ```
 
-Regla:
+Reglas:
 
-> Cada visual comercial debe terminar en una accion sugerida, no solo en una tabla o ranking.
+- Cada visual comercial debe terminar en una accion sugerida, no solo en una tabla o ranking.
+- Las queries no crean fuente de verdad paralela.
+- Los hechos se convierten en preguntas, criterios y medidas.
+- Las decisiones estables se documentan antes de automatizarse.
 
 ## Avances registrados
 
 | Bloque | Estado | Evidencia actual | Siguiente paso |
 |---|---|---|---|
 | Ingesta | Activo | ETL API/raw file, carga MySQL e historico en `card_price_history`. | Mantener ejecuciones periodicas para ampliar historico. |
-| Modelo SQL | Activo | Tablas base y views `vw_dim_*`, `vw_bridge_*`, `vw_fact_*`, `vw_ref_*`, `vw_diag_*`. | Crear solo nuevas views cuando respondan a una accion comercial. |
-| Power BI | Activo | Modelo consume views de MySQL en modo Importar. Bloques descriptivo y diagnostico cerrados con informe de conclusiones. | Continuar pagina prescriptiva de decision comercial. |
-| Prescriptivo | En curso | Pagina Power BI con clasificacion comercial DAX sobre `vw_diag_competitive_staple_candidates`: `clasificacion_comercial` y `motivo_clasificacion`. | Validar reglas y consolidarlas en view o medida estable si se reutilizan. |
+| Modelo SQL | Base estable | Tablas madre en `sql/main_schema.sql`. | No crear capa SQL intermedia; validar analisis mediante queries. |
+| Power BI | En reconstruccion | Debe conectarse a tablas base MySQL. | Reconstruir modelo semantico con dimensiones, hechos y medidas. |
+| Prescriptivo | En pausa tecnica | Reglas comerciales previas quedan como referencia, no como modelo estable. | Reformularlas sobre tablas base y medidas Power BI. |
 
 ## Bloque descriptivo
 
@@ -55,14 +59,9 @@ Preguntas:
 
 Artefactos:
 
-- `vw_dim_card`
-- `vw_dim_set`
-- `vw_dim_rarity`
-- `vw_dim_card_image`
-- `vw_dim_card_typelines`
-- `vw_fact_card_prices`
-- `vw_bridge_card_set`
-- `queries/descriptive/q_desc_*`
+- Tablas madre MySQL.
+- `queries/descriptive/q_desc_*`.
+- Medidas Power BI sobre tablas base.
 
 Uso comercial:
 
@@ -70,46 +69,29 @@ Uso comercial:
 - Localizar cartas visibles para ranking inicial.
 - Separar mercados por moneda antes de comparar.
 
-Estado:
-
-- Bloque cerrado en Power BI.
-- Evidencias exportadas en `powerbi/exportaciones/analisis_desc_diag`.
-- Conclusiones documentadas en `docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.md`.
-- Version Word generada en `docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.docx`.
-
 ## Bloque diagnostico
 
 Objetivo: explicar diferencias, relaciones y riesgos de interpretacion.
 
 Preguntas:
 
-- Que rarezas se asocian con precios mas altos?
 - Que cartas aparecen en mas sets?
-- Que arquetipos concentran mas interes estimado?
 - Que precios son outliers y deben revisarse antes de concluir?
-- Que cartas candidatas combinan precio, reimpresiones y legalidad competitiva?
+- Que arquetipos concentran mas interes estimado?
+- Que cartas combinan precio, reimpresiones y legalidad competitiva?
+- Donde se estan mezclando granos o monedas?
 
 Artefactos:
 
-- `vw_diag_price_by_rarity`
-- `vw_diag_price_outliers`
-- `vw_diag_high_demand_archetypes`
-- `vw_diag_competitive_staple_candidates`
-- `vw_bridge_card_banlist`
-- `vw_ref_banlist_status`
-- `queries/diagnostic/q_diag_*`
+- `queries/diagnostic/q_diag_*`.
+- Controles SQL sobre tablas base.
+- Medidas Power BI temporales.
 
 Uso comercial:
 
 - Justificar por que una carta, rareza o set merece atencion.
 - Evitar recomendaciones basadas en datos extremos o incompletos.
 - Segmentar cartas por contexto competitivo.
-
-Estado:
-
-- Bloque cerrado en Power BI.
-- Modulos trabajados: cartas con mas sets, arquetipos con mayor interes estimado, outliers y candidatas competitivas.
-- El informe de conclusiones fija la regla de cierre: ningun ranking debe convertirse por si solo en recomendacion comercial.
 
 ## Bloque predictivo
 
@@ -123,20 +105,14 @@ Preguntas:
 
 Artefactos:
 
-- `vw_fact_price_history`
-- `queries/descriptive/q_desc_price_history_snapshots.sql`
-- `queries/diagnostic/q_diag_price_variation_usd.sql`
-- `queries/diagnostic/q_diag_relevant_price_increases.sql`
+- `card_price_history`.
+- `queries/descriptive/q_desc_price_history_snapshots.sql`.
+- `queries/diagnostic/q_diag_price_variation_usd.sql`.
+- `queries/diagnostic/q_diag_relevant_price_increases.sql`.
 
 Criterio:
 
 > El historico procede de snapshots de nuestra ETL, no de una serie historica externa. Las conclusiones temporales solo son validas para el intervalo registrado.
-
-Uso comercial:
-
-- Priorizar seguimiento de cartas con cambios relevantes.
-- Evitar usar tendencia cuando solo haya pocos snapshots.
-- Preparar alertas futuras de subida, bajada o volatilidad.
 
 ## Bloque prescriptivo
 
@@ -154,7 +130,7 @@ Acciones previstas:
 Metodo:
 
 ```text
-pregunta comercial -> criterio medible -> SQL/medida -> clasificacion -> visual -> accion
+pregunta comercial -> criterio medible -> query/medida -> clasificacion -> visual -> accion
 ```
 
 Criterios iniciales:
@@ -164,39 +140,12 @@ Criterios iniciales:
 - Calidad: excluir outliers, precios sin moneda comparable y datos incompletos.
 - Uso: diferenciar carta gancho, carta de apoyo y carta destacable.
 
-Artefactos actuales:
+Regla de reconstruccion:
 
-- `sql/analysis/queries/card_comercial_actions.sql`
-- `vw_diag_competitive_staple_candidates`
-- `vw_diag_price_outliers`
-- `vw_diag_high_demand_archetypes`
-- Medidas Power BI sobre `vw_fact_card_prices` y `vw_fact_price_history`.
-- Columnas DAX en Power BI sobre `vw_diag_competitive_staple_candidates`:
-  - `clasificacion_comercial`
-  - `motivo_clasificacion`
-
-Reglas DAX en validacion:
-
-| Clasificacion | Criterio inicial |
-|---|---|
-| `Carta principal potencial` | `avg_set_price >= 50` y `total_printings >= 20`. |
-| `Carta destacada comercial` | `avg_set_price >= 5` y `total_printings >= 10`. |
-| `Carta complementaria` | `avg_set_price < 5` y `total_printings >= 20`. |
-| `Revisar antes de accionar` | No cumple criterios suficientes o requiere validacion adicional. |
-
-Avance Power BI:
-
-- Pagina prescriptiva de decision comercial creada.
-- Tabla principal con cartas, arquetipo, legalidad, impresiones, sets, precios, clasificacion y motivo.
-- Segmentador por `clasificacion_comercial`.
-- Visual de distribucion por clasificacion.
-- La primera lectura muestra reglas conservadoras: predominan cartas en `Revisar antes de accionar`, con pocas cartas accionables.
-
-Siguiente consolidacion:
-
-- Convertir reglas prescriptivas estables en una view versionada si se usan de forma recurrente.
-- Mantener reglas experimentales como query hasta validarlas.
-- Documentar en Power BI el motivo de seleccion de cada carta destacada.
+```text
+set_price no es precio de rareza.
+set_price pertenece a card_sets: carta + set + rareza.
+```
 
 ## Datos necesarios
 
@@ -239,8 +188,6 @@ Bloques recomendados:
 - [Analisis JSON API](api_json_analysis.md)
 - [Modelo de datos](data_model.md)
 - [Datos sensibles y calidad](privacidad_calidad_datos_modelo.md)
-- [Modelo relacional](relational_model.svg)
-- [Infografia de views SQL](infografia_views_sql.svg)
 - [Informe de conclusiones descriptivo y diagnostico](informes/informe_conclusiones_desc_diag.md)
 
 ## Fuentes de referencia

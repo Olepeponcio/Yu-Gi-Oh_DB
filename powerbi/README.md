@@ -8,7 +8,7 @@ El marco analitico vive en:
 docs/02_marco_analisis_datos/README.md
 ```
 
-Este README solo traduce ese marco a modelo, relaciones, medidas y artefactos Power BI.
+Este README traduce ese marco a conexion, modelo semantico, relaciones, medidas y artefactos Power BI.
 
 ## Estructura
 
@@ -28,60 +28,73 @@ Base de datos: yugioh_db
 Modo recomendado: Importar
 ```
 
-Usar `Importar` como modo principal. `DirectQuery` solo tiene sentido si el informe necesita datos en vivo y acepta limitaciones de rendimiento/modelado.
+Power BI debe conectarse a tablas madre de MySQL. No hay capa SQL intermedia oficial en el flujo actual.
 
-## Views cargables
-
-Nucleo relacional:
+Tablas base cargables:
 
 ```text
-vw_dim_card
-vw_dim_set
-vw_dim_rarity
-vw_bridge_card_set
-vw_bridge_card_banlist
-vw_fact_card_prices
-vw_fact_price_history
-vw_ref_banlist_status
+cards
+sets
+rarities
+card_sets
+card_images
+card_prices
+card_price_history
+card_banlist
+card_typelines
+card_linkmarkers
 ```
 
-Soporte visual o auxiliar:
+## Modelo semantico
+
+Power BI es ahora la capa donde se construyen dimensiones, hechos y medidas.
+
+Dimensiones candidatas:
 
 ```text
-vw_dim_card_image
-vw_dim_card_typelines
+DimCard              <- cards
+DimSet               <- sets
+DimRarity            <- rarities
+DimMarketplace       <- derivada de marketplaces de precios
+DimBanlistFormat     <- TCG, OCG, GOAT
+Calendario           <- derivada de card_price_history[snapshot_at]
 ```
 
-Diagnostico y narrativa:
+Hechos candidatos:
 
 ```text
-vw_diag_price_by_rarity
-vw_diag_price_outliers
-vw_diag_high_demand_archetypes
-vw_diag_competitive_staple_candidates
+FactCardSetPrintings <- card_sets
+FactPricesCurrent    <- card_prices despivotado por marketplace
+FactPricesHistory    <- card_price_history despivotado por marketplace y snapshot
+FactBanlistStatus    <- card_banlist despivotado por formato
+FactTypelines        <- card_typelines si se analiza typeline
 ```
-
-Las `vw_diag_*` sirven para paginas de diagnostico, validacion y recomendacion. No deben forzar relaciones bidireccionales en el nucleo del modelo.
 
 ## Relaciones recomendadas
 
 ```text
-vw_dim_card[card_id] 1 -> * vw_bridge_card_set[card_id]
-vw_dim_set[set_id] 1 -> * vw_bridge_card_set[set_id]
-vw_dim_rarity[rarity_id] 1 -> * vw_bridge_card_set[rarity_id]
-vw_dim_card[card_id] 1 -> * vw_bridge_card_banlist[card_id]
-vw_ref_banlist_status[banlist_status_key] 1 -> * vw_bridge_card_banlist[banlist_status_key]
-vw_dim_card[card_id] 1 -> * vw_fact_card_prices[card_id]
-vw_dim_card[card_id] 1 -> * vw_fact_price_history[card_id]
+DimCard[card_id] 1 -> * FactCardSetPrintings[card_id]
+DimSet[set_id] 1 -> * FactCardSetPrintings[set_id]
+DimRarity[rarity_id] 1 -> * FactCardSetPrintings[rarity_id]
+
+DimCard[card_id] 1 -> * FactPricesCurrent[card_id]
+DimMarketplace[marketplace] 1 -> * FactPricesCurrent[marketplace]
+
+DimCard[card_id] 1 -> * FactPricesHistory[card_id]
+DimMarketplace[marketplace] 1 -> * FactPricesHistory[marketplace]
+Calendario[Date] 1 -> * FactPricesHistory[snapshot_date]
+
+DimCard[card_id] 1 -> * FactBanlistStatus[card_id]
+DimBanlistFormat[format] 1 -> * FactBanlistStatus[format]
 ```
 
-Direccion de filtro: unica, desde dimension hacia bridge/hecho.
+Direccion de filtro: unica, desde dimension hacia hecho.
 
 Evitar relaciones bidireccionales salvo necesidad concreta de pagina.
 
 ## Calendario
 
-La dimension temporal se crea en Power BI, no como view SQL.
+La dimension temporal se crea en Power BI.
 
 Documento:
 
@@ -92,129 +105,62 @@ powerbi/consultas/tabla_calendario_dax.md
 Relacion prevista:
 
 ```text
-Calendario[Date] 1 -> * vw_fact_price_history[snapshot_date]
+Calendario[Date] 1 -> * FactPricesHistory[snapshot_date]
 ```
 
 ## Monedas y medidas base
 
 No mezclar monedas sin conversion o segmentacion visible.
 
+Origenes:
+
 ```text
-vw_fact_card_prices   -> precios actuales por marketplace
-vw_fact_price_history -> historico por snapshot ETL
+card_prices          -> precios actuales por marketplace
+card_price_history   -> historico por snapshot ETL
+card_sets.set_price  -> precio de aparicion de carta en set
 ```
 
-Medidas base:
+Regla central:
+
+```text
+set_price no es precio de rareza.
+set_price pertenece a la aparicion carta + set + rareza.
+```
+
+Medidas base sugeridas:
 
 ```DAX
-Precio medio = AVERAGE(vw_fact_card_prices[price])
-Precio maximo = MAX(vw_fact_card_prices[price])
-Total observaciones precio = COUNTROWS(vw_fact_card_prices)
-Precio historico medio = AVERAGE(vw_fact_price_history[price])
-Snapshots = DISTINCTCOUNT(vw_fact_price_history[snapshot_at])
+Precio medio = AVERAGE(FactPricesCurrent[price])
+Precio maximo = MAX(FactPricesCurrent[price])
+Total observaciones precio = COUNTROWS(FactPricesCurrent)
+Precio historico medio = AVERAGE(FactPricesHistory[price])
+Snapshots = DISTINCTCOUNT(FactPricesHistory[snapshot_at])
+Total impresiones = COUNTROWS(FactCardSetPrintings)
 ```
-
-En visuales monetarias, filtrar por `currency` o mostrar moneda en leyenda/segmentador.
 
 ## Paginas recomendadas
 
-| Pagina | Views principales | Accion esperada |
+| Pagina | Base de datos | Accion esperada |
 |---|---|---|
-| Catalogo | `vw_dim_card`, `vw_dim_set`, `vw_dim_rarity`, `vw_bridge_card_set` | Entender cobertura y segmentar cartas. |
-| Precio actual | `vw_fact_card_prices`, `vw_dim_card` | Priorizar cartas por valor observado. |
-| Rareza y set | `vw_bridge_card_set`, `vw_dim_set`, `vw_dim_rarity`, `vw_diag_price_by_rarity` | Justificar impacto de rareza o expansion. |
-| Calidad | `vw_diag_price_outliers` | Revisar precios extremos antes de recomendar. |
-| Mercado | `vw_diag_high_demand_archetypes` | Detectar arquetipos con peso estimado. |
-| Decision comercial | `vw_diag_competitive_staple_candidates` | Clasificar cartas candidatas por accion comercial. |
-| Historico | `vw_fact_price_history`, `Calendario` | Vigilar variacion cuando haya snapshots suficientes. |
+| Catalogo | `cards`, `sets`, `rarities`, `card_sets` | Entender cobertura y segmentar cartas. |
+| Precio actual | `card_prices`, `cards` | Priorizar cartas por valor observado. |
+| Rareza y set | `card_sets`, `sets`, `rarities` | Revisar impacto de set/rareza sin confundirlo con precio de rareza. |
+| Calidad | queries diagnosticas sobre tablas base | Revisar extremos y datos incompletos. |
+| Mercado | medidas Power BI sobre precios e impresiones | Detectar arquetipos o cartas con interes estimado. |
+| Decision comercial | medidas y columnas DAX validadas | Clasificar cartas candidatas por accion comercial. |
+| Historico | `card_price_history`, `Calendario` | Vigilar variacion cuando haya snapshots suficientes. |
 
-## Avance de paginas
+## Estado de trabajo
 
-Bloques cerrados:
-
-```text
-descriptivo
-diagnostico
-```
-
-Evidencias:
+Punto actual:
 
 ```text
-powerbi/exportaciones/analisis_desc_diag
-docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.md
-docs/02_marco_analisis_datos/informes/informe_conclusiones_desc_diag.docx
+fuente unica MySQL relacional
+modelo semantico pendiente de reconstruccion en Power BI
+reglas comerciales pendientes de validacion
 ```
 
-Pagina prescriptiva activa:
-
-```text
-decision comercial
-```
-
-Visuales actuales:
-
-- Tabla principal de cartas candidatas.
-- Segmentador por `clasificacion_comercial`.
-- Grafico de distribucion de cartas por clasificacion.
-- Resumen visual de clasificaciones.
-- Texto de lectura: reglas conservadoras, primera version prescriptiva.
-
-## Columnas DAX prescriptivas
-
-Tabla base:
-
-```text
-yugioh_db vw_diag_competitive_staple_candidates
-```
-
-Columnas creadas en Power BI:
-
-```DAX
-clasificacion_comercial =
-SWITCH(
-    TRUE(),
-
-    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] >= 50
-        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 20,
-        "Carta principal potencial",
-
-    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] >= 5
-        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 10,
-        "Carta destacada comercial",
-
-    'yugioh_db vw_diag_competitive_staple_candidates'[avg_set_price] < 5
-        && 'yugioh_db vw_diag_competitive_staple_candidates'[total_printings] >= 20,
-        "Carta complementaria",
-
-    "Revisar antes de accionar"
-)
-```
-
-```DAX
-motivo_clasificacion =
-SWITCH(
-    'yugioh_db vw_diag_competitive_staple_candidates'[clasificacion_comercial],
-
-    "Carta principal potencial",
-        "Precio medio alto y alta presencia en impresiones.",
-
-    "Carta destacada comercial",
-        "Precio relevante y presencia suficiente para destacar.",
-
-    "Carta complementaria",
-        "Precio bajo o moderado con alta disponibilidad.",
-
-    "Revisar antes de accionar",
-        "No cumple criterios suficientes o requiere validacion adicional."
-)
-```
-
-Uso:
-
-- `clasificacion_comercial` etiqueta la accion comercial.
-- `motivo_clasificacion` explica por que la carta cae en esa categoria.
-- El segmentador permite revisar cada grupo sin duplicar tablas.
-- Las reglas siguen en validacion; no deben consolidarse como view SQL hasta comprobar que clasifican de forma util.
+Las clasificaciones comerciales deben construirse como medidas o columnas calculadas en Power BI hasta que demuestren utilidad.
 
 ## Politica de versionado
 

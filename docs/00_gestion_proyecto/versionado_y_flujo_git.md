@@ -36,7 +36,7 @@ a43dc6b -> utilidad auxiliar para cargar SQL desde CSV
 14a6a0a -> paquete modular de transformacion
 5bbade4 -> refactor ETL y cambio de cards.id a cards.card_id
 a69ebff -> refactor de schema y reporting en database
-af789ea -> enriquecimiento de views analiticas con codigos de set
+af789ea -> enriquecimiento de capa analitica con codigos de set
 7f03608 -> organizacion de artefactos SQL de analisis
 ```
 
@@ -154,7 +154,7 @@ Ejemplos:
 ```text
 feat: anadir carga incremental de precios
 fix: corregir normalizacion de nombres de set
-db: actualizar vista de rarezas por precio
+db: actualizar consulta de rarezas por precio
 docs: documentar flujo de versionado
 refactor: separar transformaciones de precios
 ```

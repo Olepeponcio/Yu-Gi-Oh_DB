@@ -1,68 +1,40 @@
 # Tabla calendario DAX
 
-Ultima actualizacion: 2026-06-20.
+## Objetivo
 
-## Finalidad
-
-Crear una dimension temporal dentro de Power BI para analizar `vw_fact_price_history` por fecha de snapshot.
+Crear una dimension temporal dentro de Power BI para analizar `card_price_history` por fecha de snapshot.
 
 La tabla calendario no se crea en MySQL. Se crea como tabla calculada DAX en Power BI y se marca como tabla de fechas.
 
-## Tabla calculada
+## DAX base
+
+Cuando `FactPricesHistory` ya exista en Power BI:
 
 ```DAX
 Calendario =
 CALENDAR (
-    MIN ( vw_fact_price_history[snapshot_date] ),
-    MAX ( vw_fact_price_history[snapshot_date] )
+    MIN ( FactPricesHistory[snapshot_date] ),
+    MAX ( FactPricesHistory[snapshot_date] )
 )
 ```
 
-## Columnas calculadas recomendadas
+Columnas recomendadas:
 
 ```DAX
-Año = YEAR ( Calendario[Date] )
-```
-
-```DAX
-Mes Numero = MONTH ( Calendario[Date] )
-```
-
-```DAX
+Ano = YEAR ( Calendario[Date] )
+Mes numero = MONTH ( Calendario[Date] )
 Mes = FORMAT ( Calendario[Date], "MMMM" )
-```
-
-```DAX
-Año Mes = FORMAT ( Calendario[Date], "YYYY-MM" )
-```
-
-```DAX
+Ano mes = FORMAT ( Calendario[Date], "YYYY-MM" )
 Trimestre = "T" & FORMAT ( Calendario[Date], "Q" )
+Dia = DAY ( Calendario[Date] )
 ```
 
-## Relacion del modelo
+Relacion prevista:
 
 ```text
-Calendario[Date] 1 -> * vw_fact_price_history[snapshot_date]
+Calendario[Date] 1 -> * FactPricesHistory[snapshot_date]
 ```
 
-Direccion de filtro cruzado:
+## Nota
 
-```text
-Unico
-```
-
-## Configuracion en Power BI
-
-1. Crear la tabla calculada `Calendario`.
-2. Crear las columnas calculadas necesarias.
-3. Seleccionar la tabla `Calendario`.
-4. Ir a `Herramientas de tabla > Marcar como tabla de fechas`.
-5. Elegir la columna `Calendario[Date]`.
-6. Crear la relacion con `vw_fact_price_history[snapshot_date]`.
-
-## Criterio
-
-Usar `snapshot_date` para la relacion diaria.
-
-No usar `snapshot_at` para la tabla calendario salvo que se quiera analizar la hora exacta de ejecucion del ETL.
+`FactPricesHistory` es una tabla semantica de Power BI derivada de `card_price_history`, normalmente despivotando marketplaces.

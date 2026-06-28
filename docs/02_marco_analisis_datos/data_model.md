@@ -6,117 +6,52 @@ Representar la informacion de cartas de YGOPRODeck en tablas relacionales normal
 
 ## Tipo de modelo
 
-El esquema actual de `yugioh_db` no es un modelo dimensional en estrella puro.
-
-Es un modelo relacional normalizado orientado a conservar datos limpios, consistentes y reutilizables desde MySQL. Su finalidad principal es servir como capa persistente del proyecto despues del ETL.
+El esquema actual de `yugioh_db` es un modelo relacional normalizado. No es un modelo dimensional en estrella puro.
 
 Clasificacion:
 
 ```text
-MySQL / yugioh_db = modelo relacional normalizado
-Views MySQL = capa semantica y diagnostica
-Power BI = visualizacion, relaciones, medidas y narrativa
+MySQL / yugioh_db = fuente unica relacional
+SQL queries = analisis, diagnostico y validacion de reglas
+Power BI = modelo semantico, relaciones, medidas y narrativa
 ```
-
-Motivo:
-
-- `cards` funciona como tabla principal de entidad, no como tabla de hechos.
-- `card_images`, `card_prices`, `card_banlist`, `card_typelines` y `card_linkmarkers` son tablas hijas normalizadas.
-- `sets` y `rarities` funcionan como catalogos o dimensiones reutilizables.
-- `card_sets` actua como tabla de relacion entre cartas, sets y rarezas.
-- `card_price_history` es la tabla mas cercana a una tabla de hechos, porque almacena mediciones de precios por carta y fecha de snapshot.
 
 Decision de arquitectura:
 
-> Mantener MySQL como modelo relacional base y exponer una capa de views para Power BI.
+> Mantener MySQL como modelo relacional base y construir el modelo semantico al conectar desde Power BI.
 
-Esta decision evita forzar el diseno de MySQL hacia estrella. Las preguntas analiticas se mantienen en `docs/02_marco_analisis_datos/README.md`.
+Motivo:
 
-Modelo semantico actual:
+- `cards` funciona como tabla principal de entidad.
+- `card_images`, `card_prices`, `card_banlist`, `card_typelines` y `card_linkmarkers` son tablas hijas normalizadas.
+- `sets` y `rarities` funcionan como catalogos reutilizables.
+- `card_sets` representa apariciones de cartas en sets y conserva `set_price`.
+- `card_price_history` almacena mediciones de precios por carta y fecha de snapshot.
 
-```text
-vw_dim_card
-vw_dim_set
-vw_dim_rarity
-vw_ref_banlist_status
+## Modelo semantico futuro
 
-vw_bridge_card_set
-vw_bridge_card_banlist
-vw_fact_card_prices
-vw_fact_price_history
-```
+Power BI debe construir dimensiones, hechos, relaciones y medidas desde tablas base.
 
-Posibles dimensiones derivadas:
+Dimensiones candidatas:
 
 - `DimCard`: desde `cards`.
 - `DimSet`: desde `sets`.
 - `DimRarity`: desde `rarities`.
-- `Calendario`: tabla calculada en Power BI y marcada como tabla de fechas.
+- `DimMarketplace`: derivada en Power BI desde columnas de precio.
+- `DimBanlistFormat`: TCG, OCG y GOAT.
+- `Calendario`: tabla calculada en Power BI desde `card_price_history.snapshot_at`.
 - `DimArchetype`: derivada de `cards.archetype` si el analisis lo requiere.
 - `DimCardType`: derivada de `cards.card_type` si el analisis lo requiere.
 
-Evolucion esperada:
+Hechos candidatos:
 
-- Mantener el modelo relacional de MySQL estable.
-- Crear views `vw_dim_*`, `vw_fact_*`, `vw_bridge_*`, `vw_ref_*` y `vw_diag_*` sobre las tablas base.
-- Construir relaciones y medidas en Power BI sobre esas views.
+- `FactCardSetPrintings`: desde `card_sets`.
+- `FactCardPricesCurrent`: desde `card_prices`, despivotando marketplaces.
+- `FactCardPricesHistory`: desde `card_price_history`, despivotando marketplaces.
+- `FactCardBanlistStatus`: desde `card_banlist`, despivotando formatos.
+- `FactCardTypelines`: desde `card_typelines` si se analiza tipologia multivalor.
 
-## Capa semantica en MySQL
-
-La capa semantica se expone desde MySQL. Las tablas base son la capa persistente del ETL; las views son la capa de consumo analitico.
-
-Criba:
-
-```text
-cards, sets, rarities, card_sets, card_prices, card_price_history, card_banlist
-    -> tablas base MySQL
-
-vw_dim_*, vw_fact_*, vw_bridge_*, vw_ref_*
-    -> modelo semantico consumido por Power BI
-
-vw_desc_*
-    -> views descriptivas auxiliares
-
-vw_ref_*
-    -> catalogos de referencia normalizados
-
-views/diagnostic/vw_diag_*
-    -> views de diagnostico, fuera del modelo relacional
-```
-
-Relaciones objetivo:
-
-```text
-vw_dim_card[card_id] 1 -> * vw_bridge_card_set[card_id]
-vw_dim_set[set_id] 1 -> * vw_bridge_card_set[set_id]
-vw_dim_rarity[rarity_id] 1 -> * vw_bridge_card_set[rarity_id]
-vw_dim_card[card_id] 1 -> * vw_bridge_card_banlist[card_id]
-vw_ref_banlist_status[banlist_status_key] 1 -> * vw_bridge_card_banlist[banlist_status_key]
-vw_dim_card[card_id] 1 -> * vw_fact_card_prices[card_id]
-vw_dim_card[card_id] 1 -> * vw_fact_price_history[card_id]
-Calendario[Date] 1 -> * vw_fact_price_history[snapshot_date]
-```
-
-Direccion de filtro: de dimension a hecho.
-
-SQL localizado para apoyar el modelo:
-
-```text
-sql/analysis/views/dim/vw_dim_card.sql
-sql/analysis/views/dim/vw_dim_set.sql
-sql/analysis/views/dim/vw_dim_rarity.sql
-sql/analysis/views/bridge/vw_bridge_card_set.sql
-sql/analysis/views/bridge/vw_bridge_card_banlist.sql
-sql/analysis/views/fact/vw_fact_card_prices.sql
-sql/analysis/views/fact/vw_fact_price_history.sql
-sql/analysis/views/ref/vw_ref_banlist_status.sql
-sql/analysis/views/diagnostic/vw_diag_competitive_staple_candidates.sql
-sql/analysis/views/diagnostic/vw_diag_high_demand_archetypes.sql
-sql/analysis/views/diagnostic/vw_diag_price_by_rarity.sql
-sql/analysis/views/diagnostic/vw_diag_price_outliers.sql
-```
-
-`vw_fact_card_prices.sql` funciona como hecho de precios por marketplace. Las `views/diagnostic/vw_diag_*` son agregados o filtros diagnosticos, no el nucleo del esquema estrella.
+Estas tablas semanticas no viven como objetos SQL oficiales. Se construyen en Power BI o mediante queries exploratorias mientras se valida el modelo.
 
 ## Tabla principal
 
@@ -129,13 +64,13 @@ Campos clave:
 - `card_id`: identificador de carta recibido desde YGOPRODeck.
 - `name`: nombre.
 - `card_type`: tipo general.
+- `human_readable_card_type`: tipo legible.
 - `frame_type`: marco logico/visual.
 - `description`: descripcion.
-- `atk`, `def`, `attribute`, `level`: campos de monstruos.
-- `scale`, `pendulum_description`, `monster_description`: campos Pendulum.
-- `link_value`: valor Link.
+- `race`, `archetype`, `attribute`: atributos clasificatorios.
+- `atk`, `def`, `level`, `scale`, `link_value`: campos de juego cuando aplican.
 
-## Tablas hijas
+## Tablas hijas y catalogos
 
 ### `sets`
 
@@ -158,6 +93,10 @@ rarities.id -> card_sets.rarity_id
 rarities.set_code -> card_sets.set_code
 ```
 
+Regla:
+
+La rareza no contiene precio. El precio asociado a set vive en `card_sets.set_price`.
+
 ### `card_sets`
 
 Apariciones de cartas en productos o sets.
@@ -169,6 +108,16 @@ cards.card_id -> card_sets.card_id
 sets.id -> card_sets.set_id
 rarities.id -> card_sets.rarity_id
 ```
+
+Grano:
+
+```text
+1 fila = 1 carta + 1 set/codigo + 1 rareza
+```
+
+Regla:
+
+`set_price` es precio observado en la aparicion de una carta dentro de un set. No es precio intrinseco de la rareza.
 
 ### `card_images`
 
@@ -182,13 +131,17 @@ cards.card_id -> card_images.card_id
 
 ### `card_prices`
 
-Precios por marketplace.
+Precios actuales por marketplace.
 
-Relacion 1:1:
+Relacion:
 
 ```text
 cards.card_id -> card_prices.card_id
 ```
+
+Regla:
+
+No mezclar EUR y USD sin conversion o segmentacion visible.
 
 ### `card_price_history`
 
@@ -200,11 +153,17 @@ Relacion:
 cards.card_id -> card_price_history.card_id
 ```
 
+Grano semantico esperado en Power BI:
+
+```text
+1 carta + 1 snapshot + 1 marketplace
+```
+
 ### `card_banlist`
 
 Restricciones por formato.
 
-Relacion 1:1 opcional:
+Relacion:
 
 ```text
 cards.card_id -> card_banlist.card_id
@@ -233,7 +192,7 @@ cards.card_id -> card_linkmarkers.card_id
 ## Criterio de carga
 
 - `cards`, `card_images`, `card_prices` y `card_banlist` se cargan de forma idempotente.
-- `sets` y `rarities` se cargan de forma idempotente como dimensiones.
+- `sets` y `rarities` se cargan de forma idempotente como catalogos.
 - `card_price_history` inserta una foto de precios por ejecucion del ETL.
 - `card_sets`, `card_typelines` y `card_linkmarkers` se refrescan por carta para evitar acumulacion de datos obsoletos.
 - Las claves foraneas hacia `cards` usan `ON DELETE CASCADE`.

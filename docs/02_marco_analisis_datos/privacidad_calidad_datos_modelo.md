@@ -248,7 +248,7 @@ Las consultas son mas complejas porque requieren `JOIN`.
 
 Solucion:
 
-Usar views SQL para Power BI y documentar la logica analitica.
+Usar consultas SQL exploratorias y documentar la logica analitica antes de trasladarla a Power BI.
 
 ## 8. Controles recomendados
 

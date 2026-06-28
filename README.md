@@ -1,31 +1,31 @@
 # Proyecto SQL DB Yu-Gi-Oh
 
-Proyecto de datos para construir una base MySQL de cartas de Yu-Gi-Oh desde la API de YGOPRODeck, analizarla con SQL y comunicar resultados en Power BI.
+Proyecto de datos para construir una base MySQL relacional de cartas de Yu-Gi-Oh desde la API de YGOPRODeck, analizarla con SQL y comunicar resultados en Power BI.
 
 ## Piezas del proyecto
 
 ```text
-sql/main_schema.sql  -> esquema principal vigente para crear la DB desde cero
-sql/migrations/      -> reservado para futuras escaladas del modelo
+sql/main_schema.sql        -> esquema principal vigente para crear la DB desde cero
+sql/migrations/           -> reservado para futuras escaladas del modelo
 sql/reset_main_schema.sql -> reinicio destructivo de tablas principales
-sql/analysis/        -> SQL analitico, views oficiales y CSV locales
-src/api/             -> extraccion desde YGOPRODeck
-src/etl/             -> transformacion y carga en MySQL
-src/csv_sql_scripts/ -> utilidad auxiliar futura para recuperar CSV como SQL
-src/database/        -> conexion Python -> MySQL
-data/raw/            -> ultimo JSON raw descargado
-docs/                -> documentacion tecnica y analitica
-powerbi/             -> documentacion, consultas y plantillas Power BI
+sql/analysis/             -> consultas analiticas, reglas en validacion y CSV auxiliares
+src/api/                  -> extraccion desde YGOPRODeck
+src/etl/                  -> transformacion y carga en MySQL
+src/database/             -> conexion Python -> MySQL
+data/raw/                 -> ultimo JSON raw descargado
+docs/                     -> documentacion tecnica y analitica
+powerbi/                  -> documentacion, consultas y plantillas Power BI
 ```
 
 ## Idea clave
 
 ```text
-main_schema.sql = esquema principal actual
-migrations/ = cambios futuros cuando el modelo vuelva a evolucionar
+MySQL relacional = fuente unica de verdad
+SQL queries = exploracion, diagnostico y reglas en validacion
+Power BI = modelo semantico, relaciones, medidas y narrativa
 ```
 
-El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma parte de `sql/main_schema.sql`.
+El proyecto vuelve al punto base: conservar tablas madre limpias en MySQL y construir el modelo semantico al conectar desde Power BI. No hay capa SQL intermedia oficial.
 
 ## Flujo general
 
@@ -33,10 +33,10 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 1. MySQL crea la estructura desde sql/main_schema.sql
 2. Python ETL extrae datos de YGOPRODeck
 3. Python transforma y normaliza datos
-4. Python carga/actualiza MySQL
-5. MySQL expone views semanticas y diagnosticas
-6. Power BI consume las views oficiales en modo Importar
-7. Power BI construye el modelo relacional, medidas y narrativa
+4. Python carga/actualiza tablas madre en MySQL
+5. SQL queries convierten hechos en preguntas, controles y decisiones
+6. Power BI importa tablas base y construye el modelo semantico
+7. Power BI define relaciones, medidas, clasificaciones y narrativa
 ```
 
 ## Herramientas necesarias
@@ -48,8 +48,6 @@ El modelo actual, incluyendo `sets`, `rarities` y `card_price_history`, forma pa
 - Power BI Desktop para construir el modelo y exportar plantilla `.pbit`.
 
 ## 0. Preparar entorno Python
-
-Desde PowerShell, en la raiz del proyecto:
 
 ```powershell
 python -m venv .venv
@@ -69,26 +67,18 @@ DB_USER=tu_usuario
 DB_PASSWORD=tu_password
 ```
 
-`localhost` es el servidor MySQL local. Python se conecta a MySQL solo cuando ejecuta la carga.
-
 ## 2. Construir la base desde cero
-
-Crear la base:
 
 ```sql
 CREATE DATABASE IF NOT EXISTS yugioh_db
   CHARACTER SET utf8mb4
   COLLATE utf8mb4_unicode_ci;
-```
 
-Crear toda la estructura actual:
-
-```sql
 USE yugioh_db;
 SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/main_schema.sql;
 ```
 
-Este paso crea las tablas actuales del proyecto:
+Tablas madre vigentes:
 
 ```text
 cards
@@ -105,9 +95,9 @@ card_linkmarkers
 
 No uses `reset_main_schema.sql` salvo que quieras borrar tablas y datos para reconstruir desde cero.
 
-## 3. Probar el ETL sin escribir en MySQL
+## 3. Probar el ETL
 
-Desde la raiz del proyecto:
+Sin escribir en MySQL:
 
 ```powershell
 python -m src.etl --dry-run
@@ -119,7 +109,7 @@ Con JSON local:
 python -m src.etl --source file --raw-path data/raw/cardinfo_latest.json --dry-run
 ```
 
-Ejecutar tests del ETL:
+Tests:
 
 ```powershell
 python -m unittest discover
@@ -127,71 +117,28 @@ python -m unittest discover
 
 ## 4. Cargar o actualizar datos
 
-Ejecutar ingesta completa:
-
 ```powershell
 python -m src.etl
 ```
 
-Este comando:
+Este comando descarga datos, actualiza `data/raw/cardinfo_latest.json`, normaliza entidades y carga MySQL. Tambien inserta snapshots en `card_price_history`.
 
-```text
-descarga datos desde la API
-actualiza data/raw/cardinfo_latest.json
-normaliza cartas, sets, rarezas, precios, banlist e imagenes
-actualiza tablas base en MySQL
-inserta snapshot historico en card_price_history
-guarda un reporte .txt en data/reporting/
-```
+## 5. Analisis y Power BI
 
-Los reportes se nombran con formato ordenable por fecha:
-
-```text
-data/reporting/etl_report_YYYYMMDD_HHMMSS.txt
-```
-
-Para actualizar la DB, se vuelve a ejecutar el mismo comando.
-
-## 5. Preparar analisis SQL y Power BI
-
-El origen de preguntas, problemas y decisiones analiticas vive en:
+Marco analitico:
 
 ```text
 docs/02_marco_analisis_datos/README.md
 ```
 
-Los artefactos de implementacion se separan por capa:
+Implementacion por capa:
 
 ```text
-sql/analysis/README.md -> organizacion SQL, queries y views
-powerbi/README.md      -> modelo Power BI, relaciones, medidas y plantilla
+sql/analysis/README.md -> organizacion de queries y reglas SQL
+powerbi/README.md      -> conexion a tablas base y modelo semantico Power BI
 ```
 
-Los README de SQL y Power BI no deben redefinir el marco analitico; solo explican como se implementa.
-
-Ejemplo:
-
-```sql
-USE yugioh_db;
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/analysis/views/fact/vw_fact_card_prices.sql;
-```
-
-## Utilidades auxiliares
-
-`src/csv_sql_scripts/` no forma parte del flujo principal actual. Es una utilidad de escalado futuro para leer CSV locales y generar scripts SQL de recuperacion en:
-
-```text
-sql/generated/from_csv/
-```
-
-Uso opcional:
-
-```powershell
-python -m src.csv_sql_scripts --dry-run
-python -m src.csv_sql_scripts
-```
-
-Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
+Las consultas SQL no sustituyen a las tablas madre. Sirven para convertir hechos en preguntas, controles de calidad, criterios de decision y validaciones.
 
 ## Orden rapido
 
@@ -200,9 +147,9 @@ Esos scripts no sustituyen a las views oficiales de `sql/analysis/views/`.
 2. SOURCE sql/main_schema.sql
 3. python -m src.etl --dry-run
 4. python -m src.etl
-5. Crear o ejecutar views oficiales desde sql/analysis/views/
-6. Mantener views diagnosticas en sql/analysis/views/diagnostic/
-7. Cargar views en Power BI en modo Importar
+5. Ejecutar queries de sql/analysis/ para validar preguntas y reglas
+6. Conectar Power BI a tablas madre MySQL
+7. Crear relaciones, medidas y clasificaciones en Power BI
 8. Exportar plantilla `.pbit` sin datos cargados
 ```
 

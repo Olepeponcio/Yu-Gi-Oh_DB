@@ -9,10 +9,10 @@ Este archivo solo sirve como mapa de documentos. No define preguntas analiticas,
 Referencias principales:
 
 ```text
-README.md                         -> entrada rapida y comandos principales
+README.md                              -> entrada rapida y comandos principales
 docs/02_marco_analisis_datos/README.md -> decision, avances y bloques de analisis
-sql/analysis/README.md            -> organizacion de queries y views SQL
-powerbi/README.md                 -> modelo Power BI, relaciones y artefactos
+sql/analysis/README.md                 -> organizacion de queries SQL
+powerbi/README.md                      -> conexion a MySQL y modelo semantico Power BI
 ```
 
 ## Grupo 0: gestion del proyecto
@@ -29,6 +29,5 @@ powerbi/README.md                 -> modelo Power BI, relaciones y artefactos
 
 - `02_marco_analisis_datos/README.md`: fuente canonica de decision, avances y bloques descriptivo, diagnostico, predictivo y prescriptivo.
 - `02_marco_analisis_datos/api_json_analysis.md`: estructura del JSON de YGOPRODeck y entidades candidatas.
-- `02_marco_analisis_datos/data_model.md`: tablas, relaciones, claves, criterio de carga y modelo semantico por views.
-- `02_marco_analisis_datos/relational_model.svg`: imagen del modelo relacional base.
-- `02_marco_analisis_datos/infografia_views_sql.svg`: mapa visual de views SQL.
+- `02_marco_analisis_datos/data_model.md`: tablas madre, relaciones, claves y criterio de carga.
+- `02_marco_analisis_datos/privacidad_calidad_datos_modelo.md`: riesgos de interpretacion, calidad y privacidad.

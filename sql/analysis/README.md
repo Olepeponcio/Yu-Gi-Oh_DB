@@ -6,33 +6,41 @@ Directorio de implementacion SQL para responder al marco canonico:
 docs/02_marco_analisis_datos/README.md
 ```
 
-Este README no define preguntas analiticas. Solo documenta organizacion, convenciones y artefactos SQL.
+Este README documenta la organizacion de consultas SQL sobre la fuente unica MySQL.
+
+## Estado actual
+
+La capa SQL intermedia queda retirada del proyecto.
+
+La fuente unica de verdad son las tablas madre creadas por:
+
+```text
+sql/main_schema.sql
+```
+
+Las consultas de `sql/analysis/queries/` sirven para explorar, diagnosticar y validar reglas antes de trasladarlas a Power BI como medidas, columnas calculadas o decisiones de modelo.
 
 ## Estructura
 
 ```text
 queries/              -> consultas exploratorias y reglas en validacion
 queries/descriptive/  -> analisis descriptivo
-queries/diagnostic/   -> analisis diagnostico
-views/                -> views estables sobre MySQL yugioh_db
-views/dim/            -> dimensiones del modelo semantico
-views/bridge/         -> relaciones muchos-a-muchos
-views/fact/           -> hechos granulares
-views/ref/            -> catalogos normalizados
-views/diagnostic/     -> diagnostico auxiliar fuera del nucleo relacional
-CSV/                  -> snapshots CSV locales si se necesitan
+queries/diagnostic/   -> analisis diagnostico y control de calidad
+CSV/                  -> snapshots locales auxiliares si se necesitan
 ```
+
+No existe ya una capa SQL intermedia oficial. Si aparece una necesidad recurrente, primero debe formularse como query y despues decidir si pertenece a Power BI, al ETL o al esquema relacional.
 
 ## Criterio de uso
 
 ```text
-query exploratoria -> validacion -> view estable -> consumo Power BI
+tabla madre -> query exploratoria -> validacion -> medida/modelo Power BI o cambio ETL
 ```
 
-- `queries/`: pruebas de logica, validacion de hipotesis y reglas prescriptivas no consolidadas.
-- `views/`: logica reutilizable, versionada y apta para Power BI.
-- `views/diagnostic/`: diagnostico, calidad y narrativa; no forman el nucleo estrella.
-- `CSV/`: foto fija exportada; no sustituye la logica SQL original.
+- `queries/`: pruebas de logica, validacion de hipotesis y reglas no consolidadas.
+- `queries/descriptive/`: consultas para entender catalogo, precios, sets y cobertura.
+- `queries/diagnostic/`: consultas para explicar riesgos, outliers, variacion y calidad.
+- `CSV/`: foto fija exportada; no sustituye MySQL.
 
 ## Convenciones
 
@@ -41,39 +49,21 @@ Prefijos:
 ```text
 q_desc_... = consulta descriptiva
 q_diag_... = consulta diagnostica
-vw_dim_... = dimension semantica
-vw_fact_... = hecho granular
-vw_bridge_... = puente relacional
-vw_ref_... = referencia normalizada
-vw_diag_... = diagnostico auxiliar
 ```
 
-Las reglas prescriptivas pueden vivir temporalmente en `queries/` hasta que sean estables.
-
-Estado prescriptivo actual:
-
-- La primera clasificacion comercial se esta validando en Power BI mediante columnas DAX sobre `vw_diag_competitive_staple_candidates`.
-- Columnas: `clasificacion_comercial` y `motivo_clasificacion`.
-- No existe aun una view SQL estable para esa clasificacion.
-- Solo debe crearse una nueva `vw_*` cuando las reglas queden validadas como reutilizables.
-
-## Views actuales
+Regla:
 
 ```text
-views/dim/vw_dim_card.sql
-views/dim/vw_dim_card_image.sql
-views/dim/vw_dim_card_typelines.sql
-views/dim/vw_dim_set.sql
-views/dim/vw_dim_rarity.sql
-views/bridge/vw_bridge_card_set.sql
-views/bridge/vw_bridge_card_banlist.sql
-views/fact/vw_fact_card_prices.sql
-views/fact/vw_fact_price_history.sql
-views/ref/vw_ref_banlist_status.sql
-views/diagnostic/vw_diag_competitive_staple_candidates.sql
-views/diagnostic/vw_diag_high_demand_archetypes.sql
-views/diagnostic/vw_diag_price_by_rarity.sql
-views/diagnostic/vw_diag_price_outliers.sql
+Toda query debe declarar claramente su grano y no crear una fuente paralela.
+```
+
+Ejemplos de grano:
+
+```text
+1 fila = 1 carta
+1 fila = 1 carta + marketplace
+1 fila = 1 carta + set + rareza
+1 fila = 1 carta + snapshot + marketplace
 ```
 
 ## Queries actuales
@@ -89,11 +79,7 @@ queries/diagnostic/q_diag_price_variation_usd.sql
 queries/diagnostic/q_diag_relevant_price_increases.sql
 ```
 
-`queries/card_comercial_actions.sql` pertenece al bloque prescriptivo: convierte criterios analiticos en clasificaciones comerciales. Si se reutiliza en Power BI, debe consolidarse como view.
-
-Nota:
-
-La pagina prescriptiva actual no depende todavia de `queries/card_comercial_actions.sql`. Usa reglas DAX experimentales en Power BI para validar la clasificacion antes de moverla a SQL.
+`queries/card_comercial_actions.sql` pertenece al bloque prescriptivo. Convierte criterios analiticos en clasificaciones comerciales, pero no debe materializarse como tabla estable sin validar su utilidad.
 
 ## Dependencias base
 
@@ -107,15 +93,18 @@ card_prices
 card_price_history
 card_banlist
 card_typelines
+card_linkmarkers
 ```
 
-## Utilidad auxiliar desde CSV
+## Regla sobre precios
 
-`src.csv_sql_scripts` puede generar scripts SQL desde CSV locales:
+`set_price` pertenece al grano de `card_sets`: una aparicion de carta en un set con una rareza.
 
-```powershell
-python -m src.csv_sql_scripts --dry-run
-python -m src.csv_sql_scripts
+No debe interpretarse como precio intrinseco de una rareza.
+
+Los precios actuales e historicos por marketplace viven en:
+
+```text
+card_prices
+card_price_history
 ```
-
-Genera archivos en `sql/generated/from_csv/`. Es recuperacion auxiliar, no flujo analitico principal.
