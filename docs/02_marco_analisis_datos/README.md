@@ -22,6 +22,9 @@ Premisas:
 - `set_price` no es precio propio de una rareza.
 - `cardmarket_price` llega en EUR.
 - `tcgplayer_price`, `ebay_price`, `amazon_price` y `coolstuffinc_price` llegan en USD.
+- Los precios actuales se consumen en formato largo desde `vw_fact_card_prices_descriptive`.
+- `vw_fact_card_prices_descriptive` tiene grano `1 carta + 1 marketplace + 1 moneda`.
+- Una vista de extremos debe depender de una vista larga base, no repetir la logica de marketplaces.
 - Las consultas se documentaran aqui cuando se generen.
 
 ## Flujo de analisis
@@ -51,7 +54,7 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: conocer el catalogo base disponible.
 - Tablas madre: `cards`.
-- Consulta correspondiente: vw_dim_cards
+- Consulta correspondiente: `vw_dim_cards_descriptive`
 - Estado: hecho
 - Criterio de avance: conteo y segmentacion base.
 - Notas: punto inicial del catalogo.
@@ -60,7 +63,7 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: entender como se reparte el catalogo por tipo.
 - Tablas madre: `cards`.
-- Consulta correspondiente: vw_cards_classification
+- Consulta correspondiente: `vw_dim_cards_classification`
 - Estado: hecho.
 - Criterio de avance: agrupar por `card_type` y `frame_type`.
 - Notas: validar nulos y categorias.
@@ -69,7 +72,7 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: medir en cuantos sets aparece cada carta.
 - Tablas madre: `cards`, `card_sets`, `sets`.
-- Consulta correspondiente: vw_card_sets_classification
+- Consulta correspondiente: `vw_fact_card_set_coverage_descriptive`
 - Estado: hecho.
 - Criterio de avance: contar apariciones por carta y set.
 - Notas: no confundir carta con impresion.
@@ -78,10 +81,11 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: describir precios actuales por marketplace.
 - Tablas madre: `card_prices`.
-- Consulta correspondiente: vw_fact_card_prices
+- Consulta correspondiente: `vw_fact_card_prices_descriptive`
 - Estado hecho.
 - Criterio de avance: separar marketplaces y declarar moneda.
-- Notas: si se comparan marketplaces, convertir moneda o segmentar EUR/USD.
+- Grano: `1 carta + 1 marketplace + 1 moneda`.
+- Notas: si se comparan marketplaces, convertir moneda o segmentar EUR/USD. No calcular medias mezclando monedas.
 
 ### Modelo relacional y uso de consulta
 
@@ -101,8 +105,8 @@ Objetivo: explicar relaciones, riesgos y diferencias observadas.
 
 - Pregunta o decision: detectar cartas con mayor presencia en sets.
 - Tablas madre: `cards`, `card_sets`, `sets`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: `vw_fact_card_set_coverage_diagnostic`
+- Estado: Hecho.
 - Criterio de avance: ranking por apariciones.
 - Notas: interpretar como disponibilidad o reimpresion.
 
@@ -110,28 +114,32 @@ Objetivo: explicar relaciones, riesgos y diferencias observadas.
 
 - Pregunta o decision: analizar si ciertas rarezas aparecen asociadas a precios distintos.
 - Tablas madre: `card_sets`, `rarities`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: `vw_fact_rarity_price_summary_diagnostic`
+- Estado: Hecho.
 - Criterio de avance: agregar con grano controlado.
 - Notas: `set_price` no pertenece a `rarities`.
 
 ### Deteccion de precios extremos
 
 - Pregunta o decision: localizar precios que exigen revision antes de interpretar.
-- Tablas madre: `card_sets`, `card_prices`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Tablas madre: `card_prices`.
+- Consulta base: `vw_fact_current_prices_diagnostic`.
+- Consulta correspondiente: `vw_fact_price_outlier_candidates_diagnostic`.
+- Estado: Hecho.
 - Criterio de avance: definir umbrales y revisar casos.
-- Notas: no usar outliers como conclusion directa.
+- Grano esperado: `1 carta + 1 marketplace + 1 moneda + 1 precio candidato`.
+- Notas: no usar outliers como conclusion directa. La vista de extremos debe ser un subconjunto filtrado de `vw_fact_current_prices_diagnostic`.
+- Umbral inicial de trabajo: revisar `price <= 0`, `EUR >= 50` y `USD >= 50`.
 
 ### Calidad de relaciones FK
 
 - Pregunta o decision: comprobar que las relaciones entre tablas madre son coherentes.
 - Tablas madre: todas las tablas hijas.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: `vw_quality_fk_orphans_diagnostic`, `vw_quality_nullable_fk_diagnostic`, `vw_quality_duplicate_grain_diagnostic`, `vw_quality_relationship_summary_diagnostic`.
+- Estado: Hecho.
 - Criterio de avance: buscar huerfanos o claves nulas criticas.
-- Notas: control previo a visualizacion.
+- Criterio minimo: 0 huerfanos obligatorios, 0 duplicados de grano y revision explicita de FK nullable.
+- Notas: control previo a visualizacion. Estas vistas no explican negocio; validan si el modelo es fiable.
 
 ### Modelo relacional y uso de consulta
 
@@ -151,19 +159,20 @@ Objetivo: estudiar variacion temporal solo cuando haya suficientes snapshots.
 
 - Pregunta o decision: saber si existe historico suficiente para analizar variacion.
 - Tablas madre: `card_price_history`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: `vw_fact_price_snapshot_summary_predictive`.
+- Estado: Hecho.
 - Criterio de avance: contar fechas distintas.
-- Notas: sin minimo de historico no hay tendencia.
+- Notas: sin minimo de historico no hay tendencia. La view no crea snapshots; el ETL los inserta en `card_price_history` en cada carga real.
 
 ### Variacion de precio por carta
 
 - Pregunta o decision: medir cambios de precio por carta entre snapshots.
 - Tablas madre: `card_price_history`, `cards`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: `vw_fact_card_price_variation_predictive`.
+- Estado: Hecho.
 - Criterio de avance: comparar snapshots por marketplace.
-- Notas: conservar moneda; `cardmarket_price` es EUR y el resto de marketplaces son USD.
+- Grano esperado: `1 carta + 1 marketplace + 1 moneda + 1 snapshot con snapshot anterior comparable`.
+- Notas: conservar moneda; `cardmarket_price` es EUR y el resto de marketplaces son USD. Requiere al menos dos snapshots comparables por carta y marketplace.
 
 ### Cartas con subida relevante
 

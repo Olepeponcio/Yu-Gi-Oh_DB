@@ -1,4 +1,7 @@
-CREATE OR REPLACE VIEW vw_dim_card_sets_classification AS
+-- entender distribucion general
+-- validar si las cartas tienen o no apariciones
+-- alimentar visuales descriptivos
+CREATE OR REPLACE VIEW vw_fact_card_set_coverage_descriptive AS
 SELECT
     c.card_id,
     c.name AS card_name,

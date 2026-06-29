@@ -1,7 +1,7 @@
 -- describir precios actuales por marketplace.
 -- separar marketplaces y declarar moneda
 
-CREATE OR REPLACE VIEW vw_fact_card_prices AS
+CREATE OR REPLACE VIEW vw_fact_card_prices_descriptive AS
 SELECT
     c.card_id,
     c.name AS card_name,

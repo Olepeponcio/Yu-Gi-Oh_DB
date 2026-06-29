@@ -1,4 +1,4 @@
-CREATE OR REPLACE VIEW vw_dim_cards AS
+CREATE OR REPLACE VIEW vw_dim_cards_descriptive AS
 SELECT c.card_id,
 c.name,
 c.card_type,

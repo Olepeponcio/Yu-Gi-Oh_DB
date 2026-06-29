@@ -1,0 +1,207 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1120" viewBox="0 0 1600 1120" role="img" aria-labelledby="title desc">
+  <title id="title">Modelo BI en esquema estrella con views</title>
+  <desc id="desc">Constelacion de hechos para Power BI basada en views descriptivas, diagnosticas y predictivas.</desc>
+  <defs>
+    <style>
+      .bg { fill: #f7f8fb; }
+      .dim { fill: #eef6ff; stroke: #1f5d99; stroke-width: 2.2; rx: 8; }
+      .fact { fill: #fff8ea; stroke: #a76500; stroke-width: 2.2; rx: 8; }
+      .control { fill: #f2f3f5; stroke: #65727a; stroke-width: 2; rx: 8; }
+      .header-dim { fill: #1f5d99; }
+      .header-fact { fill: #a76500; }
+      .header-control { fill: #65727a; }
+      .title { font: 700 28px Arial, sans-serif; fill: #15202b; }
+      .subtitle { font: 16px Arial, sans-serif; fill: #40515c; }
+      .table-title { font: 700 17px Arial, sans-serif; fill: #ffffff; }
+      .text { font: 14px Arial, sans-serif; fill: #15202b; }
+      .mono { font: 14px Consolas, "Courier New", monospace; fill: #15202b; }
+      .key { fill: #0b5cad; font-weight: 700; }
+      .measure { fill: #8a4c00; font-weight: 700; }
+      .muted { fill: #65727a; }
+      .rel { stroke: #455a64; stroke-width: 2.2; fill: none; }
+      .rel-soft { stroke: #73838c; stroke-width: 2; fill: none; stroke-dasharray: 7 5; }
+      .card { font: 700 13px Arial, sans-serif; fill: #263238; }
+      .label { font: 13px Arial, sans-serif; fill: #37474f; }
+      .arrow { fill: #1f5d99; stroke: #ffffff; stroke-width: 1.3; }
+      .legend { fill: #ffffff; stroke: #c9d3da; stroke-width: 1.5; rx: 8; }
+    </style>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1600" height="1120"/>
+  <text class="title" x="60" y="56">Modelo BI Power BI - esquema estrella con views</text>
+  <text class="subtitle" x="60" y="86">Lectura: dimensiones filtran hechos. No relacionar facts entre si. Las views de calidad quedan aisladas.</text>
+
+  <rect class="legend" x="1060" y="28" width="480" height="92"/>
+  <rect class="dim" x="1088" y="50" width="26" height="18"/>
+  <text class="text" x="1124" y="65">Dimension</text>
+  <rect class="fact" x="1232" y="50" width="26" height="18"/>
+  <text class="text" x="1268" y="65">Hecho</text>
+  <rect class="control" x="1368" y="50" width="26" height="18"/>
+  <text class="text" x="1404" y="65">Control</text>
+  <line class="rel" x1="1088" y1="92" x2="1168" y2="92"/>
+  <polygon class="arrow" points="1132,85 1146,92 1132,99"/>
+  <text class="text" x="1180" y="97">filtro unico 1 -> *</text>
+  <line class="rel-soft" x1="1368" y1="92" x2="1448" y2="92"/>
+  <text class="text" x="1460" y="97">uso aislado</text>
+
+  <!-- Dimensions -->
+  <g id="dim_cards">
+    <rect class="dim" x="70" y="215" width="360" height="190"/>
+    <rect class="header-dim" x="70" y="215" width="360" height="42"/>
+    <text class="table-title" x="90" y="242">vw_dim_cards_descriptive</text>
+    <text class="mono key" x="90" y="284">PK card_id</text>
+    <text class="mono" x="90" y="311">name, card_type, frame_type</text>
+    <text class="mono" x="90" y="338">race, archetype, attribute</text>
+    <text class="mono" x="90" y="365">atk, def, level, scale</text>
+    <text class="mono muted" x="90" y="392">Grano: 1 carta</text>
+  </g>
+
+  <g id="dim_marketplaces">
+    <rect class="dim" x="70" y="465" width="360" height="150"/>
+    <rect class="header-dim" x="70" y="465" width="360" height="42"/>
+    <text class="table-title" x="90" y="492">vw_dim_marketplaces_descriptive</text>
+    <text class="mono key" x="90" y="534">PK marketplace</text>
+    <text class="mono" x="90" y="561">marketplace_name</text>
+    <text class="mono" x="90" y="588">default_currency, market_region</text>
+  </g>
+
+  <g id="dim_currencies">
+    <rect class="dim" x="70" y="675" width="360" height="130"/>
+    <rect class="header-dim" x="70" y="675" width="360" height="42"/>
+    <text class="table-title" x="90" y="702">vw_dim_currencies_descriptive</text>
+    <text class="mono key" x="90" y="744">PK currency</text>
+    <text class="mono" x="90" y="771">currency_name</text>
+  </g>
+
+  <g id="dim_snapshots">
+    <rect class="dim" x="1170" y="215" width="360" height="180"/>
+    <rect class="header-dim" x="1170" y="215" width="360" height="42"/>
+    <text class="table-title" x="1190" y="242">vw_dim_snapshots_descriptive</text>
+    <text class="mono key" x="1190" y="284">PK snapshot_at</text>
+    <text class="mono" x="1190" y="311">snapshot_date, year, quarter</text>
+    <text class="mono" x="1190" y="338">month, day, hour</text>
+    <text class="mono muted" x="1190" y="365">Grano: 1 snapshot</text>
+  </g>
+
+  <g id="dim_rarity_names">
+    <rect class="dim" x="1170" y="455" width="360" height="150"/>
+    <rect class="header-dim" x="1170" y="455" width="360" height="42"/>
+    <text class="table-title" x="1190" y="482">vw_dim_rarity_names_descriptive</text>
+    <text class="mono key" x="1190" y="524">PK rarity_name</text>
+    <text class="mono" x="1190" y="551">rarity_catalog_rows</text>
+    <text class="mono" x="1190" y="578">total_set_codes, total_rarity_codes</text>
+  </g>
+
+  <g id="dim_sets_rarities">
+    <rect class="dim" x="1170" y="665" width="360" height="170"/>
+    <rect class="header-dim" x="1170" y="665" width="360" height="42"/>
+    <text class="table-title" x="1190" y="692">Dims auxiliares de catalogo</text>
+    <text class="mono key" x="1190" y="734">vw_dim_sets_descriptive[set_id]</text>
+    <text class="mono key" x="1190" y="761">vw_dim_rarities_descriptive[rarity_id]</text>
+    <text class="mono" x="1190" y="788">Uso: detalle o drillthrough</text>
+    <text class="mono muted" x="1190" y="815">No conectadas a facts agregadas actuales</text>
+  </g>
+
+  <!-- Facts -->
+  <g id="fact_prices">
+    <rect class="fact" x="560" y="165" width="480" height="172"/>
+    <rect class="header-fact" x="560" y="165" width="480" height="42"/>
+    <text class="table-title" x="580" y="192">vw_fact_card_prices_descriptive</text>
+    <text class="mono key" x="580" y="234">FK card_id, marketplace, currency</text>
+    <text class="mono measure" x="580" y="261">price</text>
+    <text class="mono muted" x="580" y="288">Grano: 1 carta + 1 marketplace + 1 moneda</text>
+    <text class="mono muted" x="580" y="315">Uso: precios actuales</text>
+  </g>
+
+  <g id="fact_coverage">
+    <rect class="fact" x="560" y="380" width="480" height="150"/>
+    <rect class="header-fact" x="560" y="380" width="480" height="42"/>
+    <text class="table-title" x="580" y="407">vw_fact_card_set_coverage_descriptive</text>
+    <text class="mono key" x="580" y="449">FK card_id</text>
+    <text class="mono measure" x="580" y="476">total_appearances, total_sets</text>
+    <text class="mono measure" x="580" y="503">total_rarities</text>
+  </g>
+
+  <g id="fact_variation">
+    <rect class="fact" x="560" y="575" width="480" height="190"/>
+    <rect class="header-fact" x="560" y="575" width="480" height="42"/>
+    <text class="table-title" x="580" y="602">vw_fact_card_price_variation_predictive</text>
+    <text class="mono key" x="580" y="644">FK card_id, marketplace, currency, snapshot_at</text>
+    <text class="mono measure" x="580" y="671">price, previous_price</text>
+    <text class="mono measure" x="580" y="698">price_change, price_change_pct</text>
+    <text class="mono muted" x="580" y="725">Grano: carta + marketplace + moneda + snapshot</text>
+  </g>
+
+  <g id="fact_rarity">
+    <rect class="fact" x="560" y="810" width="480" height="170"/>
+    <rect class="header-fact" x="560" y="810" width="480" height="42"/>
+    <text class="table-title" x="580" y="837">vw_fact_rarity_price_summary_diagnostic</text>
+    <text class="mono key" x="580" y="879">FK rarity_name</text>
+    <text class="mono measure" x="580" y="906">total_appearances, total_cards, total_sets</text>
+    <text class="mono measure" x="580" y="933">avg_set_price, min_set_price, max_set_price</text>
+    <text class="mono muted" x="580" y="960">Uso: resumen agregado por rareza</text>
+  </g>
+
+  <g id="quality">
+    <rect class="control" x="70" y="865" width="360" height="160"/>
+    <rect class="header-control" x="70" y="865" width="360" height="42"/>
+    <text class="table-title" x="90" y="892">vw_quality_*</text>
+    <text class="mono" x="90" y="934">fk_orphans, nullable_fk</text>
+    <text class="mono" x="90" y="961">duplicate_grain</text>
+    <text class="mono" x="90" y="988">relationship_summary</text>
+    <text class="mono muted" x="90" y="1015">Pagina aislada de control</text>
+  </g>
+
+  <g id="outliers">
+    <rect class="control" x="1170" y="895" width="360" height="130"/>
+    <rect class="header-control" x="1170" y="895" width="360" height="42"/>
+    <text class="table-title" x="1190" y="922">vw_fact_price_outlier_candidates</text>
+    <text class="mono" x="1190" y="964">Subconjunto de precios actuales</text>
+    <text class="mono" x="1190" y="991">Uso: revision, no conclusion</text>
+  </g>
+
+  <!-- Relationships -->
+  <path class="rel" d="M430 300 L560 235"/>
+  <polygon class="arrow" points="492,260 506,267 492,274" transform="rotate(-27 499 267)"/>
+  <text class="card" x="443" y="291">1</text><text class="card" x="542" y="244">*</text>
+
+  <path class="rel" d="M430 335 L560 455"/>
+  <polygon class="arrow" points="492,388 506,395 492,402" transform="rotate(43 499 395)"/>
+  <text class="card" x="443" y="350">1</text><text class="card" x="542" y="450">1</text>
+
+  <path class="rel" d="M430 372 L560 655"/>
+  <polygon class="arrow" points="492,506 506,513 492,520" transform="rotate(65 499 513)"/>
+  <text class="card" x="443" y="390">1</text><text class="card" x="542" y="649">*</text>
+
+  <path class="rel" d="M430 540 L560 260"/>
+  <polygon class="arrow" points="492,393 506,400 492,407" transform="rotate(-65 499 400)"/>
+  <text class="card" x="443" y="528">1</text><text class="card" x="542" y="270">*</text>
+
+  <path class="rel" d="M430 565 L560 665"/>
+  <polygon class="arrow" points="492,608 506,615 492,622" transform="rotate(37 499 615)"/>
+  <text class="card" x="443" y="576">1</text><text class="card" x="542" y="661">*</text>
+
+  <path class="rel" d="M430 735 L560 285"/>
+  <polygon class="arrow" points="492,503 506,510 492,517" transform="rotate(-74 499 510)"/>
+  <text class="card" x="443" y="717">1</text><text class="card" x="542" y="294">*</text>
+
+  <path class="rel" d="M430 755 L560 690"/>
+  <polygon class="arrow" points="492,715 506,722 492,729" transform="rotate(-27 499 722)"/>
+  <text class="card" x="443" y="756">1</text><text class="card" x="542" y="693">*</text>
+
+  <path class="rel" d="M1170 305 L1040 655"/>
+  <polygon class="arrow" points="1098,473 1112,480 1098,487" transform="rotate(111 1105 480)"/>
+  <text class="card" x="1147" y="320">1</text><text class="card" x="1047" y="648">*</text>
+
+  <path class="rel" d="M1170 530 L1040 895"/>
+  <polygon class="arrow" points="1098,704 1112,711 1098,718" transform="rotate(110 1105 711)"/>
+  <text class="card" x="1147" y="541">1</text><text class="card" x="1047" y="890">*</text>
+
+  <path class="rel-soft" d="M1040 250 L1170 960"/>
+  <text class="label" x="1094" y="782">outliers: tabla de revision</text>
+
+  <path class="rel-soft" d="M430 945 L560 455"/>
+  <text class="label" x="442" y="904">quality: sin relaciones base</text>
+
+  <text class="subtitle" x="60" y="1085">Modelo recomendado: constelacion de hechos. Cargar dims y facts necesarias por pagina; mantener filtro unico desde dimension hacia hecho.</text>
+</svg>

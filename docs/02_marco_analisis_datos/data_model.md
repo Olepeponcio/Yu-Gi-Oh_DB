@@ -28,6 +28,92 @@ Imagen generada:
 docs/02_marco_analisis_datos/modelo_relacional_erd.svg
 ```
 
+## Esquema estrella para Power BI
+
+Imagen generada:
+
+![Modelo BI esquema estrella](modelo_relacional_esquema_estrella.svg)
+
+```text
+docs/02_marco_analisis_datos/modelo_relacional_esquema_estrella.svg
+```
+
+Lectura base:
+
+- El modelo BI se interpreta como una constelacion de hechos, no como una estrella unica.
+- Las dimensiones filtran los hechos con direccion unica `1 -> *`.
+- No se recomienda relacionar tablas de hechos entre si.
+- Las views `vw_quality_*` se cargan como control de calidad, aisladas del modelo analitico principal salvo necesidad puntual.
+
+Views dimension:
+
+```text
+vw_dim_cards_descriptive
+vw_dim_marketplaces_descriptive
+vw_dim_currencies_descriptive
+vw_dim_snapshots_descriptive
+vw_dim_rarity_names_descriptive
+vw_dim_sets_descriptive
+vw_dim_rarities_descriptive
+```
+
+Views de hechos principales:
+
+```text
+vw_fact_card_prices_descriptive
+vw_fact_card_set_coverage_descriptive
+vw_fact_card_price_variation_predictive
+vw_fact_rarity_price_summary_diagnostic
+```
+
+Views de control/revision:
+
+```text
+vw_fact_current_prices_diagnostic
+vw_fact_price_outlier_candidates_diagnostic
+vw_quality_fk_orphans_diagnostic
+vw_quality_nullable_fk_diagnostic
+vw_quality_duplicate_grain_diagnostic
+vw_quality_relationship_summary_diagnostic
+```
+
+Relaciones recomendadas:
+
+```text
+vw_dim_cards_descriptive[card_id]
+    1 -> * vw_fact_card_prices_descriptive[card_id]
+
+vw_dim_cards_descriptive[card_id]
+    1 -> 1 vw_fact_card_set_coverage_descriptive[card_id]
+
+vw_dim_cards_descriptive[card_id]
+    1 -> * vw_fact_card_price_variation_predictive[card_id]
+
+vw_dim_marketplaces_descriptive[marketplace]
+    1 -> * vw_fact_card_prices_descriptive[marketplace]
+
+vw_dim_marketplaces_descriptive[marketplace]
+    1 -> * vw_fact_card_price_variation_predictive[marketplace]
+
+vw_dim_currencies_descriptive[currency]
+    1 -> * vw_fact_card_prices_descriptive[currency]
+
+vw_dim_currencies_descriptive[currency]
+    1 -> * vw_fact_card_price_variation_predictive[currency]
+
+vw_dim_snapshots_descriptive[snapshot_at]
+    1 -> * vw_fact_card_price_variation_predictive[snapshot_at]
+
+vw_dim_rarity_names_descriptive[rarity_name]
+    1 -> * vw_fact_rarity_price_summary_diagnostic[rarity_name]
+```
+
+Nota:
+
+- `vw_dim_sets_descriptive` y `vw_dim_rarities_descriptive` quedan como dimensiones auxiliares para detalle o drillthrough.
+- La fact agregada `vw_fact_rarity_price_summary_diagnostic` debe relacionarse con `vw_dim_rarity_names_descriptive`, porque su grano es `1 rarity_name`.
+- `vw_fact_price_outlier_candidates_diagnostic` es subconjunto de revision; no debe sustituir a `vw_fact_card_prices_descriptive`.
+
 Lectura base:
 
 - `cards` es la tabla madre. Su `card_id` alimenta todas las tablas de detalle.
