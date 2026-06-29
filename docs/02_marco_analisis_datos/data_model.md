@@ -18,6 +18,34 @@ card_id
 
 ## Catalogos y tablas hijas
 
+## Diagrama relacional
+
+Imagen generada:
+
+![Modelo relacional Yu-Gi-Oh](modelo_relacional_erd.svg)
+
+```text
+docs/02_marco_analisis_datos/modelo_relacional_erd.svg
+```
+
+Lectura base:
+
+- `cards` es la tabla madre. Su `card_id` alimenta todas las tablas de detalle.
+- Cardinalidad del diagrama: `1` significa uno y `*` significa muchos.
+- `card_prices` y `card_banlist` usan `card_id` como PK y FK; conceptualmente son relaciones `cards 1 -> 1`, aunque la fila hija puede no existir para todas las cartas.
+- `card_images`, `card_price_history`, `card_typelines`, `card_linkmarkers` y `card_sets` admiten varias filas por carta; por eso son `cards 1 -> *`.
+- `sets` y `rarities` son catalogos reutilizables para `card_sets`.
+- `card_sets.set_id` y `card_sets.rarity_id` son nullable; la aparicion puede existir aunque el catalogo asociado no quede resuelto.
+
+Lectura para Power BI:
+
+- Filtro recomendado por defecto: unico desde el lado `1` hacia el lado `*`.
+- `cards -> card_sets`, `cards -> card_images`, `cards -> card_price_history`, `cards -> card_typelines` y `cards -> card_linkmarkers`.
+- `cards -> card_prices` y `cards -> card_banlist` como filtro unico desde `cards` hacia la tabla de detalle.
+- `sets -> card_sets` y `rarities -> card_sets` como filtro unico desde catalogo hacia apariciones.
+- Filtro cruzado/bidireccional: no se recomienda como regla base. Usarlo solo si el informe necesita que una tabla de hechos/puente filtre de vuelta a la dimension.
+- FK nullable no significa relacion desactivada en DAX. En SQL solo permite `NULL`; en Power BI una relacion inactiva es una configuracion del modelo y se invoca en medidas con `USERELATIONSHIP`.
+
 ### `sets`
 
 Catalogo de sets.
