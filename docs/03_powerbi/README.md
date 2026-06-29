@@ -2,6 +2,14 @@
 
 Este README documentara el trabajo en Power BI cuando el analisis empiece a generar consultas de consumo.
 
+Documento complementario:
+
+```text
+docs/03_powerbi/README_constructor_informe.md
+```
+
+Ese README define como usar y mantener `build_powerbi_report.py`, que genera el informe Word y el PNG del modelo.
+
 ## Punto de entrada
 
 Power BI se conectara a MySQL:
@@ -11,6 +19,22 @@ yugioh_db
 ```
 
 La conexion no debe alterar las tablas madre. El modelado visual se construira desde las consultas que se vayan definiendo en el proceso de analisis.
+
+## Fondo de pagina inicial
+
+Para la primera pagina de navegacion/cuadro de control:
+
+```text
+docs/03_powerbi/assets/fondo_control_powerbi_fondo2.png
+```
+
+Uso recomendado:
+
+- Importar el PNG como fondo de pagina.
+- Usar transparencia 0%.
+- Superponer botones transparentes sobre el bloque reservado de cada marco.
+- Configurar cada boton con accion de navegacion a la pagina correspondiente.
+- Mantener el texto como guia visual; el bloque lateral del marco queda reservado para el boton.
 
 ## Fases de trabajo
 
