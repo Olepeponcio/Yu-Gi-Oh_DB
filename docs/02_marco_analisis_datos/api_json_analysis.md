@@ -133,6 +133,16 @@ Campos detectados:
 
 Observacion: los precios llegan como texto. Conviene convertirlos a tipo decimal durante la carga.
 
+Regla de moneda detectada para analisis:
+
+- `cardmarket_price`: EUR.
+- `tcgplayer_price`: USD.
+- `ebay_price`: USD.
+- `amazon_price`: USD.
+- `coolstuffinc_price`: USD.
+
+Aviso: las consultas futuras deben declarar la moneda o aplicar conversion antes de comparar marketplaces.
+
 ### `banlist_info`
 
 Objeto opcional con restricciones por formato.

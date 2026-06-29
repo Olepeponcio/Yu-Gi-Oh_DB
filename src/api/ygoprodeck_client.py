@@ -38,10 +38,24 @@ def save_raw_payload(payload):
 
 
 def load_raw_payload(raw_path):
-    with Path(raw_path).open("r", encoding="utf-8") as file:
+    path = resolve_raw_path(raw_path)
+
+    with path.open("r", encoding="utf-8") as file:
         payload = json.load(file)
 
     if isinstance(payload, dict) and "data" in payload:
         return payload
 
     raise ValueError("Raw payload must be a JSON object with a 'data' key.")
+
+
+def resolve_raw_path(raw_path):
+    raw_dir = RAW_DATA_DIR.resolve()
+    path = Path(raw_path).resolve()
+
+    try:
+        path.relative_to(raw_dir)
+    except ValueError as error:
+        raise ValueError("Raw payload path must be inside data/raw.") from error
+
+    return path

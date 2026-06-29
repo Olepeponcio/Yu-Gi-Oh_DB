@@ -2,7 +2,7 @@
 
 ## Objetivo
 
-Representar la informacion de YGOPRODeck en tablas relacionales normalizadas.
+Representar la informacion de YGOPRODeck en tablas relacionales normalizadas. El esquema ejecutable vive en `sql/schema.sql`.
 
 ## Tabla principal
 
@@ -78,6 +78,18 @@ Precios actuales por carta y marketplace.
 cards.card_id -> card_prices.card_id
 ```
 
+Regla de moneda:
+
+```text
+cardmarket_price   -> EUR
+tcgplayer_price    -> USD
+ebay_price         -> USD
+amazon_price       -> USD
+coolstuffinc_price -> USD
+```
+
+Aviso: cualquier consulta de consumo debe conservar o declarar la moneda. Si se comparan marketplaces, primero debe convertirse moneda o segmentarse el resultado.
+
 ### `card_price_history`
 
 Snapshots de precios por ejecucion del ETL.
@@ -85,6 +97,8 @@ Snapshots de precios por ejecucion del ETL.
 ```text
 cards.card_id -> card_price_history.card_id
 ```
+
+Aplica la misma regla de moneda que en `card_prices`.
 
 ### `card_banlist`
 
