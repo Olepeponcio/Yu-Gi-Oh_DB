@@ -51,8 +51,8 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: conocer el catalogo base disponible.
 - Tablas madre: `cards`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: vw_dim_cards
+- Estado: hecho
 - Criterio de avance: conteo y segmentacion base.
 - Notas: punto inicial del catalogo.
 
@@ -60,8 +60,8 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: entender como se reparte el catalogo por tipo.
 - Tablas madre: `cards`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: vw_cards_classification
+- Estado: hecho.
 - Criterio de avance: agrupar por `card_type` y `frame_type`.
 - Notas: validar nulos y categorias.
 
@@ -69,8 +69,8 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: medir en cuantos sets aparece cada carta.
 - Tablas madre: `cards`, `card_sets`, `sets`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: vw_card_sets_classification
+- Estado: hecho.
 - Criterio de avance: contar apariciones por carta y set.
 - Notas: no confundir carta con impresion.
 
@@ -78,8 +78,8 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: describir precios actuales por marketplace.
 - Tablas madre: `card_prices`.
-- Consulta correspondiente:
-- Estado: Pendiente.
+- Consulta correspondiente: vw_fact_card_prices
+- Estado hecho.
 - Criterio de avance: separar marketplaces y declarar moneda.
 - Notas: si se comparan marketplaces, convertir moneda o segmentar EUR/USD.
 

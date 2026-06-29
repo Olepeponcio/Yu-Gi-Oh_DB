@@ -143,6 +143,17 @@ Regla de moneda detectada para analisis:
 
 Aviso: las consultas futuras deben declarar la moneda o aplicar conversion antes de comparar marketplaces.
 
+### Historico de precios
+
+La API publica de YGOPRODeck expone precios actuales dentro de `card_prices`, pero no se ha identificado un endpoint documentado para descargar historico de precios.
+
+Implicacion:
+
+- El historico analitico debe construirse con snapshots propios.
+- En este proyecto ese papel lo cumple `card_price_history`.
+- Cada ejecucion real del ETL guarda una foto de los precios disponibles en ese momento.
+- No debe asumirse que se puede reconstruir historico pasado desde YGOPRODeck si no se habia capturado previamente.
+
 ### `banlist_info`
 
 Objeto opcional con restricciones por formato.
