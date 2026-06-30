@@ -1,0 +1,210 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1250" viewBox="0 0 1800 1250">
+  <defs>
+    <style>
+      .bg { fill: #fbfcff; }
+      .title { font: 800 46px Arial, sans-serif; fill: #071022; }
+      .subtitle { font: 400 23px Arial, sans-serif; fill: #5c6678; }
+      .box { stroke-width: 2.5; rx: 10; }
+      .dim-blue { fill: #edf6ff; stroke: #2468a8; }
+      .dim-purple { fill: #f5efff; stroke: #7b4bb8; }
+      .dim-teal { fill: #edfafa; stroke: #15989b; }
+      .dim-gold { fill: #fff7df; stroke: #d89a00; }
+      .dim-red { fill: #fff0ec; stroke: #d94f36; }
+      .dim-green { fill: #f1faea; stroke: #4d8f35; }
+      .fact-price { fill: #edf8f0; stroke: #257a3e; }
+      .fact-bridge { fill: #fff6e5; stroke: #aa6a00; }
+      .fact-history { fill: #eef5ff; stroke: #1e64ad; }
+      .header { font: 700 22px Arial, sans-serif; fill: #0f1a2d; }
+      .small { font: 400 16px Arial, sans-serif; fill: #1d2a3e; }
+      .field { font: 400 15px Arial, sans-serif; fill: #253044; }
+      .key { font: 700 15px Arial, sans-serif; fill: #0f1a2d; }
+      .line { stroke: #1f2937; stroke-width: 2.3; fill: none; }
+      .line-muted { stroke: #5e6675; stroke-width: 2.1; fill: none; }
+      .label { font: 700 25px Arial, sans-serif; fill: #050b18; }
+      .legend { fill: #ffffff; stroke: #c8ceda; stroke-width: 1.5; rx: 10; }
+      .legend-title { font: 700 18px Arial, sans-serif; fill: #0f1a2d; }
+      .legend-text { font: 400 16px Arial, sans-serif; fill: #354156; }
+      .bullet-blue { fill: #2368a2; }
+      .bullet-purple { fill: #7b4bb8; }
+      .bullet-teal { fill: #15989b; }
+      .bullet-gold { fill: #d89a00; }
+      .bullet-red { fill: #d94f36; }
+      .bullet-green { fill: #4d8f35; }
+      .bullet-fact { fill: #1d64b7; }
+      .divider { stroke: #9fb0c5; stroke-width: 1; }
+    </style>
+
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#1f2937" stroke-width="1.9"/>
+    </marker>
+    <marker id="arrow-muted" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#5e6675" stroke-width="1.9"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1800" height="1250"/>
+
+  <text class="title" x="900" y="70" text-anchor="middle">Modelo relacional de views para Power BI</text>
+  <text class="subtitle" x="900" y="112" text-anchor="middle">Constelacion simplificada: dimensiones filtran hechos con direccion 1 -> *</text>
+
+  <!-- Relationships: draw before boxes -->
+  <!-- Cards to all facts -->
+  <path class="line" marker-end="url(#arrow)" d="M 445 395 L 700 395"/>
+  <text class="label" x="463" y="384">1</text>
+  <text class="label" x="670" y="430">*</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M 445 455 L 690 610 L 700 610"/>
+  <text class="label" x="463" y="482">1</text>
+  <text class="label" x="670" y="645">*</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M 445 515 L 610 910 L 700 910"/>
+  <text class="label" x="462" y="542">1</text>
+  <text class="label" x="670" y="945">*</text>
+
+  <!-- Sets and rarities only to appearance fact -->
+  <path class="line-muted" marker-end="url(#arrow-muted)" d="M 455 705 L 700 650"/>
+  <text class="label" x="473" y="698">1</text>
+  <text class="label" x="670" y="682">*</text>
+
+  <path class="line-muted" marker-end="url(#arrow-muted)" d="M 455 925 L 700 700"/>
+  <text class="label" x="473" y="920">1</text>
+  <text class="label" x="670" y="733">*</text>
+
+  <!-- Marketplaces to price and variation facts -->
+  <path class="line" marker-end="url(#arrow)" d="M 1365 335 L 1110 395"/>
+  <text class="label" x="1332" y="335">1</text>
+  <text class="label" x="1120" y="428">*</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M 1365 405 L 1195 870 L 1110 870"/>
+  <text class="label" x="1332" y="430">1</text>
+  <text class="label" x="1120" y="904">*</text>
+
+  <!-- Currencies to price and variation facts -->
+  <path class="line" marker-end="url(#arrow)" d="M 1365 610 L 1110 450"/>
+  <text class="label" x="1332" y="604">1</text>
+  <text class="label" x="1120" y="485">*</text>
+
+  <path class="line" marker-end="url(#arrow)" d="M 1365 680 L 1110 925"/>
+  <text class="label" x="1332" y="705">1</text>
+  <text class="label" x="1120" y="958">*</text>
+
+  <!-- Snapshots only to variation fact -->
+  <path class="line" marker-end="url(#arrow)" d="M 1365 920 L 1110 920"/>
+  <text class="label" x="1332" y="910">1</text>
+  <text class="label" x="1120" y="958">*</text>
+
+  <!-- Fact: current prices -->
+  <rect class="box fact-price" x="700" y="300" width="410" height="230"/>
+  <text class="header" x="735" y="340">vw_fact_card_prices_descriptive</text>
+  <line class="divider" x1="700" y1="358" x2="1110" y2="358"/>
+  <circle class="bullet-fact" cx="735" cy="392" r="5"/>
+  <text class="key" x="755" y="398">card_id</text>
+  <circle class="bullet-fact" cx="735" cy="424" r="5"/>
+  <text class="key" x="755" y="430">marketplace</text>
+  <circle class="bullet-fact" cx="735" cy="456" r="5"/>
+  <text class="key" x="755" y="462">currency</text>
+  <line class="divider" x1="730" y1="482" x2="1080" y2="482" stroke-dasharray="2 3"/>
+  <circle class="bullet-fact" cx="735" cy="507" r="5"/>
+  <text class="field" x="755" y="513">price</text>
+
+  <!-- Fact: card set appearances -->
+  <rect class="box fact-bridge" x="700" y="565" width="410" height="225"/>
+  <text class="header" x="735" y="605">vw_fact_card_set_appearances</text>
+  <line class="divider" x1="700" y1="623" x2="1110" y2="623"/>
+  <circle class="bullet-gold" cx="735" cy="657" r="5"/>
+  <text class="key" x="755" y="663">card_id</text>
+  <circle class="bullet-gold" cx="735" cy="689" r="5"/>
+  <text class="key" x="755" y="695">set_id</text>
+  <circle class="bullet-gold" cx="735" cy="721" r="5"/>
+  <text class="key" x="755" y="727">rarity_id</text>
+  <line class="divider" x1="730" y1="747" x2="1080" y2="747" stroke-dasharray="2 3"/>
+  <circle class="bullet-gold" cx="735" cy="772" r="5"/>
+  <text class="field" x="755" y="778">set_price, appearance_count</text>
+
+  <!-- Fact: historical price variation -->
+  <rect class="box fact-history" x="700" y="830" width="410" height="245"/>
+  <text class="header" x="735" y="870">vw_fact_card_price_variation_predictive</text>
+  <line class="divider" x1="700" y1="888" x2="1110" y2="888"/>
+  <circle class="bullet-fact" cx="735" cy="922" r="5"/>
+  <text class="key" x="755" y="928">card_id</text>
+  <circle class="bullet-fact" cx="735" cy="954" r="5"/>
+  <text class="key" x="755" y="960">marketplace</text>
+  <circle class="bullet-fact" cx="735" cy="986" r="5"/>
+  <text class="key" x="755" y="992">currency</text>
+  <circle class="bullet-fact" cx="735" cy="1018" r="5"/>
+  <text class="key" x="755" y="1024">snapshot_at</text>
+  <line class="divider" x1="730" y1="1040" x2="1080" y2="1040" stroke-dasharray="2 3"/>
+  <circle class="bullet-fact" cx="735" cy="1060" r="5"/>
+  <text class="field" x="755" y="1066">price, previous_price, price_change</text>
+
+  <!-- Left dimensions -->
+  <rect class="box dim-blue" x="95" y="300" width="350" height="240"/>
+  <text class="header" x="145" y="340">vw_dim_cards_descriptive</text>
+  <line class="divider" x1="95" y1="358" x2="445" y2="358"/>
+  <circle class="bullet-blue" cx="135" cy="390" r="5"/>
+  <text class="key" x="155" y="396">card_id</text>
+  <circle class="bullet-blue" cx="135" cy="422" r="5"/>
+  <text class="field" x="155" y="428">name</text>
+  <circle class="bullet-blue" cx="135" cy="454" r="5"/>
+  <text class="field" x="155" y="460">card_type, frame_type</text>
+  <circle class="bullet-blue" cx="135" cy="486" r="5"/>
+  <text class="field" x="155" y="492">race, archetype, attribute</text>
+  <circle class="bullet-blue" cx="135" cy="518" r="5"/>
+  <text class="field" x="155" y="524">atk, def, level, scale, link_value</text>
+
+  <rect class="box dim-teal" x="125" y="625" width="330" height="150"/>
+  <text class="header" x="180" y="665">vw_dim_sets_descriptive</text>
+  <line class="divider" x1="125" y1="683" x2="455" y2="683"/>
+  <circle class="bullet-teal" cx="165" cy="715" r="5"/>
+  <text class="key" x="185" y="721">set_id</text>
+  <circle class="bullet-teal" cx="165" cy="747" r="5"/>
+  <text class="field" x="185" y="753">set_name</text>
+
+  <rect class="box dim-purple" x="125" y="850" width="330" height="185"/>
+  <text class="header" x="168" y="890">vw_dim_rarities_descriptive</text>
+  <line class="divider" x1="125" y1="908" x2="455" y2="908"/>
+  <circle class="bullet-purple" cx="165" cy="940" r="5"/>
+  <text class="key" x="185" y="946">rarity_id</text>
+  <circle class="bullet-purple" cx="165" cy="972" r="5"/>
+  <text class="field" x="185" y="978">rarity_name</text>
+  <circle class="bullet-purple" cx="165" cy="1004" r="5"/>
+  <text class="field" x="185" y="1010">rarity_code, set_code</text>
+
+  <!-- Right dimensions -->
+  <rect class="box dim-gold" x="1365" y="270" width="350" height="170"/>
+  <text class="header" x="1405" y="310">vw_dim_marketplaces_descriptive</text>
+  <line class="divider" x1="1365" y1="328" x2="1715" y2="328"/>
+  <circle class="bullet-gold" cx="1405" cy="360" r="5"/>
+  <text class="key" x="1425" y="366">marketplace</text>
+  <circle class="bullet-gold" cx="1405" cy="392" r="5"/>
+  <text class="field" x="1425" y="398">marketplace_name, default_currency</text>
+
+  <rect class="box dim-red" x="1365" y="560" width="350" height="150"/>
+  <text class="header" x="1425" y="600">vw_dim_currencies_descriptive</text>
+  <line class="divider" x1="1365" y1="618" x2="1715" y2="618"/>
+  <circle class="bullet-red" cx="1405" cy="650" r="5"/>
+  <text class="key" x="1425" y="656">currency</text>
+  <circle class="bullet-red" cx="1405" cy="682" r="5"/>
+  <text class="field" x="1425" y="688">currency_name</text>
+
+  <rect class="box dim-green" x="1365" y="850" width="350" height="170"/>
+  <text class="header" x="1428" y="890">vw_dim_snapshots_descriptive</text>
+  <line class="divider" x1="1365" y1="908" x2="1715" y2="908"/>
+  <circle class="bullet-green" cx="1405" cy="940" r="5"/>
+  <text class="key" x="1425" y="946">snapshot_at</text>
+  <circle class="bullet-green" cx="1405" cy="972" r="5"/>
+  <text class="field" x="1425" y="978">snapshot_date, year, month, day</text>
+
+  <!-- Notes -->
+  <rect class="legend" x="150" y="1125" width="500" height="80"/>
+  <text class="legend-title" x="185" y="1156">Dimensiones</text>
+  <text class="legend-text" x="185" y="1186">Filtran y agrupan. Lado 1 de la relacion.</text>
+
+  <rect class="legend" x="720" y="1125" width="450" height="80"/>
+  <text class="legend-title" x="755" y="1156">Hechos</text>
+  <text class="legend-text" x="755" y="1186">Resumen medidas. Lado * de la relacion.</text>
+
+  <rect class="legend" x="1235" y="1125" width="420" height="80"/>
+  <text class="legend-title" x="1270" y="1156">Direccion</text>
+  <text class="legend-text" x="1270" y="1186">Filtro unico: dimension 1 -> hecho *</text>
+</svg>

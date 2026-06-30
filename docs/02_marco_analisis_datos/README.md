@@ -64,7 +64,7 @@ Objetivo: entender que existe y como se distribuye.
 
 - Pregunta o decision: entender como se reparte el catalogo por tipo.
 - Tablas madre: `cards`.
-- Consulta correspondiente: `vw_dim_cards_classification`
+- Consulta correspondiente: `vw_dim_cards_descriptive`
 - Estado: hecho.
 - Criterio de avance: agrupar por `card_type` y `frame_type`.
 - Notas: validar nulos y categorias.
@@ -140,7 +140,7 @@ Objetivo: explicar relaciones, riesgos y diferencias observadas.
 - Estado: fuera del modelo relacional de Power BI.
 - Criterio de avance: buscar huerfanos o claves nulas criticas.
 - Criterio minimo: 0 huerfanos obligatorios, 0 duplicados de grano y revision explicita de FK nullable.
-- Notas: control previo a visualizacion. Estas vistas no explican negocio; validan si el modelo es fiable.
+- Notas: control previo a visualizacion. Estos controles no explican negocio; validan si el modelo es fiable.
 
 ### Modelo relacional y uso de consulta
 

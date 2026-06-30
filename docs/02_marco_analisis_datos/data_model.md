@@ -13,14 +13,14 @@ sql/schema.sql
 El modelo de vistas para analisis vive en:
 
 ```text
-docs/modelo_relacional.svg
+docs/03_powerbi/modelo_relacional.svg
 ```
 
 ## Modelo Power BI basado en views
 
 Imagen final:
 
-![Modelo relacional de vistas](../modelo_relacional.svg)
+![Modelo relacional de vistas](../03_powerbi/modelo_relacional.svg)
 
 Lectura base:
 

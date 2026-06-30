@@ -199,4 +199,5 @@ python -m unittest discover
 README.md                              -> programa Python y ETL hasta tablas madre
 docs/02_marco_analisis_datos/README.md -> diario del proceso de analisis
 docs/03_powerbi/README.md              -> proceso de trabajo en Power BI
+power_bi/                              -> assets e informes Power BI del proyecto
 ```

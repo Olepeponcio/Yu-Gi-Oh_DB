@@ -10,7 +10,7 @@ Genera:
 
 ```text
 docs/03_powerbi/informe_analisis_powerbi_yugioh.docx
-docs/03_powerbi/assets/modelo_relacional_powerbi.png
+docs/03_powerbi/modelo_relacional_powerbi.png
 ```
 
 No pertenece al ETL ni modifica datos. Su funcion es documentar el hilo de Power BI.
@@ -22,7 +22,7 @@ El archivo `.py` manda.
 Si se ejecuta el constructor, el PNG y el DOCX se regeneran desde el codigo. Por tanto:
 
 - Si editas `modelo_relacional_powerbi.png` manualmente, esa edicion se perdera al ejecutar el `.py`.
-- Si quieres conservar una mejora del PNG, la mejora debe estar implementada en `draw_model_image()`.
+- Si quieres conservar una mejora del modelo visual, la mejora debe estar en `docs/03_powerbi/modelo_relacional.svg` y en `draw_model_image()` si afecta al PNG del informe.
 - Si quieres actualizar el informe Word, el contenido debe cambiarse en `build_doc()`.
 - El `.docx` es salida generada; el `.py` es la fuente mantenible.
 
@@ -44,7 +44,7 @@ Resultado esperado:
 
 ```text
 informe_analisis_powerbi_yugioh.docx
-assets/modelo_relacional_powerbi.png
+modelo_relacional_powerbi.png
 ```
 
 ## Bloqueo por Word
@@ -59,7 +59,19 @@ Proceso:
 
 El script tiene una salida alternativa si hay bloqueo, pero la pauta recomendada es cerrar Word y regenerar el archivo principal.
 
-## Como actualizar el PNG del modelo
+## Como actualizar el modelo visual
+
+La imagen de referencia del modelo vive en:
+
+```text
+docs/03_powerbi/modelo_relacional.svg
+```
+
+El constructor genera un PNG equivalente para insertarlo en Word:
+
+```text
+docs/03_powerbi/modelo_relacional_powerbi.png
+```
 
 Editar esta funcion:
 
@@ -87,7 +99,7 @@ python -c "import sys; sys.path.insert(0, r'docs\03_powerbi'); import build_powe
 3. Revisar:
 
 ```text
-docs/03_powerbi/assets/modelo_relacional_powerbi.png
+docs/03_powerbi/modelo_relacional_powerbi.png
 ```
 
 4. Si el resultado es valido, dejar el cambio en el `.py`.

@@ -13,7 +13,15 @@ La conexion no debe alterar las tablas madre. El informe debe cargarse desde las
 Para la primera pagina de navegacion/cuadro de control:
 
 ```text
-docs/03_powerbi/assets/fondo_control_powerbi_fondo2.png
+power_bi/assets/fondo_control_powerbi_fondo2.png
+```
+
+## Archivos Power BI
+
+```text
+docs/03_powerbi/modelo_relacional.svg          -> modelo relacional de referencia
+power_bi/assets/                               -> fondos e imagenes de diseno
+power_bi/informes/analisis_yugioh_db.pbix      -> informe Power BI del proyecto
 ```
 
 ## Reglas
