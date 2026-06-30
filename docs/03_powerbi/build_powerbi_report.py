@@ -15,7 +15,7 @@ from PIL import Image, ImageDraw, ImageFont
 BASE_DIR = Path(__file__).resolve().parent
 OUT_PATH = BASE_DIR / "informe_analisis_powerbi_yugioh.docx"
 ASSET_DIR = BASE_DIR / "assets"
-MODEL_IMG = ASSET_DIR / "modelo_powerbi_constelacion.png"
+MODEL_IMG = ASSET_DIR / "modelo_relacional_powerbi.png"
 
 
 BLUE = "2E74B5"
@@ -254,76 +254,46 @@ def add_matrix(
 
 def draw_model_image() -> None:
     ASSET_DIR.mkdir(parents=True, exist_ok=True)
-    img = Image.new("RGB", (1900, 1190), "white")
+    img = Image.new("RGB", (1800, 1150), "#F6F7FB")
     draw = ImageDraw.Draw(img)
     try:
         title_font = ImageFont.truetype("arial.ttf", 34)
-        box_font = ImageFont.truetype("arial.ttf", 24)
-        small_font = ImageFont.truetype("arial.ttf", 19)
-        relation_font = ImageFont.truetype("arial.ttf", 21)
+        box_font = ImageFont.truetype("arial.ttf", 20)
+        small_font = ImageFont.truetype("arial.ttf", 16)
+        tiny_font = ImageFont.truetype("arial.ttf", 13)
     except OSError:
         title_font = ImageFont.load_default()
         box_font = ImageFont.load_default()
         small_font = ImageFont.load_default()
-        relation_font = ImageFont.load_default()
+        tiny_font = ImageFont.load_default()
 
     draw.text(
-        (60, 35),
-        "Modelo Power BI recomendado: constelacion de hechos",
-        fill="#1F4D78",
+        (70, 48),
+        "Modelo relacional de vistas para Power BI",
+        fill="#172033",
         font=title_font,
     )
     draw.text(
-        (60, 82),
-        "Relaciones recomendadas para Power BI: filtro unico desde dimensiones hacia hechos",
-        fill="#475569",
+        (70, 92),
+        "Resultado simplificado: dimensiones y hechos base cargados como vistas para analisis.",
+        fill="#5A6475",
         font=small_font,
     )
 
     boxes = {
-        "cards": (700, 145, 1220, 255, "vw_dim_cards_descriptive\n1 carta"),
-        "markets": (
-            80,
-            330,
-            575,
-            435,
-            "vw_dim_marketplaces_descriptive\n1 marketplace",
-        ),
-        "currencies": (80, 520, 575, 625, "vw_dim_currencies_descriptive\n1 moneda"),
-        "snapshots": (80, 710, 575, 815, "vw_dim_snapshots_descriptive\n1 snapshot"),
-        "rarity": (1300, 330, 1810, 435, "vw_dim_rarity_names_descriptive\n1 rareza"),
-        "prices": (
-            700,
-            330,
-            1220,
-            440,
-            "vw_fact_card_prices_descriptive\n1 carta + marketplace + moneda",
-        ),
-        "coverage": (
-            700,
-            520,
-            1220,
-            630,
-            "vw_fact_card_set_coverage_descriptive\n1 carta",
-        ),
-        "variation": (
-            700,
-            710,
-            1220,
-            820,
-            "vw_fact_card_price_variation_predictive\ncarta + marketplace + moneda + snapshot",
-        ),
-        "rarity_fact": (
-            1300,
-            540,
-            1810,
-            645,
-            "vw_fact_rarity_price_summary_diagnostic\n1 rarity_name",
-        ),
+        "cards": (70, 165, 430, 335, "vw_dim_cards_descriptive\nGrano: 1 carta\nClave: card_id", "dim"),
+        "sets": (70, 390, 430, 560, "vw_dim_sets_descriptive\nGrano: 1 set\nClave: set_id", "dim"),
+        "rarities": (70, 615, 430, 785, "vw_dim_rarities_descriptive\nGrano: 1 rareza\nClave: rarity_id", "dim"),
+        "prices": (775, 160, 1115, 340, "vw_fact_card_prices_descriptive\nGrano: carta + marketplace\nMedida: price", "fact"),
+        "appearances": (775, 420, 1115, 600, "vw_fact_card_set_appearances\nGrano: carta + set + rareza\nMedidas: set_price, appearance_count", "bridge"),
+        "variation": (775, 650, 1115, 840, "vw_fact_card_price_variation_predictive\nGrano: carta + marketplace + snapshot\nMedidas: price, price_change", "fact"),
+        "markets": (1390, 165, 1730, 335, "vw_dim_marketplaces_descriptive\nGrano: 1 marketplace\nClave: marketplace", "dim"),
+        "currencies": (1390, 390, 1730, 560, "vw_dim_currencies_descriptive\nGrano: 1 moneda\nClave: currency", "dim"),
+        "snapshots": (1390, 615, 1730, 785, "vw_dim_snapshots_descriptive\nGrano: 1 snapshot\nClave: snapshot_at", "date"),
     }
 
     def port(key, side, offset=0):
-        x1, y1, x2, y2, _ = boxes[key]
+        x1, y1, x2, y2, _, _ = boxes[key]
         if side == "top":
             return ((x1 + x2) // 2 + offset, y1)
         if side == "bottom":
@@ -332,149 +302,89 @@ def draw_model_image() -> None:
             return (x1, (y1 + y2) // 2 + offset)
         return (x2, (y1 + y2) // 2 + offset)
 
-    def relation_label(text, xy, fill="#FFFFFF", color="#1F4D78"):
-        x, y = xy
-        bbox = draw.textbbox((x, y), text, font=relation_font)
+    def connector(start, end, color="#536073"):
+        draw.line([start, end], fill=color, width=4)
+        x1, y1 = start
+        x2, y2 = end
+        dx = x2 - x1
+        dy = y2 - y1
+        if abs(dx) >= abs(dy):
+            arrow = [(x2, y2), (x2 - 14, y2 - 8), (x2 - 14, y2 + 8)] if dx > 0 else [(x2, y2), (x2 + 14, y2 - 8), (x2 + 14, y2 + 8)]
+        else:
+            arrow = [(x2, y2), (x2 - 8, y2 - 14), (x2 + 8, y2 - 14)] if dy > 0 else [(x2, y2), (x2 - 8, y2 + 14), (x2 + 8, y2 + 14)]
+        draw.polygon(arrow, fill=color)
+
+    connector(port("cards", "right", -35), port("prices", "left", -35), "#2368A2")
+    connector(port("cards", "right", 30), port("appearances", "left", -45), "#2368A2")
+    connector(port("cards", "right", 70), port("variation", "left", 35), "#2368A2")
+    connector(port("sets", "right", 0), port("appearances", "left", 0), "#536073")
+    connector(port("rarities", "right", 0), port("appearances", "left", 45), "#536073")
+    connector(port("markets", "left", -35), port("prices", "right", -35), "#2368A2")
+    connector(port("currencies", "left", -20), port("prices", "right", 35), "#2368A2")
+    connector(port("markets", "left", 35), port("variation", "right", -40), "#2368A2")
+    connector(port("currencies", "left", 30), port("variation", "right", 10), "#2368A2")
+    connector(port("snapshots", "left", 0), port("variation", "right", 55), "#6B4AB6")
+
+    def box(key):
+        x1, y1, x2, y2, text, kind = boxes[key]
+        colors = {
+            "dim": ("#EAF3FF", "#2368A2"),
+            "fact": ("#EAF8EE", "#2D7C43"),
+            "bridge": ("#FFF6E5", "#A66A00"),
+            "date": ("#F1ECFF", "#6B4AB6"),
+        }
+        fill, outline = colors[kind]
         draw.rounded_rectangle(
-            (bbox[0] - 10, bbox[1] - 6, bbox[2] + 10, bbox[3] + 6),
-            radius=8,
-            fill=fill,
-            outline="#CBD5E1",
-        )
-        draw.text((x, y), text, fill=color, font=relation_font)
-
-    def connector(points, relation_id, label_at):
-        draw.line(points, fill="#64748B", width=4, joint="curve")
-        relation_label(relation_id, label_at, fill="#E8EEF5", color="#0B2545")
-
-    # Card dimension. Separate vertical lanes avoid stacked labels.
-    connector(
-        [port("cards", "bottom", -160), (800, 295), port("prices", "top", -160)],
-        "R1",
-        (835, 285),
-    )
-    connector(
-        [port("cards", "bottom", 0), (960, 485), port("coverage", "top", 0)],
-        "R2",
-        (995, 475),
-    )
-    connector(
-        [port("cards", "bottom", 160), (1120, 675), port("variation", "top", 160)],
-        "R3",
-        (1153, 665),
-    )
-
-    # Shared dimensions on the left. Lanes are staggered to keep each relation readable.
-    connector(
-        [port("markets", "right", -18), (640, 365), port("prices", "left", -22)],
-        "R4",
-        (600, 332),
-    )
-    connector(
-        [
-            port("markets", "right", 26),
-            (615, 470),
-            (615, 765),
-            port("variation", "left", -20),
-        ],
-        "R5",
-        (520, 455),
-    )
-    connector(
-        [
-            port("currencies", "right", -18),
-            (650, 555),
-            (650, 392),
-            port("prices", "left", 22),
-        ],
-        "R6",
-        (605, 565),
-    )
-    connector(
-        [
-            port("currencies", "right", 26),
-            (675, 600),
-            (675, 795),
-            port("variation", "left", 20),
-        ],
-        "R7",
-        (610, 620),
-    )
-    connector(
-        [port("snapshots", "right", 0), (640, 763), port("variation", "left", 0)],
-        "R8",
-        (600, 810),
-    )
-
-    # Rarity summary relation.
-    connector(
-        [port("rarity", "bottom", 0), (1555, 500), port("rarity_fact", "top", 0)],
-        "R9",
-        (1580, 492),
-    )
-
-    def box(key, fill):
-        x1, y1, x2, y2, text = boxes[key]
-        draw.rounded_rectangle(
-            (x1, y1, x2, y2), radius=14, fill=fill, outline="#9AA6B2", width=3
+            (x1, y1, x2, y2), radius=14, fill=fill, outline=outline, width=3
         )
         lines = text.split("\n")
-        y = y1 + 22
+        y = y1 + 28
         for i, line in enumerate(lines):
             font = box_font if i == 0 else small_font
-            draw.text((x1 + 18, y), line, fill="#0B2545", font=font)
-            y += 34 if i == 0 else 28
+            draw.text((x1 + 20, y), line, fill="#182235", font=font)
+            y += 36 if i == 0 else 30
 
-    for key in ("cards", "markets", "currencies", "snapshots", "rarity"):
-        box(key, "#E8EEF5")
-    for key in ("prices", "coverage", "variation", "rarity_fact"):
-        box(key, "#F8FAFC")
+    for key in boxes:
+        box(key)
 
-    panel_x, panel_y, panel_w, panel_h = 70, 875, 1760, 180
+    panel_x, panel_y, panel_w, panel_h = 70, 880, 760, 220
     draw.rounded_rectangle(
         (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
         radius=12,
-        fill="#F8FAFC",
-        outline="#CBD5E1",
+        fill="#FFFFFF",
+        outline="#C8CEDA",
         width=2,
     )
-    draw.text(
-        (panel_x + 25, panel_y + 18),
-        "Cardinalidad de relaciones",
-        fill="#1F4D78",
-        font=box_font,
-    )
-    relations_left = [
-        "R1 cards 1 -> * prices",
-        "R2 cards 1 -> 1 coverage",
-        "R3 cards 1 -> * variation",
-        "R4 marketplaces 1 -> * prices",
-        "R5 marketplaces 1 -> * variation",
+    draw.text((panel_x + 20, panel_y + 18), "Tabla de relaciones", fill="#182235", font=box_font)
+    rows = [
+        ("vw_dim_cards_descriptive", "precios, apariciones, variacion", "1 : N"),
+        ("vw_dim_sets_descriptive", "vw_fact_card_set_appearances", "1 : N"),
+        ("vw_dim_rarities_descriptive", "vw_fact_card_set_appearances", "1 : N"),
+        ("marketplace / currency / snapshot", "hechos de precio", "1 : N"),
     ]
-    relations_right = [
-        "R6 currencies 1 -> * prices",
-        "R7 currencies 1 -> * variation",
-        "R8 snapshots 1 -> * variation",
-        "R9 rarity_names 1 -> * rarity_summary",
-    ]
-    for i, text in enumerate(relations_left):
-        draw.text(
-            (panel_x + 25, panel_y + 58 + i * 24), text, fill="#334155", font=small_font
-        )
-    for i, text in enumerate(relations_right):
-        draw.text(
-            (panel_x + 780, panel_y + 58 + i * 24),
-            text,
-            fill="#334155",
-            font=small_font,
-        )
+    y = panel_y + 58
+    for i, row in enumerate(rows):
+        fill = "#F0F3F8" if i % 2 else "#FFFFFF"
+        draw.rectangle((panel_x + 20, y - 6, panel_x + panel_w - 20, y + 26), fill=fill)
+        draw.text((panel_x + 35, y), row[0], fill="#253044", font=tiny_font)
+        draw.text((panel_x + 300, y), row[1], fill="#253044", font=tiny_font)
+        draw.text((panel_x + 640, y), row[2], fill="#253044", font=tiny_font)
+        y += 36
 
-    draw.text(
-        (60, 1120),
-        "Regla: direccion de filtro unica desde dimensiones hacia hechos. No relacionar hechos entre si salvo necesidad justificada.",
-        fill="#334155",
-        font=small_font,
-    )
+    legend_x, legend_y = 1010, 910
+    draw.rounded_rectangle((legend_x, legend_y, 1730, 1060), radius=12, fill="#FFFFFF", outline="#C8CEDA", width=2)
+    draw.text((legend_x + 25, legend_y + 30), "Catalogo visual", fill="#182235", font=box_font)
+    for idx, (label, color) in enumerate([
+        ("Dimension descriptiva", "#2368A2"),
+        ("Hecho de precios", "#2D7C43"),
+        ("Hecho puente carta-set-rareza", "#A66A00"),
+        ("Dimension temporal snapshot", "#6B4AB6"),
+    ]):
+        x = legend_x + 25 + (idx % 2) * 300
+        y = legend_y + 70 + (idx // 2) * 42
+        draw.rounded_rectangle((x, y, x + 24, y + 16), radius=4, fill=color)
+        draw.text((x + 35, y - 2), label, fill="#4D586B", font=small_font)
+
     img.save(MODEL_IMG)
 
 
@@ -519,8 +429,8 @@ def build_doc() -> None:
         "mediante un ETL en Python y cargada en MySQL bajo el schema yugioh_db."
     )
     doc.add_paragraph(
-        "La fase actual deja preparado el marco de consumo analitico: vistas descriptivas, diagnosticas, "
-        "predictivas y de calidad. Power BI consumira esas vistas sin modificar las tablas madre."
+        "La fase actual deja preparado el marco de consumo analitico: dimensiones y hechos base en formato `vw_`. "
+        "Power BI consumira esas vistas sin modificar las tablas madre."
     )
     add_status(
         doc,
@@ -536,7 +446,7 @@ def build_doc() -> None:
             "Analizar el catalogo de cartas Yu-Gi-Oh disponible desde YGOPRODeck.",
             "Construir un modelo Power BI trazable desde MySQL y no desde reglas improvisadas en visuales.",
             "Describir precios actuales por carta, marketplace y moneda.",
-            "Diagnosticar rarezas, apariciones en sets, precios extremos y calidad relacional.",
+            "Analizar sets, rarezas, apariciones y precios desde hechos base.",
             "Preparar una base para recomendaciones prescriptivas revisables, no basadas en rankings aislados.",
         ],
     )
@@ -624,16 +534,16 @@ def build_doc() -> None:
             "No mezclar monedas sin segmentacion o conversion explicita.",
             "cardmarket_price llega en EUR; tcgplayer_price, ebay_price, amazon_price y coolstuffinc_price llegan en USD.",
             "set_price pertenece a card_sets; no es un precio propio de la rareza.",
-            "Las vistas de hechos agregados se cargan como hechos, no como dimensiones.",
-            "Las vistas de calidad se usan como control y no como base de conclusiones de negocio.",
+            "Los hechos base cargados en Power BI son precios actuales, apariciones carta-set-rareza y variacion historica.",
+            "Los rankings, outliers y resumenes se calculan como medidas o filtros desde hechos base.",
         ],
     )
 
     doc.add_heading("5. Arquitectura y modelo de datos", level=1)
     doc.add_paragraph(
-        "El modelo recomendado para Power BI es una constelacion de hechos. Las dimensiones filtran hechos con "
-        "direccion unica 1 -> *. No se recomienda relacionar hechos entre si, porque aumenta el riesgo de filtros "
-        "ambiguos y dobles conteos."
+        "El modelo recomendado para Power BI es una constelacion simplificada de hechos. Las dimensiones filtran "
+        "hechos con direccion unica 1 -> *. No se recomienda relacionar hechos entre si, porque aumenta el riesgo "
+        "de filtros ambiguos y dobles conteos."
     )
     picture = doc.add_picture(str(MODEL_IMG), width=Cm(16.0))
     picture._inline.docPr.set("title", "Modelo Power BI recomendado")
@@ -651,12 +561,13 @@ def build_doc() -> None:
         doc,
         [
             "vw_dim_cards_descriptive 1 -> * vw_fact_card_prices_descriptive.",
-            "vw_dim_cards_descriptive 1 -> 1 vw_fact_card_set_coverage_descriptive.",
+            "vw_dim_cards_descriptive 1 -> * vw_fact_card_set_appearances.",
             "vw_dim_cards_descriptive 1 -> * vw_fact_card_price_variation_predictive.",
+            "vw_dim_sets_descriptive 1 -> * vw_fact_card_set_appearances.",
+            "vw_dim_rarities_descriptive 1 -> * vw_fact_card_set_appearances.",
             "vw_dim_marketplaces_descriptive 1 -> * hechos de precios y variacion.",
             "vw_dim_currencies_descriptive 1 -> * hechos de precios y variacion.",
             "vw_dim_snapshots_descriptive 1 -> * vw_fact_card_price_variation_predictive.",
-            "vw_dim_rarity_names_descriptive 1 -> * vw_fact_rarity_price_summary_diagnostic.",
         ],
     )
 
@@ -689,19 +600,9 @@ def build_doc() -> None:
                 "Precios actuales en formato largo.",
             ],
             [
-                "vw_fact_card_set_coverage_descriptive",
-                "Hecho agregado",
-                "Cobertura de sets por carta.",
-            ],
-            [
-                "vw_fact_rarity_price_summary_diagnostic",
-                "Hecho agregado",
-                "Relacion rareza-precio.",
-            ],
-            [
-                "vw_fact_price_outlier_candidates_diagnostic",
-                "Revision",
-                "Precios extremos candidatos, no conclusion directa.",
+                "vw_fact_card_set_appearances",
+                "Hecho puente",
+                "Apariciones carta-set-rareza y precio de set.",
             ],
             [
                 "vw_fact_card_price_variation_predictive",
@@ -735,12 +636,12 @@ def build_doc() -> None:
             ["Catalogo de cartas disponibles", "vw_dim_cards_descriptive", "Preparado"],
             [
                 "Distribucion por tipo de carta",
-                "vw_dim_cards_classification",
-                "Preparado en diario; revisar disponibilidad SQL",
+                "vw_dim_cards_descriptive",
+                "Preparado",
             ],
             [
-                "Cobertura de sets por carta",
-                "vw_fact_card_set_coverage_descriptive",
+                "Apariciones por set y rareza",
+                "vw_fact_card_set_appearances",
                 "Preparado",
             ],
             [
@@ -759,23 +660,18 @@ def build_doc() -> None:
         [
             [
                 "Que cartas aparecen en mas sets",
-                "vw_fact_card_set_coverage_diagnostic",
+                "vw_fact_card_set_appearances",
                 "Interpretar como disponibilidad o reimpresion.",
             ],
             [
                 "Que relacion existe entre rareza y precio",
-                "vw_fact_rarity_price_summary_diagnostic",
+                "vw_fact_card_set_appearances",
                 "Agregar con grano controlado; no atribuir set_price a rarities.",
             ],
             [
                 "Que precios requieren revision",
-                "vw_fact_current_prices_diagnostic y vw_fact_price_outlier_candidates_diagnostic",
-                "Revisar price <= 0, EUR >= 50 y USD >= 50.",
-            ],
-            [
-                "El modelo relacional es fiable",
-                "vw_quality_*",
-                "Exigir 0 huerfanos obligatorios y 0 duplicados de grano.",
+                "vw_fact_card_prices_descriptive",
+                "Aplicar medidas/filtros de revision sobre precio y moneda.",
             ],
         ],
         [2600, 3800, 2960],
@@ -789,7 +685,7 @@ def build_doc() -> None:
     add_bullets(
         doc,
         [
-            "vw_fact_price_snapshot_summary_predictive: valida numero de snapshots, ultimo snapshot y continuidad.",
+            "vw_dim_snapshots_descriptive: permite validar fechas de snapshot disponibles.",
             "vw_fact_card_price_variation_predictive: compara precio actual contra snapshot anterior por carta, marketplace y moneda.",
             "Requiere conservar moneda y marketplace durante todo el analisis.",
         ],
@@ -844,8 +740,8 @@ def build_doc() -> None:
                 "Pendiente",
             ],
             [
-                "Calidad de datos",
-                "Hay huerfanos, FK nullable relevantes o duplicados de grano",
+                "Revision de precios",
+                "Que precios requieren revision antes de interpretarse",
                 "Pendiente",
             ],
             [
@@ -893,7 +789,7 @@ def build_doc() -> None:
             "Completar el registro de paginas de Power BI con pregunta, tabla usada, medidas y estado.",
             "Documentar medidas DAX relevantes y su razon de uso.",
             "Insertar capturas del modelo Power BI y de cada visual validado.",
-            "Ejecutar controles de calidad antes de interpretar hallazgos.",
+            "Validar nulos, duplicados y cobertura antes de interpretar hallazgos.",
             "Ampliar el analisis prescriptivo con criterios revisables y no automaticos.",
         ],
     )
@@ -928,17 +824,11 @@ def build_doc() -> None:
         [2500, 4860, 2000],
     )
 
-    doc.add_heading("16.3 Registro de cambios del informe", level=2)
+    doc.add_heading("16.3 Registro de mantenimiento del informe", level=2)
     add_matrix(
         doc,
-        ["Version", "Fecha", "Cambio"],
-        [
-            [
-                "0.1",
-                date.today().strftime("%Y-%m-%d"),
-                "Estructura inicial y contenido disponible desde README, marco de analisis y documentacion Power BI.",
-            ]
-        ],
+        ["Elemento", "Responsable", "Estado"],
+        [["Modelo relacional Power BI", "Proyecto", "Vigente"]],
         [1800, 1800, 5760],
     )
 

@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1150" viewBox="0 0 1800 1150">
+  <defs>
+    <style>
+      .bg { fill: #f6f7fb; }
+      .title { font: 700 34px Arial, sans-serif; fill: #172033; }
+      .subtitle { font: 400 18px Arial, sans-serif; fill: #5a6475; }
+      .dim { fill: #eaf3ff; stroke: #2368a2; stroke-width: 3; rx: 10; }
+      .fact { fill: #eaf8ee; stroke: #2d7c43; stroke-width: 3; rx: 10; }
+      .bridge { fill: #fff6e5; stroke: #a66a00; stroke-width: 3; rx: 10; }
+      .date { fill: #f1ecff; stroke: #6b4ab6; stroke-width: 3; rx: 10; }
+      .box-title { font: 700 18px Arial, sans-serif; fill: #182235; }
+      .grain { font: 700 15px Arial, sans-serif; fill: #3c4658; }
+      .field { font: 400 14px Arial, sans-serif; fill: #536073; }
+      .rel { stroke: #536073; stroke-width: 2.4; fill: none; }
+      .rel-dim { stroke: #2368a2; stroke-width: 2.6; fill: none; }
+      .rel-date { stroke: #6b4ab6; stroke-width: 2.6; fill: none; }
+      .legend { fill: #ffffff; stroke: #c8ceda; stroke-width: 1.5; rx: 10; }
+      .legend-title { font: 700 18px Arial, sans-serif; fill: #182235; }
+      .legend-text { font: 400 15px Arial, sans-serif; fill: #4d586b; }
+      .table-head { fill: #27364f; }
+      .table-head-text { font: 700 14px Arial, sans-serif; fill: #ffffff; }
+      .table-row-a { fill: #ffffff; }
+      .table-row-b { fill: #f0f3f8; }
+      .table-text { font: 400 13px Arial, sans-serif; fill: #253044; }
+      .tag-dim { fill: #2368a2; }
+      .tag-fact { fill: #2d7c43; }
+      .tag-bridge { fill: #a66a00; }
+      .tag-date { fill: #6b4ab6; }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#536073" stroke-width="2"/>
+    </marker>
+    <marker id="arrow-blue" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#2368a2" stroke-width="2"/>
+    </marker>
+    <marker id="arrow-purple" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="10" markerHeight="10" orient="auto">
+      <path d="M 1 1 L 9 5 L 1 9" fill="none" stroke="#6b4ab6" stroke-width="2"/>
+    </marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1800" height="1150"/>
+  <text class="title" x="70" y="64">Modelo relacional de vistas para Power BI</text>
+  <text class="subtitle" x="70" y="96">Resultado visual simplificado: dimensiones y hechos que se cargaran como vistas para analisis.</text>
+
+  <!-- Relationships -->
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 430 250 C 560 250, 640 250, 775 250"/>
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 430 250 C 570 360, 640 415, 775 510"/>
+  <path class="rel" marker-end="url(#arrow)" d="M 430 475 C 555 540, 640 610, 775 680"/>
+  <path class="rel" marker-end="url(#arrow)" d="M 430 680 C 555 680, 640 680, 775 680"/>
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 430 475 C 570 470, 640 490, 775 510"/>
+
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 1390 250 C 1280 250, 1220 250, 1105 250"/>
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 1390 475 C 1275 410, 1220 330, 1105 250"/>
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 1390 250 C 1275 375, 1220 465, 1105 510"/>
+  <path class="rel-dim" marker-end="url(#arrow-blue)" d="M 1390 475 C 1280 505, 1220 510, 1105 510"/>
+  <path class="rel-date" marker-end="url(#arrow-purple)" d="M 1390 700 C 1275 650, 1220 585, 1105 510"/>
+
+  <!-- Dimension views left -->
+  <rect class="dim" x="70" y="165" width="360" height="170"/>
+  <text class="box-title" x="95" y="202">vw_dim_cards_descriptive</text>
+  <text class="grain" x="95" y="232">Grano: 1 carta</text>
+  <text class="field" x="95" y="262">Clave: card_id</text>
+  <text class="field" x="95" y="290">Uso: filtros por tipo, atributo, raza, arquetipo</text>
+
+  <rect class="dim" x="70" y="390" width="360" height="170"/>
+  <text class="box-title" x="95" y="427">vw_dim_sets_descriptive</text>
+  <text class="grain" x="95" y="457">Grano: 1 set</text>
+  <text class="field" x="95" y="487">Clave: set_id</text>
+  <text class="field" x="95" y="515">Uso: filtros por coleccion / expansion</text>
+
+  <rect class="dim" x="70" y="615" width="360" height="170"/>
+  <text class="box-title" x="95" y="652">vw_dim_rarities_descriptive</text>
+  <text class="grain" x="95" y="682">Grano: 1 rareza catalogada</text>
+  <text class="field" x="95" y="712">Clave: rarity_id</text>
+  <text class="field" x="95" y="740">Uso: filtros por rareza y codigo de rareza</text>
+
+  <!-- Fact views center -->
+  <rect class="fact" x="775" y="160" width="330" height="180"/>
+  <text class="box-title" x="800" y="197">vw_fact_card_prices_descriptive</text>
+  <text class="grain" x="800" y="227">Grano: carta + marketplace</text>
+  <text class="field" x="800" y="257">Claves: card_id, marketplace, currency</text>
+  <text class="field" x="800" y="285">Medida: price</text>
+  <text class="field" x="800" y="313">Analisis: precios actuales</text>
+
+  <rect class="bridge" x="775" y="420" width="330" height="180"/>
+  <text class="box-title" x="800" y="457">vw_fact_card_set_appearances</text>
+  <text class="grain" x="800" y="487">Grano: carta + set + rareza</text>
+  <text class="field" x="800" y="517">Claves: card_id, set_id, rarity_id</text>
+  <text class="field" x="800" y="545">Medidas: set_price, apariciones</text>
+  <text class="field" x="800" y="573">Analisis: presencia en sets</text>
+
+  <rect class="fact" x="775" y="650" width="330" height="190"/>
+  <text class="box-title" x="800" y="687">vw_fact_card_price_variation_predictive</text>
+  <text class="grain" x="800" y="717">Grano: carta + marketplace + snapshot</text>
+  <text class="field" x="800" y="747">Claves: card_id, marketplace, currency, snapshot_at</text>
+  <text class="field" x="800" y="775">Medidas: price, previous_price</text>
+  <text class="field" x="800" y="803">Analisis: variacion temporal</text>
+
+  <!-- Dimension views right -->
+  <rect class="dim" x="1390" y="165" width="340" height="170"/>
+  <text class="box-title" x="1415" y="202">vw_dim_marketplaces_descriptive</text>
+  <text class="grain" x="1415" y="232">Grano: 1 marketplace</text>
+  <text class="field" x="1415" y="262">Clave: marketplace</text>
+  <text class="field" x="1415" y="290">Uso: fuente de precio / region</text>
+
+  <rect class="dim" x="1390" y="390" width="340" height="170"/>
+  <text class="box-title" x="1415" y="427">vw_dim_currencies_descriptive</text>
+  <text class="grain" x="1415" y="457">Grano: 1 moneda</text>
+  <text class="field" x="1415" y="487">Clave: currency</text>
+  <text class="field" x="1415" y="515">Uso: segmentacion EUR / USD</text>
+
+  <rect class="date" x="1390" y="615" width="340" height="170"/>
+  <text class="box-title" x="1415" y="652">vw_dim_snapshots_descriptive</text>
+  <text class="grain" x="1415" y="682">Grano: 1 snapshot</text>
+  <text class="field" x="1415" y="712">Clave: snapshot_at</text>
+  <text class="field" x="1415" y="740">Uso: fecha de captura historica</text>
+
+  <!-- Cardinality table -->
+  <rect class="legend" x="70" y="880" width="760" height="220"/>
+  <rect class="table-head" x="90" y="920" width="720" height="34"/>
+  <text class="legend-title" x="90" y="905">Tabla de relaciones</text>
+  <text class="table-head-text" x="108" y="942">Dimensión</text>
+  <text class="table-head-text" x="350" y="942">Hecho</text>
+  <text class="table-head-text" x="620" y="942">Cardinalidad</text>
+
+  <rect class="table-row-a" x="90" y="954" width="720" height="28"/>
+  <text class="table-text" x="108" y="973">vw_dim_cards_descriptive</text>
+  <text class="table-text" x="350" y="973">vw_fact_card_prices_descriptive</text>
+  <text class="table-text" x="620" y="973">1 : N</text>
+
+  <rect class="table-row-b" x="90" y="982" width="720" height="28"/>
+  <text class="table-text" x="108" y="1001">vw_dim_cards_descriptive</text>
+  <text class="table-text" x="350" y="1001">vw_fact_card_set_appearances</text>
+  <text class="table-text" x="620" y="1001">1 : N</text>
+
+  <rect class="table-row-a" x="90" y="1010" width="720" height="28"/>
+  <text class="table-text" x="108" y="1029">vw_dim_cards_descriptive</text>
+  <text class="table-text" x="350" y="1029">vw_fact_card_price_variation_predictive</text>
+  <text class="table-text" x="620" y="1029">1 : N</text>
+
+  <rect class="table-row-b" x="90" y="1038" width="720" height="28"/>
+  <text class="table-text" x="108" y="1057">vw_dim_sets / vw_dim_rarities</text>
+  <text class="table-text" x="350" y="1057">vw_fact_card_set_appearances</text>
+  <text class="table-text" x="620" y="1057">1 : N</text>
+
+  <rect class="table-row-a" x="90" y="1066" width="720" height="28"/>
+  <text class="table-text" x="108" y="1085">marketplace / currency / snapshot</text>
+  <text class="table-text" x="350" y="1085">hechos de precio</text>
+  <text class="table-text" x="620" y="1085">1 : N</text>
+
+  <!-- Color legend -->
+  <rect class="legend" x="1010" y="910" width="720" height="150"/>
+  <text class="legend-title" x="1035" y="945">Catalogo visual</text>
+  <rect class="tag-dim" x="1035" y="970" width="24" height="16" rx="3"/>
+  <text class="legend-text" x="1070" y="984">Dimension descriptiva</text>
+  <rect class="tag-fact" x="1035" y="1002" width="24" height="16" rx="3"/>
+  <text class="legend-text" x="1070" y="1016">Hecho de precios</text>
+  <rect class="tag-bridge" x="1330" y="970" width="24" height="16" rx="3"/>
+  <text class="legend-text" x="1365" y="984">Hecho puente carta-set-rareza</text>
+  <rect class="tag-date" x="1330" y="1002" width="24" height="16" rx="3"/>
+  <text class="legend-text" x="1365" y="1016">Dimension temporal snapshot</text>
+</svg>

@@ -6,11 +6,11 @@ c.human_readable_card_type,
 c.frame_type,
 c.race,
 COALESCE(c.archetype, 'Sin arquetipo') AS archetype,
-COALESCE(c.atk, 'No aplica') AS atk,
-COALESCE(c.def, 'No aplica') AS def,
+CAST(c.atk AS SIGNED) AS atk,
+CAST(c.def AS SIGNED) AS def,
 COALESCE(c.attribute, 'No aplica') AS attribute,
-COALESCE(c.level, 'No aplica') AS level,
-COALESCE(c.scale, 'No aplica') AS scale,
-COALESCE(c.link_value, 'No aplica') AS link_value
+CAST(c.level AS SIGNED) AS level,
+CAST(c.scale AS SIGNED) AS scale,
+CAST(c.link_value AS SIGNED) AS link_value
 
 FROM cards c;

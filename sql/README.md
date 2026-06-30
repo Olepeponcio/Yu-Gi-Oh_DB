@@ -1,102 +1,89 @@
 # SQL de analisis
 
-Este directorio contiene consultas y vistas de consumo creadas a partir de las tablas madre.
-
-El punto de partida son las tablas madre creadas por:
-
-```text
-sql/schema.sql
-```
+Este directorio contiene las vistas `vw_` que se cargan en Power BI a partir de las tablas madre de `sql/schema.sql`.
 
 ## Estructura
 
 ```text
-sql/views/   -> vistas de consumo con sufijo por bloque analitico
+sql/views/   -> vistas del modelo relacional simplificado para Power BI
 ```
 
-Plantilla de creacion/reemplazo:
+Plantillas de creacion/reemplazo:
 
 ```text
 sql/create_or_replace_views.sql           -> consola mysql, usa SOURCE
-sql/create_or_replace_views_workbench.sql -> hoja SQL / MySQL Workbench, no usa SOURCE
+sql/create_or_replace_views_workbench.sql -> hoja SQL / MySQL Workbench
 ```
 
-Uso en consola `mysql`:
+## Uso
+
+Consola `mysql`:
 
 ```sql
 SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/create_or_replace_views.sql;
 ```
 
-Uso en hoja SQL / MySQL Workbench:
+MySQL Workbench:
 
 ```text
 abrir y ejecutar sql/create_or_replace_views_workbench.sql
 ```
 
-Nota: `SOURCE` es un comando del cliente `mysql`, no SQL estandar. Por eso una hoja SQL puede marcarlo como error.
+## Vistas del modelo Power BI
 
-## Vistas actuales
-
-| Vista | Bloque | Tipo | Grano |
+| Vista | Tipo | Grano | Uso |
 |---|---|---|---|
-| `vw_dim_cards_descriptive` | Descriptivo | Dimension | 1 carta |
-| `vw_fact_card_set_coverage_descriptive` | Descriptivo | Hecho agregado | 1 carta |
-| `vw_fact_card_prices_descriptive` | Descriptivo | Hecho | 1 carta + 1 marketplace + 1 moneda |
-| `vw_fact_card_set_coverage_diagnostic` | Diagnostico | Hecho agregado | 1 carta |
-| `vw_fact_current_prices_diagnostic` | Diagnostico | Hecho | 1 carta + 1 fuente de precio + 1 moneda |
-| `vw_fact_price_outlier_candidates_diagnostic` | Diagnostico | Hecho filtrado/revision | 1 carta + 1 fuente de precio + 1 moneda |
-| `vw_fact_rarity_price_summary_diagnostic` | Diagnostico | Hecho agregado | 1 rareza |
-| `vw_quality_fk_orphans_diagnostic` | Diagnostico/calidad | Quality | 1 relacion validada |
-| `vw_quality_nullable_fk_diagnostic` | Diagnostico/calidad | Quality | 1 control nullable |
-| `vw_quality_duplicate_grain_diagnostic` | Diagnostico/calidad | Quality | 1 duplicado de grano |
-| `vw_quality_relationship_summary_diagnostic` | Diagnostico/calidad | Quality | 1 tabla hija |
-| `vw_fact_price_snapshot_summary_predictive` | Predictivo | Hecho agregado | 1 snapshot |
-| `vw_fact_card_price_variation_predictive` | Predictivo | Hecho | 1 carta + 1 marketplace + 1 moneda + 1 snapshot |
+| `vw_dim_cards_descriptive` | Dimension | 1 carta | Catalogo base y filtros de carta |
+| `vw_dim_sets_descriptive` | Dimension | 1 set | Catalogo de sets |
+| `vw_dim_rarities_descriptive` | Dimension | 1 rareza catalogada | Catalogo tecnico de rarezas |
+| `vw_dim_marketplaces_descriptive` | Dimension | 1 marketplace | Fuente de precio |
+| `vw_dim_currencies_descriptive` | Dimension | 1 moneda | Segmentacion EUR/USD |
+| `vw_dim_snapshots_descriptive` | Dimension temporal | 1 snapshot | Fecha de captura historica |
+| `vw_fact_card_prices_descriptive` | Hecho | 1 carta + 1 marketplace + 1 moneda | Precio actual en formato largo |
+| `vw_fact_card_set_appearances` | Hecho puente | 1 carta + 1 set + 1 rareza | Apariciones, reimpresiones y precio de set |
+| `vw_fact_card_price_variation_predictive` | Hecho historico | 1 carta + 1 marketplace + 1 moneda + 1 snapshot | Variacion entre snapshots |
 
-Consulta descriptiva en `sql/queries/descriptivo/`:
+## Relaciones recomendadas
 
-| Consulta | Tipo | Grano |
-|---|---|---|
-| `vw_dim_cards_classification` | Lectura descriptiva | 1 combinacion de atributos de carta |
+```text
+vw_dim_cards_descriptive[card_id]
+    1 -> * vw_fact_card_prices_descriptive[card_id]
+    1 -> * vw_fact_card_set_appearances[card_id]
+    1 -> * vw_fact_card_price_variation_predictive[card_id]
+
+vw_dim_sets_descriptive[set_id]
+    1 -> * vw_fact_card_set_appearances[set_id]
+
+vw_dim_rarities_descriptive[rarity_id]
+    1 -> * vw_fact_card_set_appearances[rarity_id]
+
+vw_dim_marketplaces_descriptive[marketplace]
+    1 -> * vw_fact_card_prices_descriptive[marketplace]
+    1 -> * vw_fact_card_price_variation_predictive[marketplace]
+
+vw_dim_currencies_descriptive[currency]
+    1 -> * vw_fact_card_prices_descriptive[currency]
+    1 -> * vw_fact_card_price_variation_predictive[currency]
+
+vw_dim_snapshots_descriptive[snapshot_at]
+    1 -> * vw_fact_card_price_variation_predictive[snapshot_at]
+```
 
 ## Reglas de diseno
 
 - Declarar el grano de cada vista antes de crearla.
-- No mezclar EUR y USD en una misma metrica sin conversion explicita.
+- No mezclar EUR y USD en una metrica sin conversion explicita.
 - Usar `UNION ALL` para transformar precios de columnas a formato largo.
-- Usar `JOIN` para enriquecer con atributos; no usar `UNION` para mezclar granos.
-- Las vistas de revision, como precios extremos, deben depender de una vista base estable.
-- Las vistas `vw_quality_*` son controles de fiabilidad del modelo; no son vistas de negocio.
-- Las vistas predictivas leen `card_price_history`; no insertan ni actualizan snapshots.
-- Cada nueva view debe anadirse a `sql/create_or_replace_views.sql`.
+- Las preguntas de ranking, revision y resumen se resuelven desde hechos base en Power BI.
+- No relacionar hechos entre si en Power BI salvo necesidad justificada.
+- Cada nueva view usada en Power BI debe anadirse a `sql/create_or_replace_views.sql` y `sql/create_or_replace_views_workbench.sql`.
 
-## Historico de precios
-
-El artefacto persistente del historico es la tabla:
+## Preguntas cubiertas
 
 ```text
-card_price_history
-```
-
-La carga ETL inserta una fila por carta con precio y `snapshot_at` en cada ejecucion real. Las views predictivas solo consultan ese historico:
-
-```text
-card_price_history -> vw_fact_price_snapshot_summary_predictive
-card_price_history -> vw_fact_card_price_variation_predictive
-```
-
-## Vista de revision
-
-`vw_fact_price_outlier_candidates_diagnostic` depende de `vw_fact_current_prices_diagnostic`.
-
-Grano esperado:
-
-```text
-1 carta + 1 fuente de precio + 1 moneda + 1 precio candidato
-```
-
-Uso:
-
-```text
-localizar precios que exigen revision antes de interpretar
+catalogo de cartas       -> vw_dim_cards_descriptive
+precios actuales         -> vw_fact_card_prices_descriptive
+apariciones sets/rarezas -> vw_fact_card_set_appearances
+relacion rareza-precio   -> vw_fact_card_set_appearances + vw_dim_rarities_descriptive
+historico de precios     -> vw_fact_card_price_variation_predictive + vw_dim_snapshots_descriptive
 ```

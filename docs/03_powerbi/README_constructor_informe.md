@@ -4,13 +4,13 @@ Este README define como usar y mantener `build_powerbi_report.py`.
 
 ## Finalidad
 
-`build_powerbi_report.py` es la fuente reproducible del informe Word y del diagrama de modelo.
+`build_powerbi_report.py` es la fuente reproducible del informe Word y del diagrama PNG usado dentro del informe.
 
 Genera:
 
 ```text
 docs/03_powerbi/informe_analisis_powerbi_yugioh.docx
-docs/03_powerbi/assets/modelo_powerbi_constelacion.png
+docs/03_powerbi/assets/modelo_relacional_powerbi.png
 ```
 
 No pertenece al ETL ni modifica datos. Su funcion es documentar el hilo de Power BI.
@@ -21,7 +21,7 @@ El archivo `.py` manda.
 
 Si se ejecuta el constructor, el PNG y el DOCX se regeneran desde el codigo. Por tanto:
 
-- Si editas `modelo_powerbi_constelacion.png` manualmente, esa edicion se perdera al ejecutar el `.py`.
+- Si editas `modelo_relacional_powerbi.png` manualmente, esa edicion se perdera al ejecutar el `.py`.
 - Si quieres conservar una mejora del PNG, la mejora debe estar implementada en `draw_model_image()`.
 - Si quieres actualizar el informe Word, el contenido debe cambiarse en `build_doc()`.
 - El `.docx` es salida generada; el `.py` es la fuente mantenible.
@@ -44,7 +44,7 @@ Resultado esperado:
 
 ```text
 informe_analisis_powerbi_yugioh.docx
-assets/modelo_powerbi_constelacion.png
+assets/modelo_relacional_powerbi.png
 ```
 
 ## Bloqueo por Word
@@ -73,7 +73,6 @@ Dentro de esa funcion se definen:
 - Posicion de tablas.
 - Textos de cada tabla.
 - Hilos/lineas de relacion.
-- Identificadores de relacion `R1`, `R2`, etc.
 - Matriz inferior de cardinalidad.
 
 Proceso recomendado:
@@ -88,7 +87,7 @@ python -c "import sys; sys.path.insert(0, r'docs\03_powerbi'); import build_powe
 3. Revisar:
 
 ```text
-docs/03_powerbi/assets/modelo_powerbi_constelacion.png
+docs/03_powerbi/assets/modelo_relacional_powerbi.png
 ```
 
 4. Si el resultado es valido, dejar el cambio en el `.py`.
@@ -165,4 +164,3 @@ mantener el .py como fuente de verdad
 - No debe contener credenciales.
 
 Su responsabilidad termina en generar documentacion reproducible.
-
