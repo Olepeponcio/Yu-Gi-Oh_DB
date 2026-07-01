@@ -65,12 +65,27 @@ vw_dim_snapshots_descriptive 1 -> * vw_fact_card_price_variation_predictive
 
 ## Paginas previstas
 
-| Pagina | Pregunta base | Vistas base |
-|---|---|---|
-| Vista general | Que contiene el catalogo y que fuentes de precio existen | `vw_dim_cards_descriptive`, `vw_dim_marketplaces_descriptive` |
-| Precios actuales | Como se distribuyen los precios por marketplace y moneda | `vw_fact_card_prices_descriptive` |
-| Sets y rarezas | Que sets, apariciones y rarezas explican diferencias | `vw_fact_card_set_appearances`, `vw_dim_sets_descriptive`, `vw_dim_rarities_descriptive` |
-| Historico de precios | Existe variacion temporal comparable | `vw_fact_card_price_variation_predictive`, `vw_dim_snapshots_descriptive` |
+Indice de trabajo para Power BI Desktop: 6 paginas. El foco actual esta en las paginas 1 a 5; la pagina 6 queda como control de calidad antes de cerrar interpretaciones.
+
+| Orden | Pagina | Preguntas guia | Vistas base | Estado |
+|---|---|---|---|---|
+| 1 | Vista general | Que volumen de cartas, sets, rarezas y marketplaces contiene el modelo? Que monedas y snapshots condicionan la lectura del panel? | `vw_dim_cards_descriptive`, `vw_dim_sets_descriptive`, `vw_dim_rarities_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive`, `vw_dim_snapshots_descriptive` | Foco actual |
+| 2 | Analisis descriptivo | Que cartas tienen mayor precio medio por marketplace? Que sets concentran mayor valor de mercado? | `vw_fact_card_prices_descriptive`, `vw_fact_card_set_appearances`, `vw_dim_sets_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive` | Foco actual |
+| 3 | Analisis diagnostico | Que rarezas se asocian con precios mas altos? Que cartas aparecen en mas sets y que puede explicar su presencia? | `vw_fact_card_set_appearances`, `vw_dim_cards_descriptive`, `vw_dim_sets_descriptive`, `vw_dim_rarities_descriptive`, `vw_fact_card_prices_descriptive` | Foco actual |
+| 4 | Historico / predictivo | Que correlaciones y tendencias aparecen entre snapshots? Que cartas muestran variaciones relevantes por marketplace? | `vw_fact_card_price_variation_predictive`, `vw_dim_snapshots_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive`, `vw_dim_cards_descriptive` | Foco actual |
+| 5 | Analisis prescriptivo | Que cartas presentan senales para seguimiento prioritario? Que oportunidades requieren revision antes de convertirse en recomendacion? | `vw_fact_card_prices_descriptive`, `vw_fact_card_set_appearances`, `vw_fact_card_price_variation_predictive`, dimensiones relacionadas | Foco actual |
+| 6 | Calidad de datos | Hay relaciones huerfanas, duplicados o baja cobertura? Que controles deben validarse antes de interpretar precios y rankings? | Todas las vistas de consumo acordadas | Pendiente tras paginas 1-5 |
+
+## Organizacion de medidas
+
+Las dimensiones se usan para filtrar, segmentar y agrupar. Las medidas deben declararse sobre hechos o en una tabla dedicada de medidas, manteniendo trazabilidad con la vista que alimenta el calculo.
+
+```text
+vw_fact_card_prices_descriptive              -> medidas de precio actual
+vw_fact_card_set_appearances                 -> medidas de apariciones, sets, rarezas
+vw_fact_card_price_variation_predictive      -> medidas historicas / variacion
+Dimensiones vw_dim_*                         -> filtros, segmentadores, agrupaciones
+```
 
 ## Registro de medidas
 
