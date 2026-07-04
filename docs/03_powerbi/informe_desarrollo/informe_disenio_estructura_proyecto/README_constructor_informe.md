@@ -4,13 +4,12 @@ Este README define como usar y mantener `build_powerbi_report.py`.
 
 ## Finalidad
 
-`build_powerbi_report.py` es la fuente reproducible del informe Word y del diagrama PNG usado dentro del informe.
+`build_powerbi_report.py` es la fuente reproducible del informe Word de desarrollo.
 
 Genera:
 
 ```text
-docs/03_powerbi/informe_analisis_powerbi_yugioh.docx
-docs/03_powerbi/modelo_relacional_powerbi.png
+docs/03_powerbi/informe_desarrollo/informe_analisis_powerbi_yugioh.docx
 ```
 
 No pertenece al ETL ni modifica datos. Su funcion es documentar el hilo de Power BI.
@@ -19,32 +18,30 @@ No pertenece al ETL ni modifica datos. Su funcion es documentar el hilo de Power
 
 El archivo `.py` manda.
 
-Si se ejecuta el constructor, el PNG y el DOCX se regeneran desde el codigo. Por tanto:
+Si se ejecuta el constructor, el DOCX se regenera desde el codigo. Por tanto:
 
-- Si editas `modelo_relacional_powerbi.png` manualmente, esa edicion se perdera al ejecutar el `.py`.
-- Si quieres conservar una mejora del modelo visual, la mejora debe estar en `docs/03_powerbi/modelo_relacional.svg` y en `draw_model_image()` si afecta al PNG del informe.
 - Si quieres actualizar el informe Word, el contenido debe cambiarse en `build_doc()`.
 - El `.docx` es salida generada; el `.py` es la fuente mantenible.
+- Este constructor no genera `modelo_relacional_powerbi.png`.
 
 ## Uso normal
 
 Desde la raiz del proyecto:
 
 ```powershell
-python docs\03_powerbi\build_powerbi_report.py
+python docs\03_powerbi\informe_desarrollo\build_powerbi_report.py
 ```
 
 Con el Python de Codex:
 
 ```powershell
-C:\Users\PEPIN\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe docs\03_powerbi\build_powerbi_report.py
+C:\Users\PEPIN\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\python.exe docs\03_powerbi\informe_desarrollo\build_powerbi_report.py
 ```
 
 Resultado esperado:
 
 ```text
 informe_analisis_powerbi_yugioh.docx
-modelo_relacional_powerbi.png
 ```
 
 ## Bloqueo por Word
@@ -58,51 +55,6 @@ Proceso:
 3. Abrir de nuevo el `.docx`.
 
 El script tiene una salida alternativa si hay bloqueo, pero la pauta recomendada es cerrar Word y regenerar el archivo principal.
-
-## Como actualizar el modelo visual
-
-La imagen de referencia del modelo vive en:
-
-```text
-docs/03_powerbi/modelo_relacional.svg
-```
-
-El constructor genera un PNG equivalente para insertarlo en Word:
-
-```text
-docs/03_powerbi/modelo_relacional_powerbi.png
-```
-
-Editar esta funcion:
-
-```text
-draw_model_image()
-```
-
-Dentro de esa funcion se definen:
-
-- Tamano del lienzo.
-- Posicion de tablas.
-- Textos de cada tabla.
-- Hilos/lineas de relacion.
-- Matriz inferior de cardinalidad.
-
-Proceso recomendado:
-
-1. Modificar posiciones, textos o relaciones en `draw_model_image()`.
-2. Regenerar solo el PNG:
-
-```powershell
-python -c "import sys; sys.path.insert(0, r'docs\03_powerbi'); import build_powerbi_report as r; r.draw_model_image()"
-```
-
-3. Revisar:
-
-```text
-docs/03_powerbi/modelo_relacional_powerbi.png
-```
-
-4. Si el resultado es valido, dejar el cambio en el `.py`.
 
 ## Como actualizar el informe Word
 
@@ -138,7 +90,7 @@ Proceso recomendado:
 3. Ejecutar:
 
 ```powershell
-python docs\03_powerbi\build_powerbi_report.py
+python docs\03_powerbi\informe_desarrollo\build_powerbi_report.py
 ```
 
 4. Abrir el `.docx`.
@@ -147,7 +99,6 @@ python docs\03_powerbi\build_powerbi_report.py
 ## Pautas para cambios
 
 - No editar el `.docx` como fuente principal si el cambio debe conservarse.
-- No editar el PNG manualmente si la mejora debe sobrevivir a futuras regeneraciones.
 - Cada nueva pagina de Power BI debe tener pregunta base, vista usada, medidas y estado.
 - Cada nueva medida DAX debe registrarse en la seccion de medidas.
 - Cada visual importante debe poder rastrearse a una vista SQL o tabla de consumo.
@@ -160,7 +111,7 @@ README / diario de analisis
         ↓
 actualizar build_powerbi_report.py
         ↓
-regenerar PNG o DOCX
+regenerar DOCX
         ↓
 revisar resultado
         ↓

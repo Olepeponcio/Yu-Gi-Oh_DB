@@ -1,21 +1,23 @@
 from __future__ import annotations
 
-from datetime import date
 from pathlib import Path
 
 from docx import Document
-from docx.enum.section import WD_SECTION
 from docx.enum.table import WD_CELL_VERTICAL_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
-from docx.shared import Cm, Inches, Pt, RGBColor
-from PIL import Image, ImageDraw, ImageFont
+from docx.shared import Inches, Pt, RGBColor
 
 BASE_DIR = Path(__file__).resolve().parent
 OUT_PATH = BASE_DIR / "informe_analisis_powerbi_yugioh.docx"
-MODEL_SVG = BASE_DIR / "modelo_relacional.svg"
-MODEL_IMG = BASE_DIR / "modelo_relacional_powerbi.png"
+PBIX_PATH = BASE_DIR.parents[2] / "power_bi" / "informes" / "analisis_yugioh_db.pbix"
+VIDEO_DIAGNOSTICO = (
+    BASE_DIR.parent
+    / "video_proceso_analaisis"
+    / "analisis_diagnostico"
+    / "video_medidas_03_analisis_diagnostico.mp4"
+)
 
 
 BLUE = "2E74B5"
@@ -190,11 +192,11 @@ def add_metadata_table(doc: Document) -> None:
         ("Proyecto", "Proyecto SQL DB Yu-Gi-Oh"),
         ("Documento", "Informe de diseño y documentacion del analisis en Power BI"),
         ("Autor", "Pepin"),
-        ("Fecha", "Junio 2026"),
-        ("Version", "0.1 - estructura inicial"),
+        ("Fecha", "Julio 2026"),
+        ("Version", "0.2 - informe alineado con PBIX y videos de proceso"),
         (
             "Estado",
-            "Documento vivo: se completara con capturas, medidas DAX y hallazgos.",
+            "Documento vivo: ya registra paginas, visuales y medidas detectadas en el PBIX.",
         ),
     ]
     table = doc.add_table(rows=len(rows), cols=2)
@@ -252,243 +254,7 @@ def add_matrix(
     style_table(table, widths=widths, header=True)
 
 
-def draw_model_image() -> None:
-    img = Image.new("RGB", (1800, 1150), "#F6F7FB")
-    draw = ImageDraw.Draw(img)
-    try:
-        title_font = ImageFont.truetype("arial.ttf", 34)
-        box_font = ImageFont.truetype("arial.ttf", 20)
-        small_font = ImageFont.truetype("arial.ttf", 16)
-        tiny_font = ImageFont.truetype("arial.ttf", 13)
-    except OSError:
-        title_font = ImageFont.load_default()
-        box_font = ImageFont.load_default()
-        small_font = ImageFont.load_default()
-        tiny_font = ImageFont.load_default()
-
-    draw.text(
-        (70, 48),
-        "Modelo relacional de vistas para Power BI",
-        fill="#172033",
-        font=title_font,
-    )
-    draw.text(
-        (70, 92),
-        "Resultado simplificado: dimensiones y hechos base cargados como vistas para analisis.",
-        fill="#5A6475",
-        font=small_font,
-    )
-
-    boxes = {
-        "cards": (
-            70,
-            165,
-            430,
-            335,
-            "vw_dim_cards_descriptive\nGrano: 1 carta\nClave: card_id",
-            "dim",
-        ),
-        "sets": (
-            70,
-            390,
-            430,
-            560,
-            "vw_dim_sets_descriptive\nGrano: 1 set\nClave: set_id",
-            "dim",
-        ),
-        "rarities": (
-            70,
-            615,
-            430,
-            785,
-            "vw_dim_rarities_descriptive\nGrano: 1 rareza\nClave: rarity_id",
-            "dim",
-        ),
-        "prices": (
-            775,
-            160,
-            1115,
-            340,
-            "vw_fact_card_prices_descriptive\nGrano: carta + marketplace\nMedida: price",
-            "fact",
-        ),
-        "appearances": (
-            775,
-            420,
-            1115,
-            600,
-            "vw_fact_card_set_appearances\nGrano: carta + set + rareza\nMedidas: set_price, appearance_count",
-            "bridge",
-        ),
-        "variation": (
-            775,
-            650,
-            1115,
-            840,
-            "vw_fact_card_price_variation_predictive\nGrano: carta + marketplace + snapshot\nMedidas: price, price_change",
-            "fact",
-        ),
-        "markets": (
-            1390,
-            165,
-            1730,
-            335,
-            "vw_dim_marketplaces_descriptive\nGrano: 1 marketplace\nClave: marketplace",
-            "dim",
-        ),
-        "currencies": (
-            1390,
-            390,
-            1730,
-            560,
-            "vw_dim_currencies_descriptive\nGrano: 1 moneda\nClave: currency",
-            "dim",
-        ),
-        "snapshots": (
-            1390,
-            615,
-            1730,
-            785,
-            "vw_dim_snapshots_descriptive\nGrano: 1 snapshot\nClave: snapshot_at",
-            "date",
-        ),
-    }
-
-    def port(key, side, offset=0):
-        x1, y1, x2, y2, _, _ = boxes[key]
-        if side == "top":
-            return ((x1 + x2) // 2 + offset, y1)
-        if side == "bottom":
-            return ((x1 + x2) // 2 + offset, y2)
-        if side == "left":
-            return (x1, (y1 + y2) // 2 + offset)
-        return (x2, (y1 + y2) // 2 + offset)
-
-    def connector(start, end, color="#536073"):
-        draw.line([start, end], fill=color, width=4)
-        x1, y1 = start
-        x2, y2 = end
-        dx = x2 - x1
-        dy = y2 - y1
-        if abs(dx) >= abs(dy):
-            arrow = (
-                [(x2, y2), (x2 - 14, y2 - 8), (x2 - 14, y2 + 8)]
-                if dx > 0
-                else [(x2, y2), (x2 + 14, y2 - 8), (x2 + 14, y2 + 8)]
-            )
-        else:
-            arrow = (
-                [(x2, y2), (x2 - 8, y2 - 14), (x2 + 8, y2 - 14)]
-                if dy > 0
-                else [(x2, y2), (x2 - 8, y2 + 14), (x2 + 8, y2 + 14)]
-            )
-        draw.polygon(arrow, fill=color)
-
-    def cardinality(one_xy, many_xy):
-        draw.text(one_xy, "1", fill="#050B18", font=box_font)
-        draw.text(many_xy, "*", fill="#050B18", font=box_font)
-
-    connector(port("cards", "right", -35), port("prices", "left", -35), "#2368A2")
-    cardinality((455, 210), (745, 220))
-    connector(port("cards", "right", 30), port("appearances", "left", -45), "#2368A2")
-    cardinality((455, 275), (745, 450))
-    connector(port("cards", "right", 70), port("variation", "left", 35), "#2368A2")
-    cardinality((455, 315), (745, 760))
-    connector(port("sets", "right", 0), port("appearances", "left", 0), "#536073")
-    cardinality((455, 480), (745, 510))
-    connector(port("rarities", "right", 0), port("appearances", "left", 45), "#536073")
-    cardinality((455, 700), (745, 565))
-    connector(port("markets", "left", -35), port("prices", "right", -35), "#2368A2")
-    cardinality((1348, 200), (1120, 220))
-    connector(port("currencies", "left", -20), port("prices", "right", 35), "#2368A2")
-    cardinality((1348, 430), (1120, 285))
-    connector(port("markets", "left", 35), port("variation", "right", -40), "#2368A2")
-    cardinality((1348, 270), (1120, 745))
-    connector(port("currencies", "left", 30), port("variation", "right", 10), "#2368A2")
-    cardinality((1348, 480), (1120, 795))
-    connector(port("snapshots", "left", 0), port("variation", "right", 55), "#6B4AB6")
-    cardinality((1348, 705), (1120, 840))
-
-    def box(key):
-        x1, y1, x2, y2, text, kind = boxes[key]
-        colors = {
-            "dim": ("#EAF3FF", "#2368A2"),
-            "fact": ("#EAF8EE", "#2D7C43"),
-            "bridge": ("#FFF6E5", "#A66A00"),
-            "date": ("#F1ECFF", "#6B4AB6"),
-        }
-        fill, outline = colors[kind]
-        draw.rounded_rectangle(
-            (x1, y1, x2, y2), radius=14, fill=fill, outline=outline, width=3
-        )
-        lines = text.split("\n")
-        y = y1 + 28
-        for i, line in enumerate(lines):
-            font = box_font if i == 0 else small_font
-            draw.text((x1 + 20, y), line, fill="#182235", font=font)
-            y += 36 if i == 0 else 30
-
-    for key in boxes:
-        box(key)
-
-    panel_x, panel_y, panel_w, panel_h = 70, 880, 760, 220
-    draw.rounded_rectangle(
-        (panel_x, panel_y, panel_x + panel_w, panel_y + panel_h),
-        radius=12,
-        fill="#FFFFFF",
-        outline="#C8CEDA",
-        width=2,
-    )
-    draw.text(
-        (panel_x + 20, panel_y + 18),
-        "Tabla de relaciones",
-        fill="#182235",
-        font=box_font,
-    )
-    rows = [
-        ("vw_dim_cards_descriptive", "precios, apariciones, variacion", "1 : N"),
-        ("vw_dim_sets_descriptive", "vw_fact_card_set_appearances", "1 : N"),
-        ("vw_dim_rarities_descriptive", "vw_fact_card_set_appearances", "1 : N"),
-        ("marketplace / currency / snapshot", "hechos de precio", "1 : N"),
-    ]
-    y = panel_y + 58
-    for i, row in enumerate(rows):
-        fill = "#F0F3F8" if i % 2 else "#FFFFFF"
-        draw.rectangle((panel_x + 20, y - 6, panel_x + panel_w - 20, y + 26), fill=fill)
-        draw.text((panel_x + 35, y), row[0], fill="#253044", font=tiny_font)
-        draw.text((panel_x + 300, y), row[1], fill="#253044", font=tiny_font)
-        draw.text((panel_x + 640, y), row[2], fill="#253044", font=tiny_font)
-        y += 36
-
-    legend_x, legend_y = 1010, 910
-    draw.rounded_rectangle(
-        (legend_x, legend_y, 1730, 1060),
-        radius=12,
-        fill="#FFFFFF",
-        outline="#C8CEDA",
-        width=2,
-    )
-    draw.text(
-        (legend_x + 25, legend_y + 30), "Catalogo visual", fill="#182235", font=box_font
-    )
-    for idx, (label, color) in enumerate(
-        [
-            ("Dimension descriptiva", "#2368A2"),
-            ("Hecho de precios", "#2D7C43"),
-            ("Hecho puente carta-set-rareza", "#A66A00"),
-            ("Dimension temporal snapshot", "#6B4AB6"),
-        ]
-    ):
-        x = legend_x + 25 + (idx % 2) * 300
-        y = legend_y + 70 + (idx // 2) * 42
-        draw.rounded_rectangle((x, y, x + 24, y + 16), radius=4, fill=color)
-        draw.text((x + 35, y - 2), label, fill="#4D586B", font=small_font)
-
-    img.save(MODEL_IMG)
-
-
 def build_doc() -> None:
-    draw_model_image()
     doc = Document()
     configure_styles(doc)
     add_footer(doc.sections[0])
@@ -529,13 +295,13 @@ def build_doc() -> None:
     )
     doc.add_paragraph(
         "La fase actual deja preparado el marco de consumo analitico: dimensiones y hechos base en formato `vw_`. "
-        "Power BI consumira esas vistas sin modificar las tablas madre."
+        "Power BI consume esas vistas sin modificar las tablas madre."
     )
     add_status(
         doc,
-        "Estado actual: el informe ya contiene estructura, arquitectura, reglas de modelado, vistas de consumo "
-        "y criterios de lectura. Quedan pendientes las capturas del dashboard, medidas DAX definitivas, resultados "
-        "cuantitativos y conclusiones basadas en visuales.",
+        "Estado actual: el PBIX analisis_yugioh_db.pbix contiene indice, vista general, analisis descriptivo, "
+        "analisis diagnostico, paginas 04-06 aun sin desarrollo funcional y tooltip de informacion de carta. "
+        "El informe documenta estos avances y deja pendientes resultados cuantitativos cerrados.",
     )
 
     doc.add_heading("2. Objetivos del proyecto", level=1)
@@ -673,16 +439,44 @@ def build_doc() -> None:
         "hechos con direccion unica 1 -> *. No se recomienda relacionar hechos entre si, porque aumenta el riesgo "
         "de filtros ambiguos y dobles conteos."
     )
-    picture = doc.add_picture(str(MODEL_IMG), width=Cm(16.0))
-    picture._inline.docPr.set("title", "Modelo Power BI recomendado")
-    picture._inline.docPr.set(
-        "descr",
-        "Diagrama de constelacion de hechos con dimensiones de cartas, marketplaces, monedas, snapshots y rarezas.",
+    add_status(
+        doc,
+        "Cambio de mantenimiento: este constructor ya no genera ni inserta modelo_relacional_powerbi.png. "
+        "El modelo queda documentado mediante tablas para evitar artefactos graficos duplicados.",
     )
-    caption = doc.add_paragraph(
-        "Figura 1. Modelo Power BI recomendado a partir de las vistas de consumo."
+
+    add_matrix(
+        doc,
+        ["Grupo", "Tablas / vistas", "Funcion en Power BI"],
+        [
+            [
+                "Dimensiones descriptivas",
+                "vw_dim_cards_descriptive, vw_dim_sets_descriptive, vw_dim_rarities_descriptive",
+                "Aportan etiquetas, atributos y agrupaciones para filtrar hechos.",
+            ],
+            [
+                "Dimensiones de precio",
+                "vw_dim_marketplaces_descriptive, vw_dim_currencies_descriptive",
+                "Controlan fuente y moneda antes de comparar precios.",
+            ],
+            [
+                "Hechos actuales",
+                "vw_fact_card_prices_descriptive",
+                "Calcula precio por carta, marketplace y moneda.",
+            ],
+            [
+                "Hecho puente",
+                "vw_fact_card_set_appearances",
+                "Explica apariciones carta-set-rareza y presencia historica.",
+            ],
+            [
+                "Hecho historico",
+                "vw_fact_card_price_variation_predictive",
+                "Soporta variacion temporal cuando hay snapshots suficientes.",
+            ],
+        ],
+        [2300, 3600, 3460],
     )
-    caption.alignment = WD_ALIGN_PARAGRAPH.CENTER
 
     doc.add_heading("5.1 Relaciones recomendadas", level=2)
     add_bullets(
@@ -754,55 +548,64 @@ def build_doc() -> None:
 
     doc.add_heading("8. Analisis descriptivo", level=1)
     doc.add_paragraph(
-        "Esta seccion se completara siguiendo el orden de las paginas del dashboard. Cada apartado debe mantener "
-        "el patron: visual, que muestra, interpretacion y conclusion."
+        "La pagina 02_Analisis_descriptivo ya contiene visuales orientados a precios por marketplace, "
+        "ranking de cartas y valor por set. El patron de lectura debe separar precio actual, fuente y moneda."
     )
     add_matrix(
         doc,
-        ["Apartado", "Vista base", "Estado"],
+        ["Visual detectado en PBIX", "Campos / medidas", "Lectura"],
         [
-            ["Catalogo de cartas disponibles", "vw_dim_cards_descriptive", "Preparado"],
             [
-                "Distribucion por tipo de carta",
-                "vw_dim_cards_descriptive",
-                "Preparado",
+                "Tabla: Precio medio de mercado USD",
+                "name, Precio Amazon USD, Precio CoolStuffInc USD, Precio eBay USD, Precio TCGplayer USD, Precio medio USD",
+                "Comparacion tabular de precios por carta y fuente USD.",
             ],
             [
-                "Apariciones por set y rareza",
-                "vw_fact_card_set_appearances",
-                "Preparado",
+                "Barras: Precio medio global por Marketplace USD",
+                "marketplace_name, Sum(price)",
+                "Resumen por fuente; requiere mantener filtro de moneda.",
             ],
             [
-                "Distribucion de precios actuales",
-                "vw_fact_card_prices_descriptive",
-                "Preparado",
+                "Barras agrupadas: cartas mayor precio medio marketplace",
+                "card_name, marketplace, Precio medio marketplace USD",
+                "Ranking comparativo por carta y marketplace.",
+            ],
+            [
+                "Barras: valor de mercado por set",
+                "set_name, Valor Mercado Set",
+                "Lectura de concentracion de valor por set.",
             ],
         ],
-        [2800, 4200, 2360],
+        [3000, 4060, 2300],
     )
 
     doc.add_heading("9. Analisis diagnostico", level=1)
     add_matrix(
         doc,
-        ["Pregunta", "Consulta", "Criterio"],
+        ["Visual detectado en PBIX", "Campos / medidas", "Criterio de interpretacion"],
         [
             [
-                "Que cartas aparecen en mas sets",
-                "vw_fact_card_set_appearances",
-                "Interpretar como disponibilidad o reimpresion.",
+                "Barras: Precio Mediana por rareza",
+                "rarity_name, Precio Mediano por Rareza",
+                "Diagnostica rarezas asociadas a precios mas altos; usar mediana reduce impacto de outliers.",
             ],
             [
-                "Que relacion existe entre rareza y precio",
-                "vw_fact_card_set_appearances",
-                "Agregar con grano controlado; no atribuir set_price a rarities.",
+                "Slicer: marketplace",
+                "marketplace",
+                "Evita mezclar fuentes; en la captura de trabajo se uso Amazon como contexto.",
             ],
             [
-                "Que precios requieren revision",
-                "vw_fact_card_prices_descriptive",
-                "Aplicar medidas/filtros de revision sobre precio y moneda.",
+                "Barras: Sets Distintos por Carta",
+                "card_name, Sets Distintos por Carta; tooltip Apariciones en Sets",
+                "Explica presencia, reimpresion o disponibilidad. No equivale a recomendacion de compra.",
             ],
         ],
-        [2600, 3800, 2960],
+        [3000, 3860, 2500],
+    )
+    add_status(
+        doc,
+        "Material complementario generado: video_proceso_analaisis/analisis_diagnostico/"
+        "video_medidas_03_analisis_diagnostico.mp4 explica el razonamiento tabla -> columna -> relacion -> medida -> visual.",
     )
 
     doc.add_heading("10. Analisis predictivo", level=1)
@@ -850,40 +653,50 @@ def build_doc() -> None:
     doc.add_heading("12. Paginas previstas del dashboard", level=1)
     add_matrix(
         doc,
-        ["Pagina", "Pregunta base", "Estado"],
+        ["Ordinal PBIX", "Pagina", "Estado detectado"],
         [
             [
-                "Vista general",
-                "Que contiene el catalogo y que fuentes de precio existen",
-                "Pendiente",
+                "0",
+                "Indice",
+                "Pagina de navegacion con botones y formas.",
             ],
             [
-                "Precios actuales",
-                "Como se distribuyen los precios por marketplace y moneda",
-                "Pendiente",
+                "1",
+                "01_vista_general",
+                "Contiene tarjetas de volumen de cartas, sets, snapshots, ultimo snapshot y tablas de marketplaces/rarezas.",
             ],
             [
-                "Sets y rarezas",
-                "Que sets, apariciones y rarezas explican diferencias",
-                "Pendiente",
+                "2",
+                "02_Analisis_descriptivo",
+                "Contiene tabla de precio medio USD, barras por marketplace, ranking por carta-marketplace y valor por set.",
             ],
             [
-                "Revision de precios",
-                "Que precios requieren revision antes de interpretarse",
-                "Pendiente",
+                "3",
+                "03_Análisis_diagnostico",
+                "Contiene precio mediano por rareza, slicer marketplace y sets distintos por carta con tooltip de apariciones.",
             ],
             [
-                "Historico de precios",
-                "Existe variacion temporal comparable",
-                "Pendiente",
+                "4",
+                "04_",
+                "Solo boton de navegacion; pendiente de desarrollo analitico.",
             ],
             [
-                "Revision prescriptiva",
-                "Que cartas merecen seguimiento o descarte",
-                "Pendiente",
+                "5",
+                "05_",
+                "Solo boton de navegacion; pendiente de desarrollo analitico.",
+            ],
+            [
+                "6",
+                "06_",
+                "Solo boton de navegacion; pendiente de desarrollo analitico.",
+            ],
+            [
+                "7",
+                "tooltip_01_cards_information",
+                "Tooltip con imagen, nombre de carta y set asociado.",
             ],
         ],
-        [2300, 5000, 2060],
+        [1300, 2800, 5260],
     )
 
     doc.add_heading("13. Conclusiones iniciales", level=1)
@@ -903,7 +716,7 @@ def build_doc() -> None:
         doc,
         [
             "No se han incluido todavia resultados cuantitativos de una ejecucion local concreta.",
-            "No hay capturas del dashboard ni medidas DAX definitivas en esta version.",
+            "El PBIX permite detectar visuales y nombres de medidas, pero las formulas DAX deben validarse en Power BI Desktop antes de tratarlas como definitivas.",
             "Los precios proceden de campos de marketplaces y pueden cambiar con cada actualizacion.",
             "No se consideran costes de envio, estado fisico de la carta, ventas privadas ni liquidez real.",
             "El historico depende de ejecuciones reales del ETL; sin suficientes snapshots no hay tendencia robusta.",
@@ -914,9 +727,9 @@ def build_doc() -> None:
     add_bullets(
         doc,
         [
-            "Completar el registro de paginas de Power BI con pregunta, tabla usada, medidas y estado.",
-            "Documentar medidas DAX relevantes y su razon de uso.",
-            "Insertar capturas del modelo Power BI y de cada visual validado.",
+            "Renombrar y desarrollar las paginas 04, 05 y 06 segun su finalidad analitica.",
+            "Documentar formulas DAX definitivas desde Power BI Desktop.",
+            "Insertar capturas de cada visual validado cuando el dashboard estabilice diseno y datos.",
             "Validar nulos, duplicados y cobertura antes de interpretar hallazgos.",
             "Ampliar el analisis prescriptivo con criterios revisables y no automaticos.",
         ],
@@ -947,9 +760,26 @@ def build_doc() -> None:
     doc.add_heading("16.2 Registro de medidas DAX", level=2)
     add_matrix(
         doc,
-        ["Medida", "Formula o descripcion", "Estado"],
-        [["Pendiente", "Pendiente de definicion DAX", "Pendiente"]],
-        [2500, 4860, 2000],
+        ["Medida", "Uso detectado en PBIX", "Estado"],
+        [
+            ["Volumen de cartas", "Tarjeta en 01_vista_general.", "Detectada"],
+            ["Volumen de sets", "Tarjeta en 01_vista_general.", "Detectada"],
+            ["Volumen de rarezas", "Tabla de rarezas en 01_vista_general.", "Detectada"],
+            ["Numero rareras nombres", "Tabla de rarezas en 01_vista_general.", "Detectada; revisar nombre."],
+            ["Total snapshots", "Tarjeta en 01_vista_general.", "Detectada"],
+            ["Ultimo snapshot", "Tarjeta en 01_vista_general.", "Detectada"],
+            ["Precio Amazon USD", "Tabla de precio medio de mercado USD.", "Detectada"],
+            ["Precio CoolStuffInc USD", "Tabla de precio medio de mercado USD.", "Detectada"],
+            ["Precio eBay USD", "Tabla de precio medio de mercado USD.", "Detectada"],
+            ["Precio TCGplayer USD", "Tabla de precio medio de mercado USD.", "Detectada"],
+            ["Precio medio USD", "Tabla descriptiva de precios.", "Detectada"],
+            ["Precio medio marketplace USD", "Ranking carta-marketplace.", "Detectada"],
+            ["Valor Mercado Set", "Barra por set en analisis descriptivo.", "Detectada"],
+            ["Precio Mediano por Rareza", "Barra diagnostica por rarity_name.", "Detectada; validar puente rareza-precio."],
+            ["Sets Distintos por Carta", "Barra diagnostica por card_name.", "Detectada"],
+            ["Apariciones en Sets", "Tooltip del ranking de cartas.", "Detectada"],
+        ],
+        [2600, 4760, 2000],
     )
 
     doc.add_heading("16.3 Registro de mantenimiento del informe", level=2)
