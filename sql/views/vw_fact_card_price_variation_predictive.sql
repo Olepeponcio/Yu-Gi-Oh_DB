@@ -103,7 +103,7 @@ SELECT
     price - previous_price AS price_change,
     CASE
         WHEN previous_price IS NULL OR previous_price = 0 THEN NULL
-        ELSE ((price - previous_price) / previous_price) * 100
+        ELSE ((price - previous_price) / previous_price) -- al establecer formato % en Power BI multiplica * 100
     END AS price_change_pct
 FROM price_history_with_previous
 WHERE previous_snapshot_at IS NOT NULL;
