@@ -43,6 +43,7 @@ vw_dim_snapshots_descriptive
 ## Views de hechos
 
 ```text
+vw_fact_avg_market_price
 vw_fact_card_prices_descriptive
 vw_fact_card_set_appearances
 vw_fact_card_price_variation_predictive
@@ -52,6 +53,7 @@ vw_fact_card_price_variation_predictive
 
 ```text
 vw_dim_cards_descriptive[card_id]
+    1 -> * vw_fact_avg_market_price[card_id]
     1 -> * vw_fact_card_prices_descriptive[card_id]
     1 -> * vw_fact_card_set_appearances[card_id]
     1 -> * vw_fact_card_price_variation_predictive[card_id]

@@ -21,7 +21,7 @@ power_bi/assets/fondo_control_powerbi_fondo2.png
 ```text
 docs/03_powerbi/modelo_relacional.svg          -> modelo relacional de referencia
 power_bi/assets/                               -> fondos e imagenes de diseno
-power_bi/informes/analisis_yugioh_db.pbix      -> informe Power BI del proyecto
+power_bi/informes/informe_analisis_resultados_powerbi_yugioh.docx -> informe de resultados
 ```
 
 ## Reglas
@@ -44,6 +44,7 @@ power_bi/informes/analisis_yugioh_db.pbix      -> informe Power BI del proyecto
 | `vw_dim_marketplaces_descriptive` | Dimension | 1 marketplace | Segmentacion de fuentes de precio |
 | `vw_dim_currencies_descriptive` | Dimension | 1 moneda | Segmentacion de precios por moneda |
 | `vw_dim_snapshots_descriptive` | Dimension temporal | 1 snapshot | Calendario real de historico disponible |
+| `vw_fact_avg_market_price` | Hecho calculado | 1 carta | Precio medio USD entre marketplaces USD y precios actuales por fuente |
 | `vw_fact_card_prices_descriptive` | Hecho | 1 carta + 1 marketplace + 1 moneda | Precios actuales segmentados |
 | `vw_fact_card_set_appearances` | Hecho puente | 1 carta + 1 set + 1 rareza | Apariciones, reimpresiones y precio de set |
 | `vw_fact_card_price_variation_predictive` | Hecho historico | 1 carta + 1 marketplace + 1 moneda + 1 snapshot | Variacion temporal de precios |
@@ -51,6 +52,7 @@ power_bi/informes/analisis_yugioh_db.pbix      -> informe Power BI del proyecto
 ## Relaciones recomendadas
 
 ```text
+vw_dim_cards_descriptive 1 -> * vw_fact_avg_market_price
 vw_dim_cards_descriptive 1 -> * vw_fact_card_prices_descriptive
 vw_dim_cards_descriptive 1 -> * vw_fact_card_set_appearances
 vw_dim_cards_descriptive 1 -> * vw_fact_card_price_variation_predictive
@@ -70,7 +72,7 @@ Indice de trabajo para Power BI Desktop: 6 paginas. El foco actual esta en las p
 | Orden | Pagina | Preguntas guia | Vistas base | Estado |
 |---|---|---|---|---|
 | 1 | Vista general | Que volumen de cartas, sets, rarezas y marketplaces contiene el modelo? Que monedas y snapshots condicionan la lectura del panel? | `vw_dim_cards_descriptive`, `vw_dim_sets_descriptive`, `vw_dim_rarities_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive`, `vw_dim_snapshots_descriptive` | Foco actual |
-| 2 | Analisis descriptivo | Que cartas tienen mayor precio medio por marketplace? Que sets concentran mayor valor de mercado? | `vw_fact_card_prices_descriptive`, `vw_fact_card_set_appearances`, `vw_dim_sets_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive` | Foco actual |
+| 2 | Analisis descriptivo | Que cartas tienen mayor precio medio por marketplace? Que sets concentran mayor valor de mercado? | `vw_fact_avg_market_price`, `vw_fact_card_prices_descriptive`, `vw_fact_card_set_appearances`, `vw_dim_sets_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive` | Foco actual |
 | 3 | Analisis diagnostico | Que rarezas se asocian con precios mas altos? Que cartas aparecen en mas sets y que puede explicar su presencia? | `vw_fact_card_set_appearances`, `vw_dim_cards_descriptive`, `vw_dim_sets_descriptive`, `vw_dim_rarities_descriptive`, `vw_fact_card_prices_descriptive` | Foco actual |
 | 4 | Historico / predictivo | Que correlaciones y tendencias aparecen entre snapshots? Que cartas muestran variaciones relevantes por marketplace? | `vw_fact_card_price_variation_predictive`, `vw_dim_snapshots_descriptive`, `vw_dim_marketplaces_descriptive`, `vw_dim_currencies_descriptive`, `vw_dim_cards_descriptive` | Foco actual |
 | 5 | Analisis prescriptivo | Que cartas presentan senales para seguimiento prioritario? Que oportunidades requieren revision antes de convertirse en recomendacion? | `vw_fact_card_prices_descriptive`, `vw_fact_card_set_appearances`, `vw_fact_card_price_variation_predictive`, dimensiones relacionadas | Foco actual |
@@ -81,6 +83,7 @@ Indice de trabajo para Power BI Desktop: 6 paginas. El foco actual esta en las p
 Las dimensiones se usan para filtrar, segmentar y agrupar. Las medidas deben declararse sobre hechos o en una tabla dedicada de medidas, manteniendo trazabilidad con la vista que alimenta el calculo.
 
 ```text
+vw_fact_avg_market_price                     -> medidas de precio medio actual por carta
 vw_fact_card_prices_descriptive              -> medidas de precio actual
 vw_fact_card_set_appearances                 -> medidas de apariciones, sets, rarezas
 vw_fact_card_price_variation_predictive      -> medidas historicas / variacion
