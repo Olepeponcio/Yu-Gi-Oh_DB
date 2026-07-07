@@ -6,6 +6,7 @@ Este directorio contiene las vistas `vw_` que se cargan en Power BI a partir de 
 
 ```text
 sql/views/   -> vistas del modelo relacional simplificado para Power BI
+sql/security_etl_user.sql -> plantilla de usuario ETL local con permisos minimos
 ```
 
 Plantillas de creacion/reemplazo:

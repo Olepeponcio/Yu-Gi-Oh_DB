@@ -23,15 +23,23 @@ El ETL debe conectarse con un usuario MySQL de privilegios limitados, no con `ro
 Usuario recomendado:
 
 ```text
-pepin
+<usuario_etl>
 ```
+
+Script recomendado:
+
+```sql
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/security_etl_user.sql;
+```
+
+Si el usuario `<usuario_etl>` no existe, MySQL generara una password aleatoria. Esa password debe copiarse solo al `.env` local.
 
 Permisos necesarios para la carga normal:
 
 ```sql
 GRANT SELECT, INSERT, UPDATE, DELETE
 ON yugioh_db.*
-TO 'pepin'@'localhost';
+TO '<usuario_etl>'@'localhost';
 
 FLUSH PRIVILEGES;
 ```
@@ -41,11 +49,18 @@ FLUSH PRIVILEGES;
 En `.env`, el programa debe usar:
 
 ```env
-DB_USER=pepin
-DB_PASSWORD=<password_local_de_pepin>
+DB_HOST=localhost
+DB_USER=<usuario_etl>
+DB_PASSWORD=<password_local_del_usuario_etl>
 ```
 
 `.env` no se versiona.
+
+Guardas aplicadas por el programa:
+
+- Rechaza `DB_USER=root`.
+- Rechaza `DB_HOST` remoto salvo que se declare explicitamente `DB_ALLOW_REMOTE_DB=true`.
+- Usa placeholders SQL en la carga ETL; la password solo se lee desde `.env`.
 
 ## Actualizar datos
 

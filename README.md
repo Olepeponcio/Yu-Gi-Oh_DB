@@ -150,7 +150,7 @@ Configurar `.env` desde `.env.example`.
 
 Regla de seguridad:
 
-- El ETL debe conectarse con un usuario MySQL limitado, por ejemplo `pepin`.
+- El ETL debe conectarse con un usuario MySQL limitado, por ejemplo `etl_user`.
 - No usar `root` para ejecutar cargas normales.
 - `.env` guarda las credenciales locales y no se versiona.
 

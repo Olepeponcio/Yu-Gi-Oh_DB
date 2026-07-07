@@ -220,7 +220,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_card_tooltip_images_sets` AS select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`c`.`card_type` AS `card_type`,`c`.`archetype` AS `card_archetype`,`ci`.`image_id` AS `image_id`,`ci`.`image_url` AS `image_url`,`ci`.`image_url_small` AS `image_url_small`,`ci`.`image_url_cropped` AS `image_url_cropped`,`cs`.`set_id` AS `set_id`,`cs`.`set_name` AS `set_name` from ((`cards` `c` left join `card_images` `ci` on((`ci`.`card_id` = `c`.`card_id`))) left join `card_sets` `cs` on((`cs`.`card_id` = `c`.`card_id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -238,7 +238,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_dim_cards_descriptive` AS select `c`.`card_id` AS `card_id`,`c`.`name` AS `name`,`c`.`card_type` AS `card_type`,`c`.`human_readable_card_type` AS `human_readable_card_type`,`c`.`frame_type` AS `frame_type`,`c`.`race` AS `race`,coalesce(`c`.`archetype`,'Sin arquetipo') AS `archetype`,cast(`c`.`atk` as signed) AS `atk`,cast(`c`.`def` as signed) AS `def`,coalesce(`c`.`attribute`,'No aplica') AS `attribute`,cast(`c`.`level` as signed) AS `level`,cast(`c`.`scale` as signed) AS `scale`,cast(`c`.`link_value` as signed) AS `link_value` from `cards` `c` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -256,7 +256,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_dim_marketplaces_descriptive` AS select 1 AS `marketplace_id`,'cardmarket' AS `marketplace`,'Cardmarket' AS `marketplace_name`,'EUR' AS `default_currency`,'Europe' AS `market_region` union all select 2 AS `marketplace_id`,'tcgplayer' AS `tcgplayer`,'TCGplayer' AS `TCGplayer`,'USD' AS `USD`,'United States' AS `United States` union all select 3 AS `marketplace_id`,'ebay' AS `ebay`,'eBay' AS `eBay`,'USD' AS `USD`,'Global' AS `Global` union all select 4 AS `marketplace_id`,'amazon' AS `amazon`,'Amazon' AS `Amazon`,'USD' AS `USD`,'Global' AS `Global` union all select 5 AS `marketplace_id`,'coolstuffinc' AS `coolstuffinc`,'CoolStuffInc' AS `CoolStuffInc`,'USD' AS `USD`,'United States' AS `United States` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -274,7 +274,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_dim_rarities_descriptive` AS select `r`.`id` AS `rarity_id`,`r`.`set_code` AS `set_code`,`r`.`rarity_name` AS `rarity_name`,`r`.`rarity_code` AS `rarity_code`,concat(`r`.`set_code`,'|',`r`.`rarity_name`,'|',`r`.`rarity_code`) AS `rarity_business_key`,`r`.`created_at` AS `created_at`,`r`.`updated_at` AS `updated_at` from `rarities` `r` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -292,7 +292,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_dim_sets_descriptive` AS select `s`.`id` AS `set_id`,`s`.`set_name` AS `set_name`,`s`.`created_at` AS `created_at`,`s`.`updated_at` AS `updated_at` from `sets` `s` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -310,7 +310,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_dim_snapshots_descriptive` AS select `cph`.`snapshot_at` AS `snapshot_at`,cast(`cph`.`snapshot_at` as date) AS `snapshot_date`,year(`cph`.`snapshot_at`) AS `snapshot_year`,quarter(`cph`.`snapshot_at`) AS `snapshot_quarter`,month(`cph`.`snapshot_at`) AS `snapshot_month`,monthname(`cph`.`snapshot_at`) AS `snapshot_month_name`,dayofmonth(`cph`.`snapshot_at`) AS `snapshot_day`,hour(`cph`.`snapshot_at`) AS `snapshot_hour`,dayofweek(`cph`.`snapshot_at`) AS `snapshot_day_of_week` from `card_price_history` `cph` group by `cph`.`snapshot_at` */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -328,7 +328,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_fact_avg_market_price` AS with `avg_market_price` as (select `cp`.`card_id` AS `card_id`,`cp`.`cardmarket_price` AS `cardmarket`,`cp`.`tcgplayer_price` AS `tcgplayer`,`cp`.`ebay_price` AS `ebay`,`cp`.`amazon_price` AS `amazon`,`cp`.`coolstuffinc_price` AS `coolstuffinc`,((((coalesce(`cp`.`tcgplayer_price`,0) + coalesce(`cp`.`ebay_price`,0)) + coalesce(`cp`.`amazon_price`,0)) + coalesce(`cp`.`coolstuffinc_price`,0)) / nullif(((((`cp`.`tcgplayer_price` is not null) + (`cp`.`ebay_price` is not null)) + (`cp`.`amazon_price` is not null)) + (`cp`.`coolstuffinc_price` is not null)),0)) AS `avg_price_USD` from `card_prices` `cp`) select `amp`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`amp`.`cardmarket` AS `cardmarket`,`amp`.`tcgplayer` AS `tcgplayer`,`amp`.`ebay` AS `ebay`,`amp`.`amazon` AS `amazon`,`amp`.`coolstuffinc` AS `coolstuffinc`,`amp`.`avg_price_USD` AS `avg_price_USD` from (`avg_market_price` `amp` join `cards` `c` on((`c`.`card_id` = `amp`.`card_id`))) order by `amp`.`avg_price_USD` desc */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -346,7 +346,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_fact_card_price_variation_predictive` AS with `price_history_long` as (select `cph`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cph`.`snapshot_at` AS `snapshot_at`,'cardmarket' AS `marketplace`,'EUR' AS `currency`,`cph`.`cardmarket_price` AS `price` from (`card_price_history` `cph` left join `cards` `c` on((`cph`.`card_id` = `c`.`card_id`))) where (`cph`.`cardmarket_price` is not null) union all select `cph`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cph`.`snapshot_at` AS `snapshot_at`,'tcgplayer' AS `marketplace`,'USD' AS `currency`,`cph`.`tcgplayer_price` AS `price` from (`card_price_history` `cph` left join `cards` `c` on((`cph`.`card_id` = `c`.`card_id`))) where (`cph`.`tcgplayer_price` is not null) union all select `cph`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cph`.`snapshot_at` AS `snapshot_at`,'ebay' AS `marketplace`,'USD' AS `currency`,`cph`.`ebay_price` AS `price` from (`card_price_history` `cph` left join `cards` `c` on((`cph`.`card_id` = `c`.`card_id`))) where (`cph`.`ebay_price` is not null) union all select `cph`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cph`.`snapshot_at` AS `snapshot_at`,'amazon' AS `marketplace`,'USD' AS `currency`,`cph`.`amazon_price` AS `price` from (`card_price_history` `cph` left join `cards` `c` on((`cph`.`card_id` = `c`.`card_id`))) where (`cph`.`amazon_price` is not null) union all select `cph`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cph`.`snapshot_at` AS `snapshot_at`,'coolstuffinc' AS `marketplace`,'USD' AS `currency`,`cph`.`coolstuffinc_price` AS `price` from (`card_price_history` `cph` left join `cards` `c` on((`cph`.`card_id` = `c`.`card_id`))) where (`cph`.`coolstuffinc_price` is not null)), `price_history_with_previous` as (select `price_history_long`.`card_id` AS `card_id`,`price_history_long`.`card_name` AS `card_name`,`price_history_long`.`marketplace` AS `marketplace`,`price_history_long`.`currency` AS `currency`,`price_history_long`.`snapshot_at` AS `snapshot_at`,`price_history_long`.`price` AS `price`,lag(`price_history_long`.`snapshot_at`) OVER (PARTITION BY `price_history_long`.`card_id`,`price_history_long`.`marketplace`,`price_history_long`.`currency` ORDER BY `price_history_long`.`snapshot_at` )  AS `previous_snapshot_at`,lag(`price_history_long`.`price`) OVER (PARTITION BY `price_history_long`.`card_id`,`price_history_long`.`marketplace`,`price_history_long`.`currency` ORDER BY `price_history_long`.`snapshot_at` )  AS `previous_price` from `price_history_long`) select `price_history_with_previous`.`card_id` AS `card_id`,`price_history_with_previous`.`card_name` AS `card_name`,`price_history_with_previous`.`marketplace` AS `marketplace`,`price_history_with_previous`.`currency` AS `currency`,`price_history_with_previous`.`snapshot_at` AS `snapshot_at`,`price_history_with_previous`.`previous_snapshot_at` AS `previous_snapshot_at`,(to_days(`price_history_with_previous`.`snapshot_at`) - to_days(`price_history_with_previous`.`previous_snapshot_at`)) AS `days_between_snapshots`,`price_history_with_previous`.`price` AS `price`,`price_history_with_previous`.`previous_price` AS `previous_price`,(`price_history_with_previous`.`price` - `price_history_with_previous`.`previous_price`) AS `price_change`,(case when ((`price_history_with_previous`.`previous_price` is null) or (`price_history_with_previous`.`previous_price` = 0)) then NULL else ((`price_history_with_previous`.`price` - `price_history_with_previous`.`previous_price`) / `price_history_with_previous`.`previous_price`) end) AS `price_change_pct` from `price_history_with_previous` where (`price_history_with_previous`.`previous_snapshot_at` is not null) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -364,7 +364,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_fact_card_prices_descriptive` AS select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,'cardmarket' AS `marketplace`,'EUR' AS `currency`,`cp`.`cardmarket_price` AS `price` from (`card_prices` `cp` left join `cards` `c` on((`cp`.`card_id` = `c`.`card_id`))) where (`cp`.`cardmarket_price` is not null) union all select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,'tcgplayer' AS `marketplace`,'USD' AS `currency`,`cp`.`tcgplayer_price` AS `price` from (`card_prices` `cp` left join `cards` `c` on((`cp`.`card_id` = `c`.`card_id`))) where (`cp`.`tcgplayer_price` is not null) union all select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,'ebay' AS `marketplace`,'USD' AS `currency`,`cp`.`ebay_price` AS `price` from (`card_prices` `cp` left join `cards` `c` on((`cp`.`card_id` = `c`.`card_id`))) where (`cp`.`ebay_price` is not null) union all select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,'amazon' AS `marketplace`,'USD' AS `currency`,`cp`.`amazon_price` AS `price` from (`card_prices` `cp` left join `cards` `c` on((`cp`.`card_id` = `c`.`card_id`))) where (`cp`.`amazon_price` is not null) union all select `c`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,'coolstuffinc' AS `marketplace`,'USD' AS `currency`,`cp`.`coolstuffinc_price` AS `price` from (`card_prices` `cp` left join `cards` `c` on((`cp`.`card_id` = `c`.`card_id`))) where (`cp`.`coolstuffinc_price` is not null) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
@@ -382,7 +382,7 @@ SET character_set_client = @saved_cs_client;
 /*!50001 SET character_set_results     = utf8mb4 */;
 /*!50001 SET collation_connection      = utf8mb4_0900_ai_ci */;
 /*!50001 CREATE ALGORITHM=UNDEFINED */
-/*!50013 DEFINER=`pepin`@`localhost` SQL SECURITY DEFINER */
+/*!50013 SQL SECURITY INVOKER */
 /*!50001 VIEW `vw_fact_card_set_appearances` AS select `cs`.`id` AS `card_set_appearance_id`,`cs`.`card_id` AS `card_id`,`c`.`name` AS `card_name`,`cs`.`set_id` AS `set_id`,coalesce(`s`.`set_name`,`cs`.`set_name`) AS `set_name`,`cs`.`rarity_id` AS `rarity_id`,coalesce(nullif(`r`.`rarity_name`,''),`cs`.`set_rarity`) AS `rarity_name`,coalesce(nullif(`r`.`rarity_code`,''),`cs`.`set_rarity_code`) AS `rarity_code`,`cs`.`set_code` AS `set_code`,`cs`.`set_price` AS `set_price`,1 AS `appearance_count` from (((`card_sets` `cs` left join `cards` `c` on((`cs`.`card_id` = `c`.`card_id`))) left join `sets` `s` on((`cs`.`set_id` = `s`.`id`))) left join `rarities` `r` on((`cs`.`rarity_id` = `r`.`id`))) */;
 /*!50001 SET character_set_client      = @saved_cs_client */;
 /*!50001 SET character_set_results     = @saved_cs_results */;
