@@ -7,7 +7,7 @@ from src.etl.transform.relations import normalize_card_linkmarkers, normalize_ca
 from src.etl.transform.sets import normalize_card_sets, normalize_rarities, normalize_sets
 
 
-def transform_cards(raw_cards, snapshot_at=None):
+def transform_cards(raw_cards, snapshot_at=None, eur_usd_rate=None):
     if snapshot_at is None:
         snapshot_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
@@ -31,7 +31,7 @@ def transform_cards(raw_cards, snapshot_at=None):
         tables["card_sets"].extend(normalize_card_sets(raw_card))
         tables["card_images"].extend(normalize_card_images(raw_card))
 
-        prices = normalize_card_prices(raw_card)
+        prices = normalize_card_prices(raw_card, eur_usd_rate=eur_usd_rate)
         if prices is not None:
             tables["card_prices"].append(prices)
             tables["card_price_history"].append({**prices, "snapshot_at": snapshot_at})

@@ -88,6 +88,23 @@ class TransformCardsTest(unittest.TestCase):
         self.assertEqual(len(tables["card_price_history"]), 2)
         self.assertEqual(tables["card_price_history"][0]["snapshot_at"], "2026-05-21 07:30:00")
 
+    def test_transform_cards_adds_cardmarket_usd_when_rate_is_available(self):
+        raw_card = build_raw_card(card_id=10, name="EUR Priced Card")
+
+        tables = transform_cards([raw_card], snapshot_at="2026-05-21 07:30:00", eur_usd_rate=Decimal("1.1433"))
+
+        self.assertEqual(tables["card_prices"][0]["cardmarket_price"], Decimal("1.10"))
+        self.assertEqual(tables["card_prices"][0]["cardmarket_usd"], Decimal("1.26"))
+        self.assertEqual(tables["card_price_history"][0]["cardmarket_usd"], Decimal("1.26"))
+
+    def test_transform_cards_keeps_cardmarket_usd_empty_without_rate(self):
+        raw_card = build_raw_card(card_id=11, name="EUR Priced Card")
+
+        tables = transform_cards([raw_card], snapshot_at="2026-05-21 07:30:00")
+
+        self.assertEqual(tables["card_prices"][0]["cardmarket_price"], Decimal("1.10"))
+        self.assertIsNone(tables["card_prices"][0]["cardmarket_usd"])
+
     def test_transform_cards_includes_optional_child_tables(self):
         raw_card = build_raw_card(
             card_id=3,

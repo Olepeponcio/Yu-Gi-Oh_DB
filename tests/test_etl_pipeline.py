@@ -1,4 +1,6 @@
 from argparse import Namespace
+from decimal import Decimal
+from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
@@ -19,10 +21,11 @@ class GetPayloadTest(unittest.TestCase):
         load_raw_payload.return_value = expected_payload
         args = Namespace(source="file", raw_path="data/raw/cardinfo_latest.json", skip_save_raw=False)
 
-        payload, raw_path = get_payload(args)
+        payload, raw_path, extraction_events = get_payload(args)
 
         self.assertIs(payload, expected_payload)
         self.assertIsNone(raw_path)
+        self.assertEqual(extraction_events[0]["status"], "skipped")
         load_raw_payload.assert_called_once_with("data/raw/cardinfo_latest.json")
 
     @patch("src.etl.pipeline.save_raw_payload")
@@ -32,16 +35,31 @@ class GetPayloadTest(unittest.TestCase):
         fetch_cardinfo.return_value = expected_payload
         args = Namespace(source="api", raw_path=None, skip_save_raw=True)
 
-        payload, raw_path = get_payload(args)
+        payload, raw_path, extraction_events = get_payload(args)
 
         self.assertIs(payload, expected_payload)
         self.assertIsNone(raw_path)
+        self.assertEqual(extraction_events[0]["status"], "ok")
         fetch_cardinfo.assert_called_once_with()
         save_raw_payload.assert_not_called()
+
+    @patch("src.etl.pipeline.fetch_cardinfo")
+    def test_api_source_failure_returns_reportable_empty_payload(self, fetch_cardinfo):
+        fetch_cardinfo.side_effect = RuntimeError("network down")
+        args = Namespace(source="api", raw_path=None, skip_save_raw=True)
+
+        with patch("builtins.print"):
+            payload, raw_path, extraction_events = get_payload(args)
+
+        self.assertEqual(payload["data"], [])
+        self.assertEqual(payload["metadata"]["extraction_status"], "failed")
+        self.assertIsNone(raw_path)
+        self.assertEqual(extraction_events[0]["status"], "failed")
 
 
 class RunPipelineTest(unittest.TestCase):
     @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.fetch_eur_usd_rate")
     @patch("src.etl.pipeline.print_table_counts")
     @patch("src.etl.pipeline.print_run_summary")
     @patch("src.etl.pipeline.transform_cards")
@@ -54,19 +72,27 @@ class RunPipelineTest(unittest.TestCase):
         transform_cards,
         print_run_summary,
         print_table_counts,
+        fetch_eur_usd_rate,
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
         tables = {"cards": [{"card_id": 1}]}
         args = Namespace(source="file", raw_path="raw.json", skip_save_raw=False, dry_run=True)
-        get_payload_mock.return_value = (payload, None)
+        get_payload_mock.return_value = (payload, None, [])
+        fetch_eur_usd_rate.return_value = SimpleNamespace(
+            rate=Decimal("1.1433"),
+            source="ECB Data Portal",
+            base_currency="EUR",
+            quote_currency="USD",
+            observed_at="2026-07-07",
+        )
         transform_cards.return_value = tables
 
         with patch("builtins.print"):
             result = run_pipeline(args)
 
         self.assertIs(result, tables)
-        transform_cards.assert_called_once()
+        self.assertEqual(transform_cards.call_args.kwargs["eur_usd_rate"], Decimal("1.1433"))
         print_run_summary.assert_called_once()
         print_table_counts.assert_called_once_with(tables)
         save_run_report.assert_called_once()
@@ -74,6 +100,7 @@ class RunPipelineTest(unittest.TestCase):
         load_all_tables.assert_not_called()
 
     @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.fetch_eur_usd_rate")
     @patch("src.etl.pipeline.print_load_summary")
     @patch("src.etl.pipeline.print_table_counts")
     @patch("src.etl.pipeline.print_run_summary")
@@ -88,13 +115,15 @@ class RunPipelineTest(unittest.TestCase):
         print_run_summary,
         print_table_counts,
         print_load_summary,
+        fetch_eur_usd_rate,
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
         tables = {"cards": [{"card_id": 1}]}
         affected = {"cards": 1}
         args = Namespace(source="file", raw_path="raw.json", skip_save_raw=False, dry_run=False)
-        get_payload_mock.return_value = (payload, None)
+        get_payload_mock.return_value = (payload, None, [])
+        fetch_eur_usd_rate.side_effect = RuntimeError("ecb down")
         transform_cards.return_value = tables
         load_all_tables.return_value = affected
 
@@ -102,6 +131,7 @@ class RunPipelineTest(unittest.TestCase):
             result = run_pipeline(args)
 
         self.assertIs(result, tables)
+        self.assertIsNone(transform_cards.call_args.kwargs["eur_usd_rate"])
         load_all_tables.assert_called_once_with(tables)
         print_load_summary.assert_called_once_with(affected)
         save_run_report.assert_called_once()

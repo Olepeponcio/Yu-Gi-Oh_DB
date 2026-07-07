@@ -16,6 +16,8 @@ def save_run_report(
     affected=None,
     report_dir=REPORTING_DIR,
     created_at=None,
+    extraction_events=None,
+    exchange_rate=None,
 ):
     if created_at is None:
         created_at = datetime.now()
@@ -24,7 +26,17 @@ def save_run_report(
     report_path.parent.mkdir(parents=True, exist_ok=True)
     rotate_report_files(report_path.parent)
     report_path.write_text(
-        build_report_text(metadata, snapshot_at, raw_path, tables, dry_run, affected, created_at),
+        build_report_text(
+            metadata,
+            snapshot_at,
+            raw_path,
+            tables,
+            dry_run,
+            affected,
+            created_at,
+            extraction_events=extraction_events,
+            exchange_rate=exchange_rate,
+        ),
         encoding="utf-8",
     )
     return report_path
@@ -51,7 +63,17 @@ def build_report_path(created_at, report_dir=REPORTING_DIR):
     return Path(report_dir) / f"{REPORT_FILENAME_PREFIX}_{timestamp}.txt"
 
 
-def build_report_text(metadata, snapshot_at, raw_path, tables, dry_run, affected, created_at):
+def build_report_text(
+    metadata,
+    snapshot_at,
+    raw_path,
+    tables,
+    dry_run,
+    affected,
+    created_at,
+    extraction_events=None,
+    exchange_rate=None,
+):
     lines = [
         "ETL YGOPRODeck report",
         f"generated_at: {created_at.strftime('%Y-%m-%d %H:%M:%S')}",
@@ -66,8 +88,24 @@ def build_report_text(metadata, snapshot_at, raw_path, tables, dry_run, affected
         f"price_snapshot_at: {snapshot_at}",
         f"raw_path: {raw_path or 'no guardado'}",
         "",
-        "table_counts:",
+        "api_extraction:",
     ]
+
+    for event in extraction_events or []:
+        lines.append(f"- {event['source']}: {event['status']} - {event['detail']}")
+
+    if exchange_rate is None:
+        lines.append("exchange_rate_eur_usd: no disponible")
+    else:
+        lines.append(
+            "exchange_rate_eur_usd: "
+            f"{exchange_rate.rate} ({exchange_rate.source}, {exchange_rate.observed_at})"
+        )
+
+    lines.extend([
+        "",
+        "table_counts:",
+    ])
 
     for table_name, rows in tables.items():
         lines.append(f"- {table_name}: {len(rows)}")
