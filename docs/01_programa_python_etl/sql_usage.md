@@ -16,6 +16,12 @@ SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
 
 `schema.sql` crea las tablas madre del proyecto dentro de `yugioh_db`.
 
+Contrato de actualizacion estructural:
+
+- Los cambios de columnas/tablas se incorporan en `sql/schema.sql`.
+- Para aplicar un cambio estructural, se resetea/recrea la DB desde `sql/schema.sql`.
+- No se usan scripts incrementales como contrato oficial de tablas madre.
+
 ## Usuario de ETL
 
 El ETL debe conectarse con un usuario MySQL de privilegios limitados, no con `root`.

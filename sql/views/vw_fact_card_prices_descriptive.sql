@@ -7,10 +7,22 @@ SELECT
     c.name AS card_name,
     'cardmarket' AS marketplace,
     'EUR' AS currency,
-    cp.cardmarket_price AS price
+    cp.cardmarket_price_eur AS price
 FROM card_prices cp
 LEFT JOIN cards c ON cp.card_id = c.card_id
-WHERE cp.cardmarket_price IS NOT NULL
+WHERE cp.cardmarket_price_eur IS NOT NULL
+
+UNION ALL
+
+SELECT
+    c.card_id,
+    c.name AS card_name,
+    'cardmarket' AS marketplace,
+    'USD' AS currency,
+    cp.cardmarket_usd AS price
+FROM card_prices cp
+LEFT JOIN cards c ON cp.card_id = c.card_id
+WHERE cp.cardmarket_usd IS NOT NULL
 
 UNION ALL
 

@@ -107,7 +107,7 @@ CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_images` (
 
 CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_prices` (
     card_id INT NOT NULL,
-    cardmarket_price DECIMAL(10,2) NULL,
+    cardmarket_price_eur DECIMAL(10,2) NULL,
     cardmarket_usd DECIMAL(10,2) NULL,
     tcgplayer_price DECIMAL(10,2) NULL,
     ebay_price DECIMAL(10,2) NULL,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_price_history` (
     id BIGINT NOT NULL AUTO_INCREMENT,
     card_id INT NOT NULL,
     snapshot_at DATETIME NOT NULL,
-    cardmarket_price DECIMAL(10,2) NULL,
+    cardmarket_price_eur DECIMAL(10,2) NULL,
     cardmarket_usd DECIMAL(10,2) NULL,
     tcgplayer_price DECIMAL(10,2) NULL,
     ebay_price DECIMAL(10,2) NULL,

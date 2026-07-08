@@ -162,6 +162,8 @@ Proceso base:
 - Ejecutar `sql/schema.sql` para crear las tablas madre.
 - Conceder al usuario de ETL permisos limitados sobre `yugioh_db`.
 - Ejecutar el ETL para cargar o actualizar datos desde la API.
+- Si cambia la estructura de tablas madre, resetear/recrear la DB desde `sql/schema.sql`.
+- No usar scripts incrementales como contrato estructural del proyecto.
 
 ```sql
 SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;

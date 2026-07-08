@@ -133,7 +133,8 @@ Precios actuales por carta y marketplace.
 Regla de moneda:
 
 ```text
-cardmarket_price   -> EUR
+cardmarket_price_eur -> EUR
+cardmarket_usd       -> USD
 tcgplayer_price    -> USD
 ebay_price         -> USD
 amazon_price       -> USD

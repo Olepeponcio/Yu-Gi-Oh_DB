@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from src.etl.load import rarities_sql
+from src.etl.load import card_price_history_sql, card_prices_sql, rarities_sql
 from src.etl.pipeline import get_payload, run_pipeline
 
 
@@ -138,6 +138,44 @@ class RunPipelineTest(unittest.TestCase):
         self.assertFalse(save_run_report.call_args.kwargs["dry_run"])
         self.assertEqual(save_run_report.call_args.kwargs["affected"], affected)
 
+    @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.fetch_eur_usd_rate")
+    @patch("src.etl.pipeline.print_load_summary")
+    @patch("src.etl.pipeline.print_table_counts")
+    @patch("src.etl.pipeline.print_run_summary")
+    @patch("src.etl.pipeline.transform_cards")
+    @patch("src.etl.pipeline.get_payload")
+    @patch("src.etl.pipeline.load_all_tables")
+    def test_full_run_writes_failure_report_when_mysql_load_fails(
+        self,
+        load_all_tables,
+        get_payload_mock,
+        transform_cards,
+        print_run_summary,
+        print_table_counts,
+        print_load_summary,
+        fetch_eur_usd_rate,
+        save_run_report,
+    ):
+        payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
+        tables = {"cards": [{"card_id": 1}]}
+        args = Namespace(source="file", raw_path="raw.json", skip_save_raw=False, dry_run=False)
+        get_payload_mock.return_value = (payload, None, [])
+        fetch_eur_usd_rate.side_effect = RuntimeError("ecb down")
+        transform_cards.return_value = tables
+        load_all_tables.side_effect = RuntimeError("mysql down")
+
+        with patch("builtins.print"), self.assertRaisesRegex(RuntimeError, "mysql down"):
+            run_pipeline(args)
+
+        save_run_report.assert_called_once()
+        self.assertFalse(save_run_report.call_args.kwargs["dry_run"])
+        self.assertEqual(save_run_report.call_args.kwargs["run_status"], "failed")
+        self.assertEqual(save_run_report.call_args.kwargs["error_phase"], "load")
+        self.assertEqual(save_run_report.call_args.kwargs["error_type"], "RuntimeError")
+        self.assertEqual(save_run_report.call_args.kwargs["error_message"], "mysql down")
+        print_load_summary.assert_not_called()
+
 
 class LoadSqlTest(unittest.TestCase):
     def test_rarities_sql_uses_set_code_not_card_id(self):
@@ -146,6 +184,14 @@ class LoadSqlTest(unittest.TestCase):
         self.assertIn("set_code", sql)
         self.assertIn("%(set_code)s", sql)
         self.assertNotIn("%(card_id)s", sql)
+
+    def test_cardmarket_load_sql_uses_explicit_eur_and_usd_placeholders(self):
+        for sql in (card_prices_sql(), card_price_history_sql()):
+            with self.subTest(sql=sql):
+                self.assertIn("cardmarket_price_eur", sql)
+                self.assertIn("cardmarket_usd", sql)
+                self.assertIn("%(cardmarket_price_eur)s", sql)
+                self.assertIn("%(cardmarket_price_usd)s", sql)
 
 
 if __name__ == "__main__":

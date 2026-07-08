@@ -30,9 +30,31 @@ class ReportFileTest(unittest.TestCase):
         self.assertIn("month: 05", text)
         self.assertIn("day: 21", text)
         self.assertIn("hour: 08", text)
+        self.assertIn("status: completed", text)
         self.assertIn("mode: dry-run", text)
         self.assertIn("- cards: 1", text)
         self.assertIn("- sets: 0", text)
+
+    def test_build_report_text_includes_failure_context(self):
+        created_at = datetime(2026, 5, 21, 8, 9, 10)
+        text = build_report_text(
+            metadata={"source": "test"},
+            snapshot_at="2026-05-21 08:09:10",
+            raw_path="data/raw/cardinfo_latest.json",
+            tables={"cards": [{"card_id": 1}]},
+            dry_run=False,
+            affected=None,
+            created_at=created_at,
+            run_status="failed",
+            error_phase="load",
+            error_type="RuntimeError",
+            error_message="load failed",
+        )
+
+        self.assertIn("status: failed", text)
+        self.assertIn("error_phase: load", text)
+        self.assertIn("error_type: RuntimeError", text)
+        self.assertIn("error_message: load failed", text)
 
     def test_save_run_report_writes_txt_file(self):
         created_at = datetime(2026, 5, 21, 8, 9, 10)

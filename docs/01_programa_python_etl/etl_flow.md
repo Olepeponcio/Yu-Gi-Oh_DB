@@ -27,7 +27,13 @@ src/etl/main.py
 - `src/etl/load.py`: inserta o actualiza datos en MySQL.
 - `sql/schema.sql`: crea las tablas necesarias antes de ejecutar el ETL.
 
-El ETL depende del modelo definido en `sql/schema.sql`. Si se cambian columnas o tablas, normalmente tambien se deben ajustar `src/etl/transform/` y `src/etl/load.py`.
+El ETL depende del modelo definido en `sql/schema.sql`. Si se cambian columnas o tablas, se ajustan `src/etl/transform/` y `src/etl/load.py`, y la DB se resetea/recrea desde `sql/schema.sql`.
+
+Contrato estructural:
+
+- `sql/schema.sql` es la fuente unica para crear tablas madre.
+- Python no crea ni altera la estructura de tablas.
+- No se mantienen migraciones incrementales como contrato principal.
 
 ## Transformacion
 

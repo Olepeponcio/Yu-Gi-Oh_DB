@@ -3,11 +3,11 @@ SELECT
     c.name AS card_name,
     'cardmarket' AS price_source,
     'EUR' AS currency,
-    cp.cardmarket_price AS price
+    cp.cardmarket_price_eur AS price
 FROM card_prices cp
 JOIN cards c
     ON cp.card_id = c.card_id
-WHERE cp.cardmarket_price IS NOT NULL
+WHERE cp.cardmarket_price_eur IS NOT NULL
 
 UNION ALL
 

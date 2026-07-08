@@ -10,11 +10,12 @@ def normalize_card_prices(raw_card, eur_usd_rate=None):
         return None
 
     raw_prices = prices[0]
-    cardmarket_price = to_decimal(raw_prices.get("cardmarket_price"))
+    cardmarket_price_eur = to_decimal(raw_prices.get("cardmarket_price"))
+    cardmarket_price_usd = convert_eur_to_usd(cardmarket_price_eur, eur_usd_rate)
     card_prices = {
         "card_id": to_int(raw_card.get("id")),
-        "cardmarket_price": cardmarket_price,
-        "cardmarket_usd": convert_eur_to_usd(cardmarket_price, eur_usd_rate),
+        "cardmarket_price_eur": cardmarket_price_eur,
+        "cardmarket_price_usd": cardmarket_price_usd,
         "tcgplayer_price": to_decimal(raw_prices.get("tcgplayer_price")),
         "ebay_price": to_decimal(raw_prices.get("ebay_price")),
         "amazon_price": to_decimal(raw_prices.get("amazon_price")),

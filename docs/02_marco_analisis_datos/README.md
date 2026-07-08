@@ -20,7 +20,8 @@ Premisas:
 - `card_sets` identifica la aparicion de una carta en set/rareza.
 - `set_price` pertenece a `card_sets`.
 - `set_price` no es precio propio de una rareza.
-- `cardmarket_price` llega en EUR.
+- `cardmarket_price_eur` almacena Cardmarket en EUR.
+- `cardmarket_usd` almacena Cardmarket convertido a USD.
 - `tcgplayer_price`, `ebay_price`, `amazon_price` y `coolstuffinc_price` llegan en USD.
 - Los precios actuales se consumen en formato largo desde `vw_fact_card_prices_descriptive`.
 - Las apariciones se consumen desde `vw_fact_card_set_appearances`.
@@ -173,7 +174,7 @@ Objetivo: estudiar variacion temporal solo cuando haya suficientes snapshots.
 - Estado: Hecho.
 - Criterio de avance: comparar snapshots por marketplace.
 - Grano esperado: `1 carta + 1 marketplace + 1 moneda + 1 snapshot con snapshot anterior comparable`.
-- Notas: conservar moneda; `cardmarket_price` es EUR y el resto de marketplaces son USD. Requiere al menos dos snapshots comparables por carta y marketplace.
+- Notas: conservar moneda; `cardmarket_price_eur` es EUR, `cardmarket_usd` es USD y el resto de marketplaces son USD. Requiere al menos dos snapshots comparables por carta y marketplace.
 
 ### Cartas con subida relevante
 

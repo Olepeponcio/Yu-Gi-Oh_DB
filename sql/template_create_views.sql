@@ -6,8 +6,8 @@
 --
 -- Nota:
 --   Esta plantilla no modifica tablas.
---   cardmarket_price se mantiene como EUR en las vistas actuales.
---   cardmarket_usd queda disponible en tablas para calculos SQL/Power BI externos.
+--   cardmarket_price_eur se mantiene como EUR.
+--   cardmarket_usd se expone para comparativas USD entre marketplaces.
 
 SET NAMES utf8mb4;
 
@@ -133,12 +133,14 @@ CREATE OR REPLACE VIEW vw_fact_avg_market_price AS
 WITH avg_market_price AS (
     SELECT
         cp.card_id,
-        cp.cardmarket_price AS cardmarket,
+        cp.cardmarket_price_eur AS cardmarket_eur,
+        cp.cardmarket_usd AS cardmarket_usd,
         cp.tcgplayer_price AS tcgplayer,
         cp.ebay_price AS ebay,
         cp.amazon_price AS amazon,
         cp.coolstuffinc_price AS coolstuffinc,
         (
+            COALESCE(cp.cardmarket_usd, 0) +
             COALESCE(cp.tcgplayer_price, 0) +
             COALESCE(cp.ebay_price, 0) +
             COALESCE(cp.amazon_price, 0) +
@@ -146,6 +148,7 @@ WITH avg_market_price AS (
         )
         /
         NULLIF(
+            (cp.cardmarket_usd IS NOT NULL) +
             (cp.tcgplayer_price IS NOT NULL) +
             (cp.ebay_price IS NOT NULL) +
             (cp.amazon_price IS NOT NULL) +
@@ -157,7 +160,8 @@ WITH avg_market_price AS (
 SELECT
     amp.card_id,
     c.name AS card_name,
-    amp.cardmarket,
+    amp.cardmarket_eur,
+    amp.cardmarket_usd,
     amp.tcgplayer,
     amp.ebay,
     amp.amazon,
@@ -174,11 +178,24 @@ SELECT
     c.name AS card_name,
     'cardmarket' AS marketplace,
     'EUR' AS currency,
-    cp.cardmarket_price AS price
+    cp.cardmarket_price_eur AS price
 FROM card_prices cp
 LEFT JOIN cards c
     ON cp.card_id = c.card_id
-WHERE cp.cardmarket_price IS NOT NULL
+WHERE cp.cardmarket_price_eur IS NOT NULL
+
+UNION ALL
+
+SELECT
+    c.card_id,
+    c.name AS card_name,
+    'cardmarket' AS marketplace,
+    'USD' AS currency,
+    cp.cardmarket_usd AS price
+FROM card_prices cp
+LEFT JOIN cards c
+    ON cp.card_id = c.card_id
+WHERE cp.cardmarket_usd IS NOT NULL
 
 UNION ALL
 
@@ -261,11 +278,25 @@ WITH price_history_long AS (
         cph.snapshot_at,
         'cardmarket' AS marketplace,
         'EUR' AS currency,
-        cph.cardmarket_price AS price
+        cph.cardmarket_price_eur AS price
     FROM card_price_history cph
     LEFT JOIN cards c
         ON cph.card_id = c.card_id
-    WHERE cph.cardmarket_price IS NOT NULL
+    WHERE cph.cardmarket_price_eur IS NOT NULL
+
+    UNION ALL
+
+    SELECT
+        cph.card_id,
+        c.name AS card_name,
+        cph.snapshot_at,
+        'cardmarket' AS marketplace,
+        'USD' AS currency,
+        cph.cardmarket_usd AS price
+    FROM card_price_history cph
+    LEFT JOIN cards c
+        ON cph.card_id = c.card_id
+    WHERE cph.cardmarket_usd IS NOT NULL
 
     UNION ALL
 

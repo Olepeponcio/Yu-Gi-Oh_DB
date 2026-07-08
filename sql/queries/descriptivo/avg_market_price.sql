@@ -1,6 +1,6 @@
 SELECT 
     cp.card_id,
-    cp.cardmarket_price AS cardmarket_EUR,
+    cp.cardmarket_price_eur AS cardmarket_EUR,
     cp.tcgplayer_price AS tcgplayer_USD,
     cp.ebay_price AS ebay_USD,
     cp.amazon_price AS amazon_USD,

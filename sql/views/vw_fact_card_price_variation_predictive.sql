@@ -10,11 +10,25 @@ WITH price_history_long AS (
         cph.snapshot_at,
         'cardmarket' AS marketplace,
         'EUR' AS currency,
-        cph.cardmarket_price AS price
+        cph.cardmarket_price_eur AS price
     FROM card_price_history cph
     LEFT JOIN cards c
         ON cph.card_id = c.card_id
-    WHERE cph.cardmarket_price IS NOT NULL
+    WHERE cph.cardmarket_price_eur IS NOT NULL
+
+    UNION ALL
+
+    SELECT
+        cph.card_id,
+        c.name AS card_name,
+        cph.snapshot_at,
+        'cardmarket' AS marketplace,
+        'USD' AS currency,
+        cph.cardmarket_usd AS price
+    FROM card_price_history cph
+    LEFT JOIN cards c
+        ON cph.card_id = c.card_id
+    WHERE cph.cardmarket_usd IS NOT NULL
 
     UNION ALL
 

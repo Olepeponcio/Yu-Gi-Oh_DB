@@ -258,7 +258,7 @@ def card_prices_sql():
     return """
         INSERT INTO card_prices (
             card_id,
-            cardmarket_price,
+            cardmarket_price_eur,
             cardmarket_usd,
             tcgplayer_price,
             ebay_price,
@@ -266,15 +266,15 @@ def card_prices_sql():
             coolstuffinc_price
         ) VALUES (
             %(card_id)s,
-            %(cardmarket_price)s,
-            %(cardmarket_usd)s,
+            %(cardmarket_price_eur)s,
+            %(cardmarket_price_usd)s,
             %(tcgplayer_price)s,
             %(ebay_price)s,
             %(amazon_price)s,
             %(coolstuffinc_price)s
         )
         ON DUPLICATE KEY UPDATE
-            cardmarket_price = VALUES(cardmarket_price),
+            cardmarket_price_eur = VALUES(cardmarket_price_eur),
             cardmarket_usd = VALUES(cardmarket_usd),
             tcgplayer_price = VALUES(tcgplayer_price),
             ebay_price = VALUES(ebay_price),
@@ -288,7 +288,7 @@ def card_price_history_sql():
         INSERT INTO card_price_history (
             card_id,
             snapshot_at,
-            cardmarket_price,
+            cardmarket_price_eur,
             cardmarket_usd,
             tcgplayer_price,
             ebay_price,
@@ -297,15 +297,15 @@ def card_price_history_sql():
         ) VALUES (
             %(card_id)s,
             %(snapshot_at)s,
-            %(cardmarket_price)s,
-            %(cardmarket_usd)s,
+            %(cardmarket_price_eur)s,
+            %(cardmarket_price_usd)s,
             %(tcgplayer_price)s,
             %(ebay_price)s,
             %(amazon_price)s,
             %(coolstuffinc_price)s
         )
         ON DUPLICATE KEY UPDATE
-            cardmarket_price = VALUES(cardmarket_price),
+            cardmarket_price_eur = VALUES(cardmarket_price_eur),
             cardmarket_usd = VALUES(cardmarket_usd),
             tcgplayer_price = VALUES(tcgplayer_price),
             ebay_price = VALUES(ebay_price),

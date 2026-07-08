@@ -18,6 +18,10 @@ def save_run_report(
     created_at=None,
     extraction_events=None,
     exchange_rate=None,
+    run_status="completed",
+    error_phase=None,
+    error_type=None,
+    error_message=None,
 ):
     if created_at is None:
         created_at = datetime.now()
@@ -36,6 +40,10 @@ def save_run_report(
             created_at,
             extraction_events=extraction_events,
             exchange_rate=exchange_rate,
+            run_status=run_status,
+            error_phase=error_phase,
+            error_type=error_type,
+            error_message=error_message,
         ),
         encoding="utf-8",
     )
@@ -73,6 +81,10 @@ def build_report_text(
     created_at,
     extraction_events=None,
     exchange_rate=None,
+    run_status="completed",
+    error_phase=None,
+    error_type=None,
+    error_message=None,
 ):
     lines = [
         "ETL YGOPRODeck report",
@@ -81,15 +93,24 @@ def build_report_text(
         f"month: {created_at.strftime('%m')}",
         f"day: {created_at.strftime('%d')}",
         f"hour: {created_at.strftime('%H')}",
+        f"status: {run_status}",
         f"mode: {'dry-run' if dry_run else 'load'}",
         f"source: {metadata.get('source', 'raw file')}",
         f"raw_ingested_at: {metadata.get('ingested_at', 'no disponible')}",
         f"source_last_updated: {metadata.get('source_last_updated') or 'no disponible'}",
         f"price_snapshot_at: {snapshot_at}",
         f"raw_path: {raw_path or 'no guardado'}",
+    ]
+
+    if error_message is not None:
+        lines.append(f"error_phase: {error_phase or 'no disponible'}")
+        lines.append(f"error_type: {error_type or 'no disponible'}")
+        lines.append(f"error_message: {error_message}")
+
+    lines.extend([
         "",
         "api_extraction:",
-    ]
+    ])
 
     for event in extraction_events or []:
         lines.append(f"- {event['source']}: {event['status']} - {event['detail']}")

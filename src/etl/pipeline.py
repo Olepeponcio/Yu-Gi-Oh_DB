@@ -9,60 +9,100 @@ from src.etl.transform import transform_cards
 
 
 def run_pipeline(args):
-    payload, raw_path, extraction_events = get_payload(args)
-    exchange_rate = get_exchange_rate(extraction_events)
-    raw_cards = payload["data"]
-    metadata = payload.get("metadata", {})
     snapshot_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    eur_usd_rate = exchange_rate.rate if exchange_rate is not None else None
-    tables = transform_cards(raw_cards, snapshot_at=snapshot_at, eur_usd_rate=eur_usd_rate)
+    metadata = {}
+    raw_path = None
+    extraction_events = []
+    exchange_rate = None
+    tables = {}
+    phase = "payload"
 
-    print_run_summary(metadata, snapshot_at, raw_path)
-    print_extraction_events(extraction_events)
-    print_table_counts(tables)
+    try:
+        payload, raw_path, extraction_events = get_payload(args)
+        metadata = payload.get("metadata", {})
 
-    if metadata.get("extraction_status") == "failed":
-        print("Carga MySQL omitida: no hay extraccion valida de YGOPRODeck.")
+        phase = "exchange_rate"
+        exchange_rate = get_exchange_rate(extraction_events)
+
+        phase = "transform"
+        raw_cards = payload["data"]
+        eur_usd_rate = exchange_rate.rate if exchange_rate is not None else None
+        tables = transform_cards(raw_cards, snapshot_at=snapshot_at, eur_usd_rate=eur_usd_rate)
+
+        report_raw_path = get_report_raw_path(args, raw_path)
+        print_run_summary(metadata, snapshot_at, raw_path)
+        print_extraction_events(extraction_events)
+        print_table_counts(tables)
+
+        if metadata.get("extraction_status") == "failed":
+            print("Carga MySQL omitida: no hay extraccion valida de YGOPRODeck.")
+            report_path = save_run_report(
+                metadata,
+                snapshot_at,
+                report_raw_path,
+                tables,
+                dry_run=True,
+                extraction_events=extraction_events,
+                exchange_rate=exchange_rate,
+            )
+            print(f"Reporte ETL guardado: {report_path}")
+            return tables
+
+        if args.dry_run:
+            print("Dry-run completado sin cargar en MySQL.")
+            report_path = save_run_report(
+                metadata,
+                snapshot_at,
+                report_raw_path,
+                tables,
+                dry_run=True,
+                extraction_events=extraction_events,
+                exchange_rate=exchange_rate,
+            )
+            print(f"Reporte ETL guardado: {report_path}")
+            return tables
+
+        phase = "load"
+        affected = load_all_tables(tables)
+        print_load_summary(affected)
         report_path = save_run_report(
             metadata,
             snapshot_at,
-            raw_path,
+            report_raw_path,
             tables,
-            dry_run=True,
+            dry_run=False,
+            affected=affected,
             extraction_events=extraction_events,
             exchange_rate=exchange_rate,
         )
         print(f"Reporte ETL guardado: {report_path}")
         return tables
-
-    if args.dry_run:
-        print("Dry-run completado sin cargar en MySQL.")
+    except Exception as error:
+        report_raw_path = get_report_raw_path(args, raw_path)
         report_path = save_run_report(
             metadata,
             snapshot_at,
-            raw_path,
+            report_raw_path,
             tables,
-            dry_run=True,
+            dry_run=args.dry_run,
             extraction_events=extraction_events,
             exchange_rate=exchange_rate,
+            run_status="failed",
+            error_phase=phase,
+            error_type=type(error).__name__,
+            error_message=str(error),
         )
+        print(f"Error ETL en fase {phase}: {error}")
         print(f"Reporte ETL guardado: {report_path}")
-        return tables
+        raise
 
-    affected = load_all_tables(tables)
-    print_load_summary(affected)
-    report_path = save_run_report(
-        metadata,
-        snapshot_at,
-        raw_path,
-        tables,
-        dry_run=False,
-        affected=affected,
-        extraction_events=extraction_events,
-        exchange_rate=exchange_rate,
-    )
-    print(f"Reporte ETL guardado: {report_path}")
-    return tables
+
+def get_report_raw_path(args, raw_path):
+    if raw_path is not None:
+        return raw_path
+    if args.source == "file":
+        return args.raw_path
+    return None
 
 
 def get_payload(args):
