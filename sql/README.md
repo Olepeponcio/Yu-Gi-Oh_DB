@@ -12,8 +12,7 @@ sql/security_etl_user.sql -> plantilla de usuario ETL local con permisos minimos
 Plantillas de creacion/reemplazo:
 
 ```text
-sql/create_or_replace_views.sql           -> consola mysql, usa SOURCE
-sql/create_or_replace_views_workbench.sql -> hoja SQL / MySQL Workbench
+sql/template_create_views.sql -> crea o reemplaza todas las vistas mantenidas
 ```
 
 ## Uso
@@ -21,13 +20,13 @@ sql/create_or_replace_views_workbench.sql -> hoja SQL / MySQL Workbench
 Consola `mysql`:
 
 ```sql
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/create_or_replace_views.sql;
+SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/template_create_views.sql;
 ```
 
 MySQL Workbench:
 
 ```text
-abrir y ejecutar sql/create_or_replace_views_workbench.sql
+abrir y ejecutar sql/template_create_views.sql
 ```
 
 ## Vistas del modelo Power BI
@@ -77,7 +76,7 @@ vw_dim_snapshots_descriptive[snapshot_at]
 - Usar `UNION ALL` para transformar precios de columnas a formato largo.
 - Las preguntas de ranking, revision y resumen se resuelven desde hechos base en Power BI.
 - No relacionar hechos entre si en Power BI salvo necesidad justificada.
-- Cada nueva view usada en Power BI debe anadirse a `sql/create_or_replace_views.sql` y `sql/create_or_replace_views_workbench.sql`.
+- Cada nueva view usada en Power BI debe anadirse a `sql/template_create_views.sql`.
 
 ## Preguntas cubiertas
 
