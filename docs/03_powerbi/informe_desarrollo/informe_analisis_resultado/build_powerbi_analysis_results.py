@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import unicodedata
 from datetime import datetime
 from pathlib import Path
 from typing import Iterable
@@ -16,12 +17,12 @@ from docx.shared import Inches, Pt, RGBColor
 
 BASE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = BASE_DIR.parents[3]
+EXPORT_DIR = PROJECT_ROOT / "power_bi" / "informes" / "exports"
 OUT_DIR = PROJECT_ROOT / "power_bi" / "informes"
 OUT_PATH = OUT_DIR / "informe_analisis_resultados_powerbi_yugioh.docx"
 
-PAGE_GENERAL = BASE_DIR / "01_vista_general"
-PAGE_DESCRIPTIVE = BASE_DIR / "02_analisis_descriptivo"
-PAGE_DIAGNOSTIC = BASE_DIR / "03_analisis_diagnostico"
+PAGE_DESCRIPTIVE = EXPORT_DIR / "descriptive"
+PAGE_DIAGNOSTIC = EXPORT_DIR / "diagnostic"
 
 BLUE = "2E74B5"
 DARK_BLUE = "1F4D78"
@@ -36,8 +37,7 @@ def clean_number(value):
         return None
     if isinstance(value, (int, float)):
         return float(value)
-    text = str(value).strip()
-    text = text.replace("\xa0", " ")
+    text = str(value).strip().replace("\xa0", " ")
     text = re.sub(r"[^0-9,.\-]", "", text)
     if not text:
         return None
@@ -63,15 +63,35 @@ def fmt_money(value, decimals=2, symbol="$"):
     return f"{symbol}{float(value):,.{decimals}f}"
 
 
+def fmt_ratio(value):
+    if value is None or pd.isna(value):
+        return "n/d"
+    return f"{float(value):,.2f}x"
+
+
+def normalize_label(value):
+    return str(value).strip().replace("\ufeff", "").replace("ï»¿", "")
+
+
+def text_key(value):
+    text = normalize_label(value).lower()
+    text = unicodedata.normalize("NFKD", text)
+    return "".join(ch for ch in text if not unicodedata.combining(ch))
+
+
 def read_csv(path: Path) -> pd.DataFrame:
-    df = pd.read_csv(path)
-    df.columns = [str(col).strip() for col in df.columns]
+    df = pd.read_csv(path, encoding="utf-8-sig")
+    df.columns = [normalize_label(col) for col in df.columns]
+    for col in df.columns:
+        if not (pd.api.types.is_object_dtype(df[col]) or pd.api.types.is_string_dtype(df[col])):
+            continue
+        df[col] = df[col].map(normalize_label)
     return df
 
 
 def set_cell_shading(cell, fill: str) -> None:
     tc_pr = cell._tc.get_or_add_tcPr()
-    shd = cell._tc.get_or_add_tcPr().find(qn("w:shd"))
+    shd = tc_pr.find(qn("w:shd"))
     if shd is None:
         shd = OxmlElement("w:shd")
         tc_pr.append(shd)
@@ -216,51 +236,42 @@ def add_footer(doc: Document) -> None:
     run.font.color.rgb = RGBColor.from_string(MUTED)
 
 
-def add_image_if_exists(doc: Document, image_path: Path, caption: str) -> None:
-    if not image_path.exists():
-        return
-    doc.add_picture(str(image_path), width=Inches(6.3))
-    cap = doc.add_paragraph(caption)
-    cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    cap.runs[0].font.size = Pt(9)
-    cap.runs[0].font.color.rgb = RGBColor.from_string(MUTED)
-
-
-def get_scalar(df: pd.DataFrame, column: str):
-    return df.iloc[0][column]
-
-
 def load_data() -> dict[str, pd.DataFrame]:
     return {
-        "vol_cards": read_csv(PAGE_GENERAL / "Volumen de Cartas.csv"),
-        "vol_sets": read_csv(PAGE_GENERAL / "Volumen de Sets.csv"),
-        "rarities": read_csv(PAGE_GENERAL / "Rarezas.csv"),
-        "snapshots": read_csv(PAGE_GENERAL / "Total Snapshots.csv"),
-        "last_snapshot": read_csv(PAGE_GENERAL / "Ultimo Snapshot.csv"),
-        "marketplaces": read_csv(PAGE_GENERAL / "Marketplaces.csv"),
+        "top_cards": read_csv(PAGE_DESCRIPTIVE / "data.csv"),
         "market_avg": read_csv(PAGE_DESCRIPTIVE / "Precio medio global por Marketplace USD.csv"),
-        "card_prices": read_csv(PAGE_DESCRIPTIVE / "Precio medio de mercado USD.csv"),
-        "card_market_rank": read_csv(PAGE_DESCRIPTIVE / "cartas mayor precio medio marketplace.csv"),
-        "set_values": read_csv(PAGE_DESCRIPTIVE / "Valor Mercado Set por set_name.csv"),
-        "rarity_median": read_csv(PAGE_DIAGNOSTIC / "Precio Mediana por rareza.csv"),
-        "card_sets": read_csv(PAGE_DIAGNOSTIC / "Sets Distintos por Carta y Apariciones en Sets por card_name.csv"),
-        "diagnostic_marketplaces": read_csv(PAGE_DIAGNOSTIC / "marketplace.csv"),
+        "set_values": read_csv(PAGE_DESCRIPTIVE / "Precios por set.csv"),
+        "rarity_counts": read_csv(PAGE_DIAGNOSTIC / "Cartas distintas por rareza por rarity_name.csv"),
+        "quality_counts": read_csv(PAGE_DIAGNOSTIC / "Cartas distintas por rareza por revision rarity name.csv"),
+        "outlier_table": read_csv(PAGE_DIAGNOSTIC / "data.csv"),
+        "rarity_table": read_csv(PAGE_DIAGNOSTIC / "tabla_rarezas.csv"),
     }
 
 
 def prepare_data(data: dict[str, pd.DataFrame]) -> None:
     data["market_avg"]["Promedio de price_num"] = data["market_avg"]["Promedio de price"].map(clean_number)
-    data["card_prices"]["Precio medio_num"] = data["card_prices"]["Precio medio"].map(clean_number)
-    for col in ["Precio Amazon", "Precio CoolStuffInc", "Precio eBay", "Precio TCGplayer"]:
-        if col in data["card_prices"].columns:
-            data["card_prices"][col + "_num"] = data["card_prices"][col].map(clean_number)
-    data["card_market_rank"]["Precio medio marketplace USD_num"] = data["card_market_rank"][
-        "Precio medio marketplace USD"
+    data["set_values"]["Suma de set_price_num"] = data["set_values"]["Suma de set_price"].map(clean_number)
+    data["top_cards"]["avg_price_USD_num"] = data["top_cards"]["avg_price_USD"].map(clean_number)
+    for col in ["cardmarket_usd", "tcgplayer", "ebay", "amazon", "coolstuffinc"]:
+        data["top_cards"][col + "_num"] = data["top_cards"][col].map(clean_number)
+
+    data["quality_counts"]["Cartas distintas por rareza_num"] = data["quality_counts"][
+        "Cartas distintas por rareza"
     ].map(clean_number)
-    data["set_values"]["Valor Mercado Set_num"] = data["set_values"]["Valor Mercado Set"].map(clean_number)
-    data["rarity_median"]["Precio Mediano por Rareza_num"] = data["rarity_median"][
-        "Precio Mediano por Rareza"
-    ].map(clean_number)
+    data["outlier_table"]["precio max_num"] = data["outlier_table"]["precio max"].map(clean_number)
+    data["outlier_table"]["Ratio outlier_num"] = data["outlier_table"]["Ratio outlier"].map(clean_number)
+
+    max_col = [col for col in data["rarity_table"].columns if col.startswith("Precio")][0]
+    ratio_col = [col for col in data["rarity_table"].columns if col.startswith("Ratio")][0]
+    data["rarity_table"]["precio_max_num"] = data["rarity_table"][max_col].map(clean_number)
+    data["rarity_table"]["ratio_num"] = data["rarity_table"][ratio_col].map(clean_number)
+
+
+def rows_count(df: pd.DataFrame, col: str, value: str) -> float:
+    match = df[df[col].map(text_key) == text_key(value)]
+    if match.empty:
+        return 0
+    return float(match.iloc[0]["Cartas distintas por rareza_num"])
 
 
 def add_cover(doc: Document, data: dict[str, pd.DataFrame]) -> None:
@@ -269,7 +280,7 @@ def add_cover(doc: Document, data: dict[str, pd.DataFrame]) -> None:
     title.add_run("Informe de resultados del analisis Power BI")
     subtitle = doc.add_paragraph()
     subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = subtitle.add_run("Proyecto SQL DB Yu-Gi-Oh | Resultados exportados de visuales")
+    run = subtitle.add_run("Proyecto SQL DB Yu-Gi-Oh | Exports descriptivo y diagnostico")
     run.font.size = Pt(13)
     run.font.color.rgb = RGBColor.from_string(MUTED)
     doc.add_paragraph()
@@ -278,297 +289,278 @@ def add_cover(doc: Document, data: dict[str, pd.DataFrame]) -> None:
         ["Elemento", "Valor"],
         [
             ["Documento", "Informe de analisis y resultados"],
-            ["Fuente", "CSV exportados desde paginas 01, 02 y 03 del PBIX"],
+            ["Fuente", str(EXPORT_DIR.relative_to(PROJECT_ROOT))],
+            ["Paginas analizadas", "02_analisis_descriptivo y 03_analisis_diagnostico"],
             ["Salida", str(OUT_PATH.relative_to(PROJECT_ROOT))],
             ["Fecha de generacion", datetime.now().strftime("%Y-%m-%d %H:%M")],
-            ["Ultimo snapshot", str(get_scalar(data["last_snapshot"], "Ultimo snapshot"))],
         ],
         [2600, 6760],
     )
 
 
 def add_executive_summary(doc: Document, data: dict[str, pd.DataFrame]) -> None:
-    cards = int(get_scalar(data["vol_cards"], "Volumen de cartas"))
-    sets = int(get_scalar(data["vol_sets"], "Volumen de sets"))
-    rarity_rows = int(get_scalar(data["rarities"], "Volumen de rarezas"))
-    rarity_names = int(get_scalar(data["rarities"], "Nombres de rareza"))
-    snapshots = int(get_scalar(data["snapshots"], "Total snapshots"))
     top_market = data["market_avg"].sort_values("Promedio de price_num", ascending=False).iloc[0]
-    top_card = data["card_prices"].sort_values("Precio medio_num", ascending=False).iloc[0]
-    top_rarity = data["rarity_median"].sort_values("Precio Mediano por Rareza_num", ascending=False).iloc[0]
-    top_presence = data["card_sets"].sort_values("Sets Distintos por Carta", ascending=False).iloc[0]
+    top_card = data["top_cards"].sort_values("avg_price_USD_num", ascending=False).iloc[0]
+    top_set = data["set_values"].sort_values("Suma de set_price_num", ascending=False).iloc[0]
+    valid_count = rows_count(data["quality_counts"], "revision rarity name", "Rareza válida")
+    suspect_count = data["quality_counts"]["Cartas distintas por rareza_num"].sum() - valid_count
+    outliers = data["outlier_table"][data["outlier_table"]["Flag Outlier"].map(text_key) == "si"]
+    valid_outliers = outliers[outliers["revision rarity name"].map(text_key) == "rareza valida"]
+    critical = data["outlier_table"][data["outlier_table"]["Nivel outlier"].map(text_key) == "critico"]
 
     doc.add_heading("1. Resumen ejecutivo", level=1)
     add_callout(
         doc,
-        "Hallazgo central: el modelo ya permite separar tres lecturas: cobertura general del catalogo, "
-        "valor descriptivo por carta/marketplace/set y diagnostico por rareza o presencia en sets.",
+        "Hallazgo central: los visuales actuales ya separan valor descriptivo, control de categorias de rareza "
+        "y deteccion explicita de outliers. La decision de lectura debe partir de rarezas validas y tratar los "
+        "precios extremos como candidatos a revision.",
         "EAF3FF",
     )
     add_matrix(
         doc,
         ["Indicador", "Resultado", "Lectura"],
         [
-            ["Cartas", fmt_number(cards), "Catalogo amplio; suficiente para rankings y segmentaciones."],
-            ["Sets", fmt_number(sets), "Base amplia para analizar reimpresiones y valor por set."],
-            ["Rarezas tecnicas", fmt_number(rarity_rows), f"Agrupadas en {rarity_names} nombres de rareza."],
-            ["Snapshots", fmt_number(snapshots), "Hay base inicial para historico, aunque debe validarse granularidad temporal."],
             [
                 "Marketplace con mayor precio medio",
                 f"{top_market['marketplace_name']} ({fmt_money(top_market['Promedio de price_num'])})",
-                "Senal descriptiva; no implica mejor oportunidad.",
+                "eBay lidera el promedio exportado; puede contener listados altos.",
             ],
             [
                 "Carta con mayor precio medio",
-                f"{top_card['name']} ({fmt_money(top_card['Precio medio_num'])})",
-                "Candidata a revision por posible outlier o carta premio.",
+                f"{top_card['name']} ({fmt_money(top_card['avg_price_USD_num'])})",
+                "Ranking util para revision, no para recomendacion directa.",
             ],
             [
-                "Rareza con mayor mediana",
-                f"{top_rarity['rarity_name']} ({fmt_money(top_rarity['Precio Mediano por Rareza_num'])})",
-                "Senal diagnostica de rarezas asociadas a precios superiores.",
+                "Set con mayor valor agregado",
+                f"{top_set['set_name']} ({fmt_money(top_set['Suma de set_price_num'], symbol='EUR ')})",
+                "El valor se concentra en prize cards y sets promocionales.",
             ],
             [
-                "Carta con mas sets",
-                f"{top_presence['card_name']} ({int(top_presence['Sets Distintos por Carta'])} sets)",
-                "Presencia alta: reimpresion, popularidad o disponibilidad historica.",
+                "Categorias validas",
+                fmt_number(valid_count),
+                "Base recomendada para visuales principales.",
+            ],
+            [
+                "Categorias sospechosas",
+                fmt_number(suspect_count),
+                "Deben quedar en visual de calidad, no en rankings principales.",
+            ],
+            [
+                "Outliers validos",
+                fmt_number(len(valid_outliers)),
+                "Rarezas validas con precio maximo muy superior a la referencia.",
+            ],
+            [
+                "Outliers criticos",
+                fmt_number(len(critical)),
+                "Prioridad de auditoria de fuente, moneda y cobertura.",
             ],
         ],
-        [2300, 2600, 4460],
+        [2500, 2600, 4260],
     )
 
 
 def add_methodology(doc: Document) -> None:
     doc.add_heading("2. Fuente y metodologia", level=1)
     doc.add_paragraph(
-        "Este informe usa los CSV exportados desde los visuales de Power BI. Por tanto, analiza el resultado "
-        "observado en el dashboard, no reconstruye el modelo completo desde MySQL. La lectura mantiene la "
-        "secuencia: visual, dato observado, interpretacion, decision o cautela."
+        "Este informe usa exclusivamente los CSV exportados desde Power BI en la carpeta de exports. No reconstruye "
+        "el modelo desde MySQL: interpreta lo que muestran los visuales actuales y documenta las cautelas necesarias."
     )
     add_matrix(
         doc,
-        ["Pagina", "Recursos usados", "Finalidad"],
+        ["Bloque", "CSV usados", "Finalidad"],
         [
-            ["01_vista_general", "CSV de tarjetas, marketplaces, rarezas y captura PNG", "Describir cobertura del modelo."],
-            ["02_analisis_descriptivo", "CSV de precios, rankings y valor por set; captura PNG", "Identificar concentraciones de valor."],
-            ["03_analisis_diagnostico", "CSV de rarezas, sets por carta y marketplace; captura PNG", "Explicar posibles causas o patrones."],
+            [
+                "Analisis descriptivo",
+                "data.csv, Precio medio global por Marketplace USD.csv, Precios por set.csv",
+                "Identificar cartas, marketplaces y sets con mayor valor observado.",
+            ],
+            [
+                "Analisis diagnostico",
+                "data.csv, tabla_rarezas.csv, Cartas distintas por rareza por *.csv",
+                "Separar categorias validas, categorias sospechosas y outliers.",
+            ],
         ],
-        [1900, 3960, 3500],
-    )
-
-
-def add_general_view(doc: Document, data: dict[str, pd.DataFrame]) -> None:
-    doc.add_heading("3. Vista general", level=1)
-    add_image_if_exists(doc, PAGE_GENERAL / "01_vista_general.png", "Captura de la pagina 01_vista_general.")
-    cards = int(get_scalar(data["vol_cards"], "Volumen de cartas"))
-    sets = int(get_scalar(data["vol_sets"], "Volumen de sets"))
-    rarity_rows = int(get_scalar(data["rarities"], "Volumen de rarezas"))
-    rarity_names = int(get_scalar(data["rarities"], "Nombres de rareza"))
-    snapshots = int(get_scalar(data["snapshots"], "Total snapshots"))
-    latest = str(get_scalar(data["last_snapshot"], "Ultimo snapshot"))
-    doc.add_heading("3.1 Datos observados", level=2)
-    add_matrix(
-        doc,
-        ["Metrica", "Valor"],
-        [
-            ["Volumen de cartas", fmt_number(cards)],
-            ["Volumen de sets", fmt_number(sets)],
-            ["Filas tecnicas de rareza", fmt_number(rarity_rows)],
-            ["Nombres de rareza", fmt_number(rarity_names)],
-            ["Total snapshots", fmt_number(snapshots)],
-            ["Ultimo snapshot", latest],
-        ],
-        [3600, 5760],
-    )
-    doc.add_heading("3.2 Interpretacion", level=2)
-    doc.add_paragraph(
-        f"El modelo contiene {fmt_number(cards)} cartas y {fmt_number(sets)} sets, volumen suficiente para "
-        "analisis de catalogo, precios y reimpresiones. La diferencia entre filas tecnicas de rareza "
-        f"({fmt_number(rarity_rows)}) y nombres de rareza ({fmt_number(rarity_names)}) indica que la rareza "
-        "debe tratarse con grano controlado: una etiqueta puede repetirse por set, codigo o aparicion."
-    )
-    doc.add_paragraph(
-        f"El historico muestra {fmt_number(snapshots)} snapshots y ultimo corte {latest}. Esto permite iniciar "
-        "lecturas temporales, pero todavia exige cautela antes de hablar de tendencia robusta."
-    )
-    doc.add_heading("3.3 Marketplaces", level=2)
-    add_matrix(
-        doc,
-        ["Marketplace", "Region", "Moneda"],
-        data["marketplaces"].astype(str).values.tolist(),
-        [2800, 3280, 3280],
-    )
-    add_callout(
-        doc,
-        "Decision de lectura: no mezclar Cardmarket con fuentes USD sin conversion. El informe de resultados "
-        "de precios descriptivos se centra en USD cuando el visual asi lo exporta.",
-        "FFF6E5",
+        [2100, 4200, 3060],
     )
 
 
 def add_descriptive_analysis(doc: Document, data: dict[str, pd.DataFrame]) -> None:
-    doc.add_heading("4. Analisis descriptivo", level=1)
-    add_image_if_exists(doc, PAGE_DESCRIPTIVE / "02_analisis_descriptivo.png", "Captura de la pagina 02_Analisis_descriptivo.")
+    doc.add_heading("3. Analisis descriptivo", level=1)
 
-    doc.add_heading("4.1 Precio medio global por marketplace", level=2)
-    market_rows = []
-    for _, row in data["market_avg"].sort_values("Promedio de price_num", ascending=False).iterrows():
-        market_rows.append([row["marketplace_name"], fmt_money(row["Promedio de price_num"])])
-    add_matrix(doc, ["Marketplace", "Precio medio USD"], market_rows, [4200, 5160])
-    leader = data["market_avg"].sort_values("Promedio de price_num", ascending=False).iloc[0]
-    doc.add_paragraph(
-        f"{leader['marketplace_name']} lidera el precio medio global exportado con "
-        f"{fmt_money(leader['Promedio de price_num'])}. La lectura es descriptiva: indica mayor precio medio "
-        "en el conjunto filtrado, no una decision de compra."
-    )
-
-    doc.add_heading("4.2 Cartas con mayor precio medio", level=2)
-    top_cards = data["card_prices"].sort_values("Precio medio_num", ascending=False).head(10)
-    rows = [
-        [r["name"], fmt_money(r["Precio medio_num"]), fmt_money(clean_number(r.get("Precio eBay"))), fmt_money(clean_number(r.get("Precio TCGplayer")))]
-        for _, r in top_cards.iterrows()
+    doc.add_heading("3.1 Precio medio global por marketplace", level=2)
+    market_rows = [
+        [row["marketplace_name"], fmt_money(row["Promedio de price_num"])]
+        for _, row in data["market_avg"].sort_values("Promedio de price_num", ascending=False).iterrows()
     ]
-    add_matrix(doc, ["Carta", "Precio medio", "eBay", "TCGplayer"], rows, [3400, 1900, 1900, 2160])
-    top = top_cards.iloc[0]
-    doc.add_paragraph(
-        f"La carta con mayor precio medio es {top['name']} ({fmt_money(top['Precio medio_num'])}). "
-        "El ranking concentra cartas con precios extremos, por lo que debe usarse como lista de revision y no "
-        "como recomendacion automatica."
-    )
+    add_matrix(doc, ["Marketplace", "Precio medio USD"], market_rows, [4200, 5160])
+    market = data["market_avg"].set_index("marketplace_name")["Promedio de price_num"]
+    if "eBay" in market.index and "Cardmarket" in market.index:
+        doc.add_paragraph(
+            f"eBay promedia {fmt_money(market['eBay'])}, frente a {fmt_money(market['Cardmarket'])} en Cardmarket. "
+            f"La relacion es aproximadamente {fmt_number(market['eBay'] / market['Cardmarket'], 2)}x, por lo que "
+            "la fuente de precio debe mantenerse visible en cualquier conclusion."
+        )
 
-    doc.add_heading("4.3 Ranking carta-marketplace", level=2)
-    top_market_cards = data["card_market_rank"].sort_values("Precio medio marketplace USD_num", ascending=False).head(8)
+    doc.add_heading("3.2 Cartas con mayor precio medio", level=2)
+    top_cards = data["top_cards"].sort_values("avg_price_USD_num", ascending=False).head(10)
     add_matrix(
         doc,
-        ["Carta", "Marketplace", "Precio medio USD"],
+        ["Carta", "Media USD", "eBay", "TCGplayer", "Amazon"],
         [
-            [r["card_name"], r["marketplace"], fmt_money(r["Precio medio marketplace USD_num"])]
-            for _, r in top_market_cards.iterrows()
+            [
+                r["name"],
+                fmt_money(r["avg_price_USD_num"]),
+                fmt_money(r["ebay_num"]),
+                fmt_money(r["tcgplayer_num"]),
+                fmt_money(r["amazon_num"]),
+            ]
+            for _, r in top_cards.iterrows()
         ],
-        [4300, 2300, 2760],
+        [3300, 1500, 1500, 1500, 1560],
     )
+    first = top_cards.iloc[0]
     doc.add_paragraph(
-        "El ranking por carta-marketplace muestra que un mismo nombre puede destacar en fuentes distintas. "
-        "Esto refuerza la necesidad de revisar fuente, cobertura y posibles outliers antes de comparar cartas."
+        f"{first['name']} encabeza el ranking con {fmt_money(first['avg_price_USD_num'])}. "
+        "La tabla muestra que la media puede quedar dominada por un marketplace concreto; por eso debe cruzarse "
+        "con el visual diagnostico de outliers antes de interpretar valor real."
     )
 
-    doc.add_heading("4.4 Valor de mercado por set", level=2)
-    top_sets = data["set_values"].sort_values("Valor Mercado Set_num", ascending=False).head(8)
+    doc.add_heading("3.3 Valor por set", level=2)
+    sets = data["set_values"].sort_values("Suma de set_price_num", ascending=False)
+    total_top20 = sets["Suma de set_price_num"].sum()
+    top1_share = sets.iloc[0]["Suma de set_price_num"] / total_top20
+    top2_share = sets.head(2)["Suma de set_price_num"].sum() / total_top20
+    top6_share = sets.head(6)["Suma de set_price_num"].sum() / total_top20
     add_matrix(
         doc,
-        ["Set", "Valor mercado"],
-        [[r["set_name"], fmt_money(r["Valor Mercado Set_num"])] for _, r in top_sets.iterrows()],
-        [6200, 3160],
+        ["Set", "Valor exportado"],
+        [[r["set_name"], fmt_money(r["Suma de set_price_num"], symbol="EUR ")] for _, r in sets.head(8).iterrows()],
+        [6500, 2860],
     )
-    top_set = top_sets.iloc[0]
     doc.add_paragraph(
-        f"El set con mayor valor exportado es {top_set['set_name']} "
-        f"({fmt_money(top_set['Valor Mercado Set_num'])}). La concentracion en sets premio sugiere que "
-        "rareza competitiva, escasez y coleccionismo condicionan fuertemente el valor agregado."
+        f"El top 20 de sets suma {fmt_money(total_top20, symbol='EUR ')}. El primer set concentra "
+        f"{fmt_number(top1_share * 100, 1)}%, los dos primeros {fmt_number(top2_share * 100, 1)}% y los seis "
+        f"primeros {fmt_number(top6_share * 100, 1)}%. La concentracion confirma que los prize cards condicionan "
+        "el valor agregado."
     )
 
 
 def add_diagnostic_analysis(doc: Document, data: dict[str, pd.DataFrame]) -> None:
-    doc.add_heading("5. Analisis diagnostico", level=1)
-    add_image_if_exists(doc, PAGE_DIAGNOSTIC / "03_analisis_diagnostico.png", "Captura de la pagina 03_Analisis_diagnostico.")
+    doc.add_heading("4. Analisis diagnostico", level=1)
 
-    doc.add_heading("5.1 Precio mediano por rareza", level=2)
-    top_rarities = data["rarity_median"].sort_values("Precio Mediano por Rareza_num", ascending=False).head(10)
+    doc.add_heading("4.1 Calidad de categorias de rareza", level=2)
+    quality = data["quality_counts"].sort_values("Cartas distintas por rareza_num", ascending=False)
+    total_quality = quality["Cartas distintas por rareza_num"].sum()
     add_matrix(
         doc,
-        ["Rareza", "Precio mediano"],
-        [[r["rarity_name"], fmt_money(r["Precio Mediano por Rareza_num"])] for _, r in top_rarities.iterrows()],
-        [6100, 3260],
-    )
-    first = top_rarities.iloc[0]
-    doc.add_paragraph(
-        f"{first['rarity_name']} aparece como rareza con mayor mediana "
-        f"({fmt_money(first['Precio Mediano por Rareza_num'])}). La mediana reduce el efecto de precios extremos, "
-        "por lo que esta lectura es mas estable que un promedio simple para diagnosticar rarezas."
-    )
-    doc.add_paragraph(
-        "La interpretacion prudente es que estas rarezas se asocian con precios superiores en el contexto exportado. "
-        "No prueba causalidad: puede intervenir escasez, antiguedad, fuente de precio, carta concreta o baja cobertura."
-    )
-
-    doc.add_heading("5.2 Sets distintos y apariciones por carta", level=2)
-    top_presence = data["card_sets"].sort_values("Sets Distintos por Carta", ascending=False).head(10)
-    add_matrix(
-        doc,
-        ["Carta", "Sets distintos", "Apariciones"],
-        [
-            [r["card_name"], str(int(r["Sets Distintos por Carta"])), str(int(r["Apariciones en Sets"]))]
-            for _, r in top_presence.iterrows()
-        ],
-        [5100, 2100, 2160],
-    )
-    leader = top_presence.iloc[0]
-    doc.add_paragraph(
-        f"{leader['card_name']} lidera presencia con {int(leader['Sets Distintos por Carta'])} sets distintos "
-        f"y {int(leader['Apariciones en Sets'])} apariciones. Esta senal explica disponibilidad historica, "
-        "reimpresion o popularidad; no mide valor por si sola."
-    )
-
-    doc.add_heading("5.3 Preguntas respondidas", level=2)
-    add_matrix(
-        doc,
-        ["Pregunta", "Respuesta basada en CSV", "Decision / cautela"],
+        ["Revision rarity name", "Cartas distintas", "% del total"],
         [
             [
-                "Que rarezas se asocian con precios mas altos?",
-                f"Lidera {first['rarity_name']} con mediana {fmt_money(first['Precio Mediano por Rareza_num'])}.",
-                "Usar como hipotesis diagnostica; validar cobertura por rareza.",
-            ],
-            [
-                "Que cartas aparecen en mas sets?",
-                f"Lidera {leader['card_name']} con {int(leader['Sets Distintos por Carta'])} sets.",
-                "Interpretar como presencia/reimpresion, no como recomendacion.",
-            ],
-            [
-                "Como afecta marketplace?",
-                "El visual incluye slicer con amazon, cardmarket, coolstuffinc, ebay y tcgplayer.",
-                "Mantener fuente y moneda antes de comparar precios.",
-            ],
+                r["revision rarity name"],
+                fmt_number(r["Cartas distintas por rareza_num"]),
+                f"{fmt_number(r['Cartas distintas por rareza_num'] / total_quality * 100, 2)}%",
+            ]
+            for _, r in quality.iterrows()
         ],
-        [2600, 3860, 2900],
+        [4100, 2600, 2660],
+    )
+    add_callout(
+        doc,
+        "Decision aplicada: los visuales principales deben filtrar revision rarity name = Rareza valida. Las "
+        "categorias Atributo no rareza, Codigo interno / revisar y Error parseo se mantienen como control de calidad.",
+        "FFF6E5",
+    )
+
+    doc.add_heading("4.2 Outliers por rareza", level=2)
+    outliers = data["outlier_table"].sort_values("Ratio outlier_num", ascending=False)
+    valid_outliers = outliers[outliers["revision rarity name"].map(text_key) == "rareza valida"].head(12)
+    add_matrix(
+        doc,
+        ["Rareza", "Revision", "Rarezas", "Precio max", "Ratio", "Nivel"],
+        [
+            [
+                r["name"],
+                r["revision rarity name"],
+                fmt_number(r["rarezas"]),
+                fmt_money(r["precio max_num"]),
+                fmt_ratio(r["Ratio outlier_num"]),
+                r["Nivel outlier"],
+            ]
+            for _, r in valid_outliers.iterrows()
+        ],
+        [2300, 1900, 1200, 1400, 1400, 1160],
+    )
+    lead = valid_outliers.iloc[0]
+    doc.add_paragraph(
+        f"Entre rarezas validas, {lead['name']} presenta el mayor ratio de outlier "
+        f"({fmt_ratio(lead['Ratio outlier_num'])}) con precio maximo {fmt_money(lead['precio max_num'])}. "
+        "Esto identifica una anomalia relativa: el precio maximo supera de forma extrema al precio tipico del grupo."
+    )
+
+    doc.add_heading("4.3 Rarezas por volumen", level=2)
+    rarity_counts = data["rarity_counts"].sort_values("Cartas distintas por rareza", ascending=False)
+    total_rarities = rarity_counts["Cartas distintas por rareza"].sum()
+    add_matrix(
+        doc,
+        ["Rareza", "Cartas distintas", "% acumulable"],
+        [
+            [
+                r["rarity_name"],
+                fmt_number(r["Cartas distintas por rareza"]),
+                f"{fmt_number(r['Cartas distintas por rareza'] / total_rarities * 100, 2)}%",
+            ]
+            for _, r in rarity_counts.head(10).iterrows()
+        ],
+        [5200, 2100, 2060],
+    )
+    top5_share = rarity_counts.head(5)["Cartas distintas por rareza"].sum() / total_rarities
+    doc.add_paragraph(
+        f"Las cinco rarezas con mas cartas concentran {fmt_number(top5_share * 100, 1)}% del total exportado. "
+        "Esto explica que Common, Super Rare y Ultra Rare puedan aparecer con outliers: tienen volumen alto y mas "
+        "probabilidad de contener precios extremos."
     )
 
 
 def add_decisions(doc: Document, data: dict[str, pd.DataFrame]) -> None:
-    doc.add_heading("6. Decisiones, hipotesis y siguientes validaciones", level=1)
-    top_card = data["card_prices"].sort_values("Precio medio_num", ascending=False).iloc[0]
-    top_set = data["set_values"].sort_values("Valor Mercado Set_num", ascending=False).iloc[0]
+    doc.add_heading("5. Decisiones y siguientes validaciones", level=1)
+    top_card = data["top_cards"].sort_values("avg_price_USD_num", ascending=False).iloc[0]
+    top_set = data["set_values"].sort_values("Suma de set_price_num", ascending=False).iloc[0]
+    top_outlier = data["outlier_table"][
+        data["outlier_table"]["revision rarity name"].map(text_key) == "rareza valida"
+    ].sort_values("Ratio outlier_num", ascending=False).iloc[0]
     add_matrix(
         doc,
         ["Linea de accion", "Base observada", "Siguiente validacion"],
         [
             [
-                "Revisar outliers de precio",
-                f"{top_card['name']} encabeza precio medio con {fmt_money(top_card['Precio medio_num'])}.",
-                "Contrastar precio por marketplace, moneda y cobertura.",
+                "Auditar outliers criticos",
+                f"{top_outlier['name']} alcanza {fmt_ratio(top_outlier['Ratio outlier_num'])}.",
+                "Revisar carta concreta, marketplace, moneda y si el precio representa venta real o listado.",
+            ],
+            [
+                "Separar categorias sospechosas",
+                "La columna revision rarity name ya identifica errores, codigos internos y atributos no rareza.",
+                "Mantenerlas fuera de visuales principales y dentro de control de calidad.",
+            ],
+            [
+                "Contrastar rankings descriptivos",
+                f"{top_card['name']} lidera precio medio con {fmt_money(top_card['avg_price_USD_num'])}.",
+                "Comparar contra mediana, precio maximo y fuente antes de extraer conclusion economica.",
             ],
             [
                 "Profundizar en sets premio",
-                f"{top_set['set_name']} lidera valor agregado.",
-                "Separar precio de carta, precio de set y numero de apariciones.",
-            ],
-            [
-                "Validar rarezas caras",
-                "Las primeras rarezas por mediana muestran precios superiores.",
-                "Medir numero de cartas por rareza antes de concluir.",
-            ],
-            [
-                "Usar presencia como contexto",
-                "Blue-Eyes White Dragon y otras cartas clasicas lideran sets distintos.",
-                "Cruzar presencia con precio y tipo de carta.",
+                f"{top_set['set_name']} lidera valor exportado.",
+                "Separar valor por carta, numero de apariciones y tipo de set.",
             ],
         ],
-        [2600, 3900, 2860],
+        [2500, 3900, 2960],
     )
     add_callout(
         doc,
-        "Conclusion: el informe identifica senales de valor y presencia, pero las decisiones prescriptivas deben "
-        "esperar a validar outliers, moneda, fuente y cobertura de cada visual.",
+        "Conclusion: el dashboard ya tiene una rama diagnostica util. El siguiente avance debe ser convertir los "
+        "outliers criticos en una tabla de auditoria por carta y marketplace para decidir si se excluyen, se corrigen "
+        "o se documentan como casos excepcionales.",
         "EAF8EE",
     )
 
@@ -584,7 +576,6 @@ def build_doc() -> None:
     add_cover(doc, data)
     add_executive_summary(doc, data)
     add_methodology(doc)
-    add_general_view(doc, data)
     add_descriptive_analysis(doc, data)
     add_diagnostic_analysis(doc, data)
     add_decisions(doc, data)
