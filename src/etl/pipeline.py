@@ -2,6 +2,7 @@ from datetime import datetime
 
 from src.api.ecb_client import fetch_eur_usd_rate
 from src.api.ygoprodeck_client import fetch_cardinfo, load_raw_payload, save_raw_payload
+from src.etl.history_backup import create_card_price_history_backup
 from src.etl.load import load_all_tables
 from src.etl.report_file import save_run_report
 from src.etl.reporting import print_load_summary, print_run_summary, print_table_counts
@@ -64,6 +65,9 @@ def run_pipeline(args):
 
         phase = "load"
         affected = load_all_tables(tables)
+        phase = "history_backup"
+        backup_path, backup_rows = create_card_price_history_backup()
+        affected["card_price_history_backup"] = backup_rows
         print_load_summary(affected)
         report_path = save_run_report(
             metadata,
@@ -76,6 +80,7 @@ def run_pipeline(args):
             exchange_rate=exchange_rate,
         )
         print(f"Reporte ETL guardado: {report_path}")
+        print(f"Backup card_price_history guardado: {backup_path}")
         return tables
     except Exception as error:
         report_raw_path = get_report_raw_path(args, raw_path)

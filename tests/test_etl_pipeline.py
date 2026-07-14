@@ -59,6 +59,7 @@ class GetPayloadTest(unittest.TestCase):
 
 class RunPipelineTest(unittest.TestCase):
     @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.create_card_price_history_backup")
     @patch("src.etl.pipeline.fetch_eur_usd_rate")
     @patch("src.etl.pipeline.print_table_counts")
     @patch("src.etl.pipeline.print_run_summary")
@@ -73,6 +74,7 @@ class RunPipelineTest(unittest.TestCase):
         print_run_summary,
         print_table_counts,
         fetch_eur_usd_rate,
+        create_card_price_history_backup,
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
@@ -98,8 +100,10 @@ class RunPipelineTest(unittest.TestCase):
         save_run_report.assert_called_once()
         self.assertTrue(save_run_report.call_args.kwargs["dry_run"])
         load_all_tables.assert_not_called()
+        create_card_price_history_backup.assert_not_called()
 
     @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.create_card_price_history_backup")
     @patch("src.etl.pipeline.fetch_eur_usd_rate")
     @patch("src.etl.pipeline.print_load_summary")
     @patch("src.etl.pipeline.print_table_counts")
@@ -116,6 +120,7 @@ class RunPipelineTest(unittest.TestCase):
         print_table_counts,
         print_load_summary,
         fetch_eur_usd_rate,
+        create_card_price_history_backup,
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
@@ -126,6 +131,10 @@ class RunPipelineTest(unittest.TestCase):
         fetch_eur_usd_rate.side_effect = RuntimeError("ecb down")
         transform_cards.return_value = tables
         load_all_tables.return_value = affected
+        create_card_price_history_backup.return_value = (
+            "data/backups/card_price_history/test.sql",
+            1,
+        )
 
         with patch("builtins.print"):
             result = run_pipeline(args)
@@ -133,12 +142,15 @@ class RunPipelineTest(unittest.TestCase):
         self.assertIs(result, tables)
         self.assertIsNone(transform_cards.call_args.kwargs["eur_usd_rate"])
         load_all_tables.assert_called_once_with(tables)
+        self.assertEqual(affected["card_price_history_backup"], 1)
         print_load_summary.assert_called_once_with(affected)
+        create_card_price_history_backup.assert_called_once_with()
         save_run_report.assert_called_once()
         self.assertFalse(save_run_report.call_args.kwargs["dry_run"])
         self.assertEqual(save_run_report.call_args.kwargs["affected"], affected)
 
     @patch("src.etl.pipeline.save_run_report")
+    @patch("src.etl.pipeline.create_card_price_history_backup")
     @patch("src.etl.pipeline.fetch_eur_usd_rate")
     @patch("src.etl.pipeline.print_load_summary")
     @patch("src.etl.pipeline.print_table_counts")
@@ -155,6 +167,7 @@ class RunPipelineTest(unittest.TestCase):
         print_table_counts,
         print_load_summary,
         fetch_eur_usd_rate,
+        create_card_price_history_backup,
         save_run_report,
     ):
         payload = {"metadata": {"source": "test"}, "data": [{"id": "1"}]}
@@ -175,6 +188,7 @@ class RunPipelineTest(unittest.TestCase):
         self.assertEqual(save_run_report.call_args.kwargs["error_type"], "RuntimeError")
         self.assertEqual(save_run_report.call_args.kwargs["error_message"], "mysql down")
         print_load_summary.assert_not_called()
+        create_card_price_history_backup.assert_not_called()
 
 
 class LoadSqlTest(unittest.TestCase):

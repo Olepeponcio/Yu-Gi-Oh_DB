@@ -25,6 +25,7 @@ tests/                    -> pruebas del ETL
 data/raw/                 -> JSON raw local
 data/processed/           -> reservado para datos procesados locales
 data/reporting/           -> reportes locales de ejecucion
+data/backups/             -> backups locales restaurables de card_price_history
 ```
 
 ## 3. Modulos de `src`
@@ -138,6 +139,16 @@ card_typelines
 card_linkmarkers
 ```
 
+Regla de rarezas:
+
+```text
+card_sets.raw_set_rarity      -> valor literal recibido desde la API
+card_sets.set_rarity          -> rareza normalizada para analisis
+card_sets.rarity_source_quality -> calidad del dato fuente
+```
+
+Si la API devuelve un indice numerico en `set_rarity`, por ejemplo `2` o `3`, el ETL conserva ese valor en `raw_set_rarity`, deja `set_rarity` en `NULL` y marca `rarity_source_quality = invalid_numeric_source`.
+
 ## 6. Preparar entorno
 
 ```powershell
@@ -195,7 +206,115 @@ Tests:
 python -m unittest discover
 ```
 
-## 9. README principales
+## 9. Reset seguro con historico
+
+`card_price_history` es la tabla critica para el analisis predictivo. Antes de resetear tablas madre, hay que exportarla a un backup restaurable.
+
+### Una sola linea
+
+Desde PowerShell, en la raiz del proyecto:
+
+```powershell
+python -m src.etl.reset_mysql --yes
+```
+
+Hace, en este orden:
+
+```text
+1. Crea yugioh_db si no existe.
+2. Si existe card_price_history, crea backup en data/backups/card_price_history/.
+3. Ejecuta sql/drop_tables.sql.
+4. Ejecuta sql/schema.sql.
+5. Ejecuta sql/template_create_views.sql.
+6. Restaura automaticamente el backup de card_price_history.
+```
+
+Despues ejecutar la carga:
+
+```powershell
+python -m src.etl
+```
+
+El flag `--yes` es obligatorio porque el proceso borra y recrea tablas madre.
+
+### Orden correcto
+
+#### 1. Crear backup de `card_price_history`
+
+Desde PowerShell, en la raiz del proyecto:
+
+```powershell
+python -m src.etl.history_backup backup
+```
+
+El backup queda en:
+
+```text
+data/backups/card_price_history/
+```
+
+#### 2. Resetear tablas madre en MySQL Workbench
+
+En Workbench no se escribe la ruta del archivo en el editor SQL. Hay que abrir cada archivo y ejecutar su contenido.
+
+Ejecutar en este orden:
+
+```text
+File -> Open SQL Script... -> sql/drop_tables.sql -> rayo ejecutar
+File -> Open SQL Script... -> sql/schema.sql -> rayo ejecutar
+File -> Open SQL Script... -> sql/template_create_views.sql -> rayo ejecutar
+```
+
+Equivalencia del proceso:
+
+```text
+drop_tables.sql          -> borra tablas madre, incluida card_price_history
+schema.sql               -> recrea tablas madre
+template_create_views.sql -> recrea vistas para Power BI
+```
+
+#### 3. Restaurar el backup de `card_price_history`
+
+Desde PowerShell:
+
+```powershell
+python -m src.etl.history_backup restore data/backups/card_price_history/card_price_history_YYYYMMDD_HHMMSS.sql
+```
+
+Sustituir `YYYYMMDD_HHMMSS` por el nombre real del archivo generado.
+
+#### 4. Ejecutar nueva carga ETL
+
+```powershell
+python -m src.etl
+```
+
+### Regla operativa
+
+```text
+backup -> drop_tables.sql -> schema.sql -> template_create_views.sql -> restaurar card_price_history -> carga ETL
+```
+
+### Comprobacion
+
+En MySQL Workbench:
+
+```sql
+USE yugioh_db;
+
+SELECT snapshot_at, COUNT(*)
+FROM card_price_history
+GROUP BY snapshot_at
+ORDER BY snapshot_at;
+```
+
+Cada carga ETL real genera automaticamente un nuevo backup de `card_price_history` en:
+
+```text
+data/backups/card_price_history/
+```
+
+## 10. README principales
 
 ```text
 README.md                              -> programa Python y ETL hasta tablas madre
