@@ -1,18 +1,10 @@
--- schema.sql
--- Crea las tablas madre del proyecto dentro de yugioh_db.
---
--- Uso:
---   1. Crear manualmente el schema yugioh_db en MySQL.
---   2. Ejecutar:
---      SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
---
--- Este script no crea ni borra la base de datos. Solo crea tablas.
+-- Punto de partida relacional de yugioh_db.
+-- Solo crea tablas madre: las views se disenaran en una fase posterior.
 
 SET NAMES utf8mb4;
-
 USE `yugioh_db`;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`cards` (
+CREATE TABLE IF NOT EXISTS cards (
     card_id INT NOT NULL,
     name VARCHAR(255) NOT NULL,
     card_type VARCHAR(100) NOT NULL,
@@ -35,145 +27,145 @@ CREATE TABLE IF NOT EXISTS `yugioh_db`.`cards` (
     PRIMARY KEY (card_id),
     INDEX idx_cards_name (name),
     INDEX idx_cards_card_type (card_type),
-    INDEX idx_cards_frame_type (frame_type),
-    INDEX idx_cards_archetype (archetype),
-    INDEX idx_cards_attribute (attribute)
+    INDEX idx_cards_archetype (archetype)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`sets` (
-    id INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS sets (
+    set_id INT NOT NULL AUTO_INCREMENT,
     set_name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    UNIQUE KEY uq_sets_set_name (set_name)
+    PRIMARY KEY (set_id),
+    UNIQUE KEY uq_sets_name (set_name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`rarities` (
-    id INT NOT NULL AUTO_INCREMENT,
-    set_code VARCHAR(100) NOT NULL,
+CREATE TABLE IF NOT EXISTS rarity_types (
+    rarity_id INT NOT NULL AUTO_INCREMENT,
     rarity_name VARCHAR(100) NOT NULL,
     rarity_code VARCHAR(50) NOT NULL DEFAULT '',
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (id),
-    INDEX idx_rarities_set_code (set_code),
-    UNIQUE KEY uq_rarities_set_code_name_code (set_code, rarity_name, rarity_code)
+    PRIMARY KEY (rarity_id),
+    UNIQUE KEY uq_rarity_types_name_code (rarity_name, rarity_code)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_sets` (
-    id INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE IF NOT EXISTS card_printings (
+    printing_id BIGINT NOT NULL AUTO_INCREMENT,
     card_id INT NOT NULL,
-    set_id INT NULL,
+    set_id INT NOT NULL,
     rarity_id INT NULL,
-    set_name VARCHAR(255) NOT NULL,
-    set_code VARCHAR(100) NULL,
-    set_rarity VARCHAR(100) NULL,
-    set_rarity_code VARCHAR(50) NULL,
-    set_price DECIMAL(10,2) NULL,
-    PRIMARY KEY (id),
-    INDEX idx_card_sets_card_id (card_id),
-    INDEX idx_card_sets_set_id (set_id),
-    INDEX idx_card_sets_rarity_id (rarity_id),
-    INDEX idx_card_sets_set_name (set_name),
-    INDEX idx_card_sets_set_code (set_code),
-    CONSTRAINT fk_card_sets_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_card_sets_set
-        FOREIGN KEY (set_id) REFERENCES `yugioh_db`.`sets` (id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE,
-    CONSTRAINT fk_card_sets_rarity
-        FOREIGN KEY (rarity_id) REFERENCES `yugioh_db`.`rarities` (id)
-        ON DELETE SET NULL
-        ON UPDATE CASCADE
+    set_code VARCHAR(100) NOT NULL,
+    raw_rarity_name VARCHAR(100) NOT NULL,
+    raw_rarity_code VARCHAR(50) NOT NULL DEFAULT '',
+    rarity_source_quality VARCHAR(40) NOT NULL,
+    set_price_usd DECIMAL(12,2) NULL,
+    PRIMARY KEY (printing_id),
+    UNIQUE KEY uq_card_printings_grain (card_id, set_code, raw_rarity_name, raw_rarity_code),
+    INDEX idx_card_printings_set (set_id),
+    INDEX idx_card_printings_rarity (rarity_id),
+    INDEX idx_card_printings_quality (rarity_source_quality),
+    CONSTRAINT fk_card_printings_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE CASCADE ON UPDATE CASCADE,
+    CONSTRAINT fk_card_printings_set FOREIGN KEY (set_id) REFERENCES sets (set_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_card_printings_rarity FOREIGN KEY (rarity_id) REFERENCES rarity_types (rarity_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_card_printings_price CHECK (set_price_usd IS NULL OR set_price_usd >= 0),
+    CONSTRAINT chk_card_printings_quality CHECK (
+        rarity_source_quality IN ('valid', 'normalized_typo', 'invalid_numeric_source', 'internal_api_label', 'missing')
+    )
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_images` (
+CREATE TABLE IF NOT EXISTS marketplaces (
+    marketplace_id SMALLINT NOT NULL,
+    marketplace_code VARCHAR(40) NOT NULL,
+    marketplace_name VARCHAR(80) NOT NULL,
+    market_region VARCHAR(80) NULL,
+    PRIMARY KEY (marketplace_id),
+    UNIQUE KEY uq_marketplaces_code (marketplace_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS currencies (
+    currency_code CHAR(3) NOT NULL,
+    currency_name VARCHAR(80) NOT NULL,
+    PRIMARY KEY (currency_code)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO marketplaces (marketplace_id, marketplace_code, marketplace_name, market_region) VALUES
+    (1, 'cardmarket', 'Cardmarket', 'Europe'),
+    (2, 'tcgplayer', 'TCGplayer', 'United States'),
+    (3, 'ebay', 'eBay', 'Global'),
+    (4, 'amazon', 'Amazon', 'Global'),
+    (5, 'coolstuffinc', 'CoolStuffInc', 'United States')
+ON DUPLICATE KEY UPDATE marketplace_name = VALUES(marketplace_name), market_region = VALUES(market_region);
+
+INSERT INTO currencies (currency_code, currency_name) VALUES
+    ('EUR', 'Euro'), ('USD', 'US Dollar')
+ON DUPLICATE KEY UPDATE currency_name = VALUES(currency_name);
+
+-- Hecho largo y append-only. El ultimo snapshot representa el precio vigente;
+-- todos los anteriores forman el historico y se preservan en cada reset.
+CREATE TABLE IF NOT EXISTS card_price_history (
+    price_history_id BIGINT NOT NULL AUTO_INCREMENT,
+    card_id INT NOT NULL,
+    marketplace_id SMALLINT NOT NULL,
+    currency_code CHAR(3) NOT NULL,
+    snapshot_at DATETIME NOT NULL,
+    price DECIMAL(12,2) NOT NULL,
+    price_origin VARCHAR(30) NOT NULL DEFAULT 'api',
+    exchange_rate DECIMAL(18,8) NULL,
+    PRIMARY KEY (price_history_id),
+    UNIQUE KEY uq_price_history_grain (card_id, marketplace_id, currency_code, snapshot_at),
+    INDEX idx_price_history_snapshot (snapshot_at),
+    INDEX idx_price_history_market_currency (marketplace_id, currency_code),
+    CONSTRAINT fk_price_history_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_price_history_marketplace FOREIGN KEY (marketplace_id) REFERENCES marketplaces (marketplace_id)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT fk_price_history_currency FOREIGN KEY (currency_code) REFERENCES currencies (currency_code)
+        ON DELETE RESTRICT ON UPDATE CASCADE,
+    CONSTRAINT chk_price_history_price CHECK (price >= 0),
+    CONSTRAINT chk_price_history_origin CHECK (price_origin IN ('api', 'currency_conversion'))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS card_images (
     image_id INT NOT NULL,
     card_id INT NOT NULL,
     image_url VARCHAR(500) NULL,
     image_url_small VARCHAR(500) NULL,
     image_url_cropped VARCHAR(500) NULL,
     PRIMARY KEY (image_id),
-    INDEX idx_card_images_card_id (card_id),
-    CONSTRAINT fk_card_images_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    INDEX idx_card_images_card (card_id),
+    CONSTRAINT fk_card_images_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_prices` (
-    card_id INT NOT NULL,
-    cardmarket_price_eur DECIMAL(10,2) NULL,
-    cardmarket_usd DECIMAL(10,2) NULL,
-    tcgplayer_price DECIMAL(10,2) NULL,
-    ebay_price DECIMAL(10,2) NULL,
-    amazon_price DECIMAL(10,2) NULL,
-    coolstuffinc_price DECIMAL(10,2) NULL,
-    PRIMARY KEY (card_id),
-    CONSTRAINT fk_card_prices_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_price_history` (
-    id BIGINT NOT NULL AUTO_INCREMENT,
-    card_id INT NOT NULL,
-    snapshot_at DATETIME NOT NULL,
-    cardmarket_price_eur DECIMAL(10,2) NULL,
-    cardmarket_usd DECIMAL(10,2) NULL,
-    tcgplayer_price DECIMAL(10,2) NULL,
-    ebay_price DECIMAL(10,2) NULL,
-    amazon_price DECIMAL(10,2) NULL,
-    coolstuffinc_price DECIMAL(10,2) NULL,
-    PRIMARY KEY (id),
-    INDEX idx_card_price_history_card_id (card_id),
-    INDEX idx_card_price_history_snapshot_at (snapshot_at),
-    UNIQUE KEY uq_card_price_history_snapshot (card_id, snapshot_at),
-    CONSTRAINT fk_card_price_history_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_banlist` (
+CREATE TABLE IF NOT EXISTS card_banlist (
     card_id INT NOT NULL,
     ban_tcg VARCHAR(50) NULL,
     ban_ocg VARCHAR(50) NULL,
     ban_goat VARCHAR(50) NULL,
     PRIMARY KEY (card_id),
-    CONSTRAINT fk_card_banlist_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    CONSTRAINT fk_card_banlist_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_typelines` (
+CREATE TABLE IF NOT EXISTS card_typelines (
     card_id INT NOT NULL,
     typeline VARCHAR(100) NOT NULL,
     position INT NOT NULL,
     PRIMARY KEY (card_id, typeline),
-    INDEX idx_card_typelines_typeline (typeline),
-    CONSTRAINT fk_card_typelines_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    CONSTRAINT fk_card_typelines_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `yugioh_db`.`card_linkmarkers` (
+CREATE TABLE IF NOT EXISTS card_linkmarkers (
     card_id INT NOT NULL,
     linkmarker VARCHAR(50) NOT NULL,
     position INT NOT NULL,
     PRIMARY KEY (card_id, linkmarker),
-    INDEX idx_card_linkmarkers_linkmarker (linkmarker),
-    CONSTRAINT fk_card_linkmarkers_card
-        FOREIGN KEY (card_id) REFERENCES `yugioh_db`.`cards` (card_id)
-        ON DELETE CASCADE
-        ON UPDATE CASCADE
+    CONSTRAINT fk_card_linkmarkers_card FOREIGN KEY (card_id) REFERENCES cards (card_id)
+        ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 SHOW TABLES;

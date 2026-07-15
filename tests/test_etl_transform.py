@@ -79,13 +79,12 @@ class TransformCardsTest(unittest.TestCase):
 
         self.assertEqual(len(tables["cards"]), 2)
         self.assertEqual(len(tables["sets"]), 1)
-        self.assertEqual(len(tables["rarities"]), 2)
-        self.assertEqual(tables["rarities"][0]["set_code"], "SET-1")
-        self.assertNotIn("card_id", tables["rarities"][0])
-        self.assertEqual(len(tables["card_sets"]), 2)
+        self.assertEqual(len(tables["rarity_types"]), 1)
+        self.assertNotIn("card_id", tables["rarity_types"][0])
+        self.assertEqual(len(tables["card_printings"]), 2)
         self.assertEqual(len(tables["card_images"]), 2)
-        self.assertEqual(len(tables["card_prices"]), 2)
-        self.assertEqual(len(tables["card_price_history"]), 2)
+        self.assertNotIn("card_prices", tables)
+        self.assertEqual(len(tables["card_price_history"]), 10)
         self.assertEqual(tables["card_price_history"][0]["snapshot_at"], "2026-05-21 07:30:00")
 
     def test_transform_cards_adds_cardmarket_eur_and_usd_when_rate_is_available(self):
@@ -93,19 +92,21 @@ class TransformCardsTest(unittest.TestCase):
 
         tables = transform_cards([raw_card], snapshot_at="2026-05-21 07:30:00", eur_usd_rate=Decimal("1.1433"))
 
-        self.assertEqual(tables["card_prices"][0]["cardmarket_price_eur"], Decimal("1.10"))
-        self.assertEqual(tables["card_prices"][0]["cardmarket_price_usd"], Decimal("1.26"))
-        self.assertNotIn("cardmarket_price", tables["card_prices"][0])
-        self.assertNotIn("cardmarket_usd", tables["card_prices"][0])
-        self.assertEqual(tables["card_price_history"][0]["cardmarket_price_usd"], Decimal("1.26"))
+        cardmarket = [row for row in tables["card_price_history"] if row["marketplace_id"] == 1]
+        self.assertEqual(cardmarket[0]["currency_code"], "EUR")
+        self.assertEqual(cardmarket[0]["price"], Decimal("1.10"))
+        self.assertEqual(cardmarket[1]["currency_code"], "USD")
+        self.assertEqual(cardmarket[1]["price"], Decimal("1.26"))
+        self.assertEqual(cardmarket[1]["price_origin"], "currency_conversion")
 
     def test_transform_cards_keeps_cardmarket_usd_empty_without_rate(self):
         raw_card = build_raw_card(card_id=11, name="EUR Priced Card")
 
         tables = transform_cards([raw_card], snapshot_at="2026-05-21 07:30:00")
 
-        self.assertEqual(tables["card_prices"][0]["cardmarket_price_eur"], Decimal("1.10"))
-        self.assertIsNone(tables["card_prices"][0]["cardmarket_price_usd"])
+        cardmarket = [row for row in tables["card_price_history"] if row["marketplace_id"] == 1]
+        self.assertEqual(len(cardmarket), 1)
+        self.assertEqual(cardmarket[0]["currency_code"], "EUR")
 
     def test_transform_cards_includes_optional_child_tables(self):
         raw_card = build_raw_card(

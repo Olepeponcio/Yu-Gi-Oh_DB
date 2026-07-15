@@ -29,6 +29,8 @@ src/etl/main.py
 
 El ETL depende del modelo definido en `sql/schema.sql`. Si se cambian columnas o tablas, se ajustan `src/etl/transform/` y `src/etl/load.py`, y la DB se resetea/recrea desde `sql/schema.sql`.
 
+El mismo flujo puede operarse mediante `python -m src.control_panel`. La ventana ejecuta los comandos existentes; no duplica la lógica ETL ni contiene credenciales.
+
 Contrato estructural:
 
 - `sql/schema.sql` es la fuente unica para crear tablas madre.
@@ -98,10 +100,9 @@ python -m src.etl --source file --raw-path data/raw/cardinfo_latest.json
 
 - `cards`
 - `sets`
-- `rarities`
-- `card_sets`
+- `rarity_types`
+- `card_printings`
 - `card_images`
-- `card_prices`
 - `card_price_history`
 - `card_banlist`
 - `card_typelines`
@@ -109,7 +110,7 @@ python -m src.etl --source file --raw-path data/raw/cardinfo_latest.json
 
 ## Criterio de escritura
 
-- `cards`, `card_images`, `card_prices` y `card_banlist` usan insercion/actualizacion idempotente.
-- `sets` y `rarities` se actualizan como dimensiones de mercado.
-- `card_price_history` guarda una foto historica de precios por cada ejecucion real.
-- `card_sets`, `card_typelines` y `card_linkmarkers` se eliminan y recargan por carta para evitar registros obsoletos.
+- `cards`, `card_images` y `card_banlist` usan insercion/actualizacion idempotente.
+- `sets` y `rarity_types` son catalogos reutilizables.
+- `card_price_history` guarda observaciones largas y append-only por cada ejecucion real.
+- `card_printings`, `card_typelines` y `card_linkmarkers` se eliminan y recargan por carta para evitar registros obsoletos.

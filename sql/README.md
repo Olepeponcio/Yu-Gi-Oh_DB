@@ -1,89 +1,26 @@
-# SQL de analisis
+# SQL — punto de partida
 
-Este directorio contiene las vistas `vw_` que se cargan en Power BI a partir de las tablas madre de `sql/schema.sql`.
-
-## Estructura
+Este directorio contiene únicamente el contrato de tablas madre.
 
 ```text
-sql/views/   -> vistas del modelo relacional simplificado para Power BI
-sql/security_etl_user.sql -> plantilla de usuario ETL local con permisos minimos
+schema.sql        -> crea PK, FK, restricciones, catálogos y hechos base
+drop_tables.sql   -> reset compatible con el esquema anterior
+security_etl_user.sql -> permisos mínimos del ETL
+queries/          -> consultas exploratorias históricas; no forman el modelo semántico
 ```
 
-Plantillas de creacion/reemplazo:
+No existen views mantenidas. Su diseño se documentará en la siguiente fase, después de validar datos, claves y granos.
 
-```text
-sql/template_create_views.sql -> crea o reemplaza todas las vistas mantenidas
-```
+## Tablas de única verdad
 
-## Uso
+| Tabla | Grano |
+|---|---|
+| `cards` | una carta |
+| `sets` | un set |
+| `rarity_types` | una rareza semántica + código |
+| `card_printings` | carta + código de impresión + rareza raw + código raw |
+| `marketplaces` | un marketplace |
+| `currencies` | una moneda |
+| `card_price_history` | carta + marketplace + moneda + snapshot |
 
-Consola `mysql`:
-
-```sql
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/template_create_views.sql;
-```
-
-MySQL Workbench:
-
-```text
-abrir y ejecutar sql/template_create_views.sql
-```
-
-## Vistas del modelo Power BI
-
-| Vista | Tipo | Grano | Uso |
-|---|---|---|---|
-| `vw_dim_cards_descriptive` | Dimension | 1 carta | Catalogo base y filtros de carta |
-| `vw_dim_sets_descriptive` | Dimension | 1 set | Catalogo de sets |
-| `vw_dim_rarities_descriptive` | Dimension | 1 rareza catalogada | Catalogo tecnico de rarezas |
-| `vw_dim_marketplaces_descriptive` | Dimension | 1 marketplace | Fuente de precio |
-| `vw_dim_currencies_descriptive` | Dimension | 1 moneda | Segmentacion EUR/USD |
-| `vw_dim_snapshots_descriptive` | Dimension temporal | 1 snapshot | Fecha de captura historica |
-| `vw_fact_card_prices_descriptive` | Hecho | 1 carta + 1 marketplace + 1 moneda | Precio actual en formato largo |
-| `vw_fact_card_set_appearances` | Hecho puente | 1 carta + 1 set + 1 rareza | Apariciones, reimpresiones y precio de set |
-| `vw_fact_card_price_variation_predictive` | Hecho historico | 1 carta + 1 marketplace + 1 moneda + 1 snapshot | Variacion entre snapshots |
-
-## Relaciones recomendadas
-
-```text
-vw_dim_cards_descriptive[card_id]
-    1 -> * vw_fact_card_prices_descriptive[card_id]
-    1 -> * vw_fact_card_set_appearances[card_id]
-    1 -> * vw_fact_card_price_variation_predictive[card_id]
-
-vw_dim_sets_descriptive[set_id]
-    1 -> * vw_fact_card_set_appearances[set_id]
-
-vw_dim_rarities_descriptive[rarity_id]
-    1 -> * vw_fact_card_set_appearances[rarity_id]
-
-vw_dim_marketplaces_descriptive[marketplace]
-    1 -> * vw_fact_card_prices_descriptive[marketplace]
-    1 -> * vw_fact_card_price_variation_predictive[marketplace]
-
-vw_dim_currencies_descriptive[currency]
-    1 -> * vw_fact_card_prices_descriptive[currency]
-    1 -> * vw_fact_card_price_variation_predictive[currency]
-
-vw_dim_snapshots_descriptive[snapshot_at]
-    1 -> * vw_fact_card_price_variation_predictive[snapshot_at]
-```
-
-## Reglas de diseno
-
-- Declarar el grano de cada vista antes de crearla.
-- No mezclar EUR y USD en una metrica sin conversion explicita.
-- Usar `UNION ALL` para transformar precios de columnas a formato largo.
-- Las preguntas de ranking, revision y resumen se resuelven desde hechos base en Power BI.
-- No relacionar hechos entre si en Power BI salvo necesidad justificada.
-- Cada nueva view usada en Power BI debe anadirse a `sql/template_create_views.sql`.
-
-## Preguntas cubiertas
-
-```text
-catalogo de cartas       -> vw_dim_cards_descriptive
-precios actuales         -> vw_fact_card_prices_descriptive
-apariciones sets/rarezas -> vw_fact_card_set_appearances
-relacion rareza-precio   -> vw_fact_card_set_appearances + vw_dim_rarities_descriptive
-historico de precios     -> vw_fact_card_price_variation_predictive + vw_dim_snapshots_descriptive
-```
+`card_price_history` es largo, append-only y sirve tanto para precio vigente —último snapshot— como para histórico. La rareza solo filtra precios de impresión (`set_price_usd`); no se atribuye a precios generales de carta.

@@ -123,11 +123,10 @@ class SqlPlaceholderGuardTest(unittest.TestCase):
     def test_load_sql_uses_named_placeholders(self):
         sql_builders = (
             load.cards_sql,
-            load.card_sets_sql,
+            load.card_printings_sql,
             load.sets_sql,
-            load.rarities_sql,
+            load.rarity_types_sql,
             load.card_images_sql,
-            load.card_prices_sql,
             load.card_price_history_sql,
             load.card_banlist_sql,
             load.card_typelines_sql,

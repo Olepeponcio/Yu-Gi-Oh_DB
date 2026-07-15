@@ -89,10 +89,9 @@ DESCRIBE cards;
 ```text
 cards
 sets
-rarities
-card_sets
+rarity_types
+card_printings
 card_images
-card_prices
 card_price_history
 card_banlist
 card_typelines

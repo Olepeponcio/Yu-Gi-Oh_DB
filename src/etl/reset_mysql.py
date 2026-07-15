@@ -17,7 +17,6 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 SQL_FILES = (
     PROJECT_ROOT / "sql" / "drop_tables.sql",
     PROJECT_ROOT / "sql" / "schema.sql",
-    PROJECT_ROOT / "sql" / "template_create_views.sql",
 )
 
 
@@ -27,10 +26,17 @@ def reset_mysql(yes=False):
 
     db_name = get_required_env("DB_NAME")
 
+    print("[1/4] Preparando base de datos...", flush=True)
     create_database_if_missing(db_name)
+    print("[2/4] Creando backup del histórico...", flush=True)
     backup_path, backup_rows = backup_history_if_available()
+    print(f"[2/4] Backup preparado: {backup_rows} observaciones.", flush=True)
+    print("[3/4] Recreando tablas madre desde schema.sql...", flush=True)
     execute_sql_files(SQL_FILES)
+    print("[3/4] Schema recreado.", flush=True)
+    print("[4/4] Restaurando histórico por lotes...", flush=True)
     restored_statements = restore_backup_if_available(backup_path)
+    print(f"[4/4] Histórico restaurado: {restored_statements} observaciones.", flush=True)
 
     return {
         "database": db_name,

@@ -3,7 +3,14 @@ from src.etl.transform.common import deduplicate_rows, to_decimal, to_int, valid
 from src.etl.transform.pipeline import transform_cards
 from src.etl.transform.prices import normalize_card_prices
 from src.etl.transform.relations import normalize_card_linkmarkers, normalize_card_typelines
-from src.etl.transform.sets import normalize_card_sets, normalize_rarities, normalize_sets
+from src.etl.transform.sets import (
+    classify_rarity,
+    normalize_card_printings,
+    normalize_card_sets,
+    normalize_rarities,
+    normalize_rarity_types,
+    normalize_sets,
+)
 
 
 __all__ = [
@@ -13,9 +20,12 @@ __all__ = [
     "normalize_card_images",
     "normalize_card_linkmarkers",
     "normalize_card_prices",
+    "normalize_card_printings",
     "normalize_card_sets",
     "normalize_card_typelines",
     "normalize_rarities",
+    "normalize_rarity_types",
+    "classify_rarity",
     "normalize_sets",
     "to_decimal",
     "to_int",

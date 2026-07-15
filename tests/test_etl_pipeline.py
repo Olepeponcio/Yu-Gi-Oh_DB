@@ -4,7 +4,7 @@ from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
 
-from src.etl.load import card_price_history_sql, card_prices_sql, rarities_sql
+from src.etl.load import card_price_history_sql, rarity_types_sql
 from src.etl.pipeline import get_payload, run_pipeline
 
 
@@ -192,20 +192,18 @@ class RunPipelineTest(unittest.TestCase):
 
 
 class LoadSqlTest(unittest.TestCase):
-    def test_rarities_sql_uses_set_code_not_card_id(self):
-        sql = rarities_sql()
-
-        self.assertIn("set_code", sql)
-        self.assertIn("%(set_code)s", sql)
+    def test_rarity_types_sql_has_no_printing_or_card_key(self):
+        sql = rarity_types_sql()
+        self.assertIn("rarity_name", sql)
+        self.assertNotIn("set_code", sql)
         self.assertNotIn("%(card_id)s", sql)
 
     def test_cardmarket_load_sql_uses_explicit_eur_and_usd_placeholders(self):
-        for sql in (card_prices_sql(), card_price_history_sql()):
-            with self.subTest(sql=sql):
-                self.assertIn("cardmarket_price_eur", sql)
-                self.assertIn("cardmarket_usd", sql)
-                self.assertIn("%(cardmarket_price_eur)s", sql)
-                self.assertIn("%(cardmarket_price_usd)s", sql)
+        sql = card_price_history_sql()
+        self.assertIn("marketplace_id", sql)
+        self.assertIn("currency_code", sql)
+        self.assertIn("%(price)s", sql)
+        self.assertNotIn("cardmarket_price_eur", sql)
 
 
 if __name__ == "__main__":

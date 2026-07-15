@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import patch
 
 from src.etl.reset_mysql import (
+    SQL_FILES,
     backup_history_if_available,
     consume_cursor_results,
     reset_mysql,
@@ -10,6 +11,9 @@ from src.etl.reset_mysql import (
 
 
 class ResetMysqlTest(unittest.TestCase):
+    def test_reset_only_executes_drop_and_schema(self):
+        self.assertEqual([path.name for path in SQL_FILES], ["drop_tables.sql", "schema.sql"])
+
     def test_reset_requires_yes(self):
         with self.assertRaisesRegex(RuntimeError, "--yes"):
             reset_mysql()

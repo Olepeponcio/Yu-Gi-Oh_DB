@@ -122,6 +122,18 @@ pipeline.py   -> coordinador de transformacion
 7. Emitir resumen de ejecucion.
 ```
 
+### Panel operativo Tkinter
+
+El flujo completo también puede manejarse desde una ventana local:
+
+```powershell
+python -m src.control_panel
+```
+
+El panel ordena preparación de DB/schema, validación dry-run, ETL API con snapshot, replay raw con snapshot, backup histórico y tests. Al inicio solo habilita el paso 1; cada ejecución correcta libera su sucesor y el paso 6 reinicia el ciclo. El reset requiere confirmación y la salida se muestra sin bloquear la ventana.
+
+Documentación: `docs/01_programa_python_etl/control_panel.md`.
+
 ## 5. Tablas madre
 
 `sql/schema.sql` crea:
@@ -129,10 +141,9 @@ pipeline.py   -> coordinador de transformacion
 ```text
 cards
 sets
-rarities
-card_sets
+rarity_types
+card_printings
 card_images
-card_prices
 card_price_history
 card_banlist
 card_typelines
@@ -142,12 +153,12 @@ card_linkmarkers
 Regla de rarezas:
 
 ```text
-card_sets.raw_set_rarity      -> valor literal recibido desde la API
-card_sets.set_rarity          -> rareza normalizada para analisis
-card_sets.rarity_source_quality -> calidad del dato fuente
+card_printings.raw_rarity_name       -> valor literal recibido desde la API
+card_printings.rarity_id             -> FK solo cuando la rareza es valida
+card_printings.rarity_source_quality -> calidad del dato fuente
 ```
 
-Si la API devuelve un indice numerico en `set_rarity`, por ejemplo `2` o `3`, el ETL conserva ese valor en `raw_set_rarity`, deja `set_rarity` en `NULL` y marca `rarity_source_quality = invalid_numeric_source`.
+Si la API devuelve un indice numerico en `set_rarity`, por ejemplo `2` o `3`, el ETL conserva el literal, deja `rarity_id` en `NULL` y marca `rarity_source_quality = invalid_numeric_source`.
 
 ## 6. Preparar entorno
 
@@ -225,8 +236,7 @@ Hace, en este orden:
 2. Si existe card_price_history, crea backup en data/backups/card_price_history/.
 3. Ejecuta sql/drop_tables.sql.
 4. Ejecuta sql/schema.sql.
-5. Ejecuta sql/template_create_views.sql.
-6. Restaura automaticamente el backup de card_price_history.
+5. Restaura automaticamente el backup de card_price_history.
 ```
 
 Despues ejecutar la carga:
@@ -262,7 +272,6 @@ Ejecutar en este orden:
 ```text
 File -> Open SQL Script... -> sql/drop_tables.sql -> rayo ejecutar
 File -> Open SQL Script... -> sql/schema.sql -> rayo ejecutar
-File -> Open SQL Script... -> sql/template_create_views.sql -> rayo ejecutar
 ```
 
 Equivalencia del proceso:
@@ -270,7 +279,6 @@ Equivalencia del proceso:
 ```text
 drop_tables.sql          -> borra tablas madre, incluida card_price_history
 schema.sql               -> recrea tablas madre
-template_create_views.sql -> recrea vistas para Power BI
 ```
 
 #### 3. Restaurar el backup de `card_price_history`
@@ -292,7 +300,7 @@ python -m src.etl
 ### Regla operativa
 
 ```text
-backup -> drop_tables.sql -> schema.sql -> template_create_views.sql -> restaurar card_price_history -> carga ETL
+backup -> drop_tables.sql -> schema.sql -> restaurar card_price_history -> carga ETL
 ```
 
 ### Comprobacion

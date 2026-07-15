@@ -19,11 +19,10 @@ def load_all_tables(tables):
         affected = {
             "cards": load_cards(cursor, tables["cards"]),
             "sets": load_sets(cursor, tables["sets"]),
-            "rarities": load_rarities(cursor, tables["rarities"]),
+            "rarity_types": load_rarity_types(cursor, tables["rarity_types"]),
             "deleted_child_rows": delete_replaceable_child_rows(cursor, card_ids),
-            "card_sets": insert_many(cursor, card_sets_sql(), tables["card_sets"]),
+            "card_printings": insert_many(cursor, card_printings_sql(), tables["card_printings"]),
             "card_images": load_card_images(cursor, tables["card_images"]),
-            "card_prices": load_card_prices(cursor, tables["card_prices"]),
             "card_price_history": load_card_price_history(
                 cursor, tables["card_price_history"]
             ),
@@ -53,9 +52,8 @@ def delete_replaceable_child_rows(cursor, card_ids):
 
     total_deleted = 0
     tables = (
-        "card_sets",
+        "card_printings",
         "card_images",
-        "card_prices",
         "card_banlist",
         "card_typelines",
         "card_linkmarkers",
@@ -92,16 +90,12 @@ def load_sets(cursor, sets):
     return insert_many(cursor, sets_sql(), sets)
 
 
-def load_rarities(cursor, rarities):
-    return insert_many(cursor, rarities_sql(), rarities)
+def load_rarity_types(cursor, rarities):
+    return insert_many(cursor, rarity_types_sql(), rarities)
 
 
 def load_card_images(cursor, card_images):
     return insert_many(cursor, card_images_sql(), card_images)
-
-
-def load_card_prices(cursor, card_prices):
-    return insert_many(cursor, card_prices_sql(), card_prices)
 
 
 def load_card_price_history(cursor, card_price_history):
@@ -171,32 +165,31 @@ def cards_sql():
     """
 
 
-def card_sets_sql():
+def card_printings_sql():
     return """
-        INSERT INTO card_sets (
+        INSERT INTO card_printings (
             card_id,
             set_id,
             rarity_id,
-            set_name,
             set_code,
-            set_rarity,
-            set_rarity_code,
-            set_price
+            raw_rarity_name,
+            raw_rarity_code,
+            rarity_source_quality,
+            set_price_usd
         ) VALUES (
             %(card_id)s,
-            (SELECT id FROM sets WHERE set_name = %(set_name)s),
+            (SELECT set_id FROM sets WHERE set_name = %(set_name)s),
             (
-                SELECT id
-                FROM rarities
-                WHERE set_code = %(set_code)s
-                    AND rarity_name = %(set_rarity)s
-                    AND rarity_code = COALESCE(%(set_rarity_code)s, '')
+                SELECT rarity_id
+                FROM rarity_types
+                WHERE rarity_name = %(rarity_name)s
+                    AND rarity_code = %(rarity_code)s
             ),
-            %(set_name)s,
             %(set_code)s,
-            %(set_rarity)s,
-            %(set_rarity_code)s,
-            %(set_price)s
+            %(raw_rarity_name)s,
+            %(raw_rarity_code)s,
+            %(rarity_source_quality)s,
+            %(set_price_usd)s
         )
     """
 
@@ -213,19 +206,16 @@ def sets_sql():
     """
 
 
-def rarities_sql():
+def rarity_types_sql():
     return """
-        INSERT INTO rarities (
-            set_code,
+        INSERT INTO rarity_types (
             rarity_name,
             rarity_code
         ) VALUES (
-            %(set_code)s,
             %(rarity_name)s,
             %(rarity_code)s
         )
         ON DUPLICATE KEY UPDATE
-            set_code = VALUES(set_code),
             rarity_name = VALUES(rarity_name),
             rarity_code = VALUES(rarity_code)
     """
@@ -254,64 +244,35 @@ def card_images_sql():
     """
 
 
-def card_prices_sql():
-    return """
-        INSERT INTO card_prices (
-            card_id,
-            cardmarket_price_eur,
-            cardmarket_usd,
-            tcgplayer_price,
-            ebay_price,
-            amazon_price,
-            coolstuffinc_price
-        ) VALUES (
-            %(card_id)s,
-            %(cardmarket_price_eur)s,
-            %(cardmarket_price_usd)s,
-            %(tcgplayer_price)s,
-            %(ebay_price)s,
-            %(amazon_price)s,
-            %(coolstuffinc_price)s
-        )
-        ON DUPLICATE KEY UPDATE
-            cardmarket_price_eur = VALUES(cardmarket_price_eur),
-            cardmarket_usd = VALUES(cardmarket_usd),
-            tcgplayer_price = VALUES(tcgplayer_price),
-            ebay_price = VALUES(ebay_price),
-            amazon_price = VALUES(amazon_price),
-            coolstuffinc_price = VALUES(coolstuffinc_price)
-    """
-
-
 def card_price_history_sql():
     return """
         INSERT INTO card_price_history (
             card_id,
+            marketplace_id,
+            currency_code,
             snapshot_at,
-            cardmarket_price_eur,
-            cardmarket_usd,
-            tcgplayer_price,
-            ebay_price,
-            amazon_price,
-            coolstuffinc_price
+            price,
+            price_origin,
+            exchange_rate
         ) VALUES (
             %(card_id)s,
+            %(marketplace_id)s,
+            %(currency_code)s,
             %(snapshot_at)s,
-            %(cardmarket_price_eur)s,
-            %(cardmarket_price_usd)s,
-            %(tcgplayer_price)s,
-            %(ebay_price)s,
-            %(amazon_price)s,
-            %(coolstuffinc_price)s
+            %(price)s,
+            %(price_origin)s,
+            %(exchange_rate)s
         )
         ON DUPLICATE KEY UPDATE
-            cardmarket_price_eur = VALUES(cardmarket_price_eur),
-            cardmarket_usd = VALUES(cardmarket_usd),
-            tcgplayer_price = VALUES(tcgplayer_price),
-            ebay_price = VALUES(ebay_price),
-            amazon_price = VALUES(amazon_price),
-            coolstuffinc_price = VALUES(coolstuffinc_price)
+            price = VALUES(price),
+            price_origin = VALUES(price_origin),
+            exchange_rate = VALUES(exchange_rate)
     """
+
+
+# Compatibilidad de imports durante la transicion de consumidores Python.
+card_sets_sql = card_printings_sql
+rarities_sql = rarity_types_sql
 
 
 def card_banlist_sql():
