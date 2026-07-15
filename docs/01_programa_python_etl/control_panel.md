@@ -40,10 +40,14 @@ La ventana conserva el ciclo estructural 1→6, pero el botón 3 permanece habil
 - Paleta obtenida de `assets/palette.txt`.
 - Playfair Display para títulos y Geomini para controles, textos y consola.
 - Fuentes registradas de forma privada para el proceso desde `assets/fonts`; no se instalan en Windows.
-- Ventana con opacidad `0.98`; el fondo claro derivado de Light Bronze aumenta la sensación traslúcida sin reducir la legibilidad de la consola.
-- Bordes negros minimalistas de 1 px.
-- El título `MySQL + ETL` alterna los cinco colores de la paleta letra por letra.
+- El fondo negro usa una capa independiente con `alpha=0.75`: 75% de opacidad y 25% de transparencia. La capa superior mantiene botones, textos y consola totalmente opacos.
+- Fondo y controles sincronizan posición, tamaño y orden Z.
+- Ventana `topmost`: permanece por encima del resto de aplicaciones mientras está abierta.
+- Bordes negros de 1 px limitados a botones y consola; sin marco exterior ni bordes en tarjetas.
+- El título `MySQL + ETL` alterna Dusk Blue, Rosewood, Light Coral y Light Bronze sobre fondo negro.
 - El botón 3 es la acción principal: incorpora la etiqueta `ACCIÓN RECOMENDADA`, mayor altura y Playfair Display para guiar la carga habitual desde API con snapshot.
+- La consola muestra warnings en naranja, errores/crashes en rojo y procesos completados en verde.
+- Los botones se iluminan suavemente al situar el ratón encima y recuperan su color original al salir.
 - Los botones bloqueados se muestran en gris; el color de paleta identifica el paso habilitado.
 
 ## Ampliaciones

@@ -2,7 +2,18 @@ import sys
 import unittest
 
 from src.control_panel.actions import PROJECT_ROOT, build_actions
-from src.control_panel.theme import BUTTON_COLORS, PALETTE, PANEL_BG, TITLE_LETTER_COLORS
+from src.control_panel.app import classify_console_line
+from src.control_panel.theme import (
+    BUTTON_COLORS,
+    BACKGROUND_ALPHA,
+    PALETTE,
+    PANEL_BG,
+    TITLE_LETTER_COLORS,
+    WINDOW_ALPHA,
+    WINDOW_TOPMOST,
+    WINDOW_TRANSPARENT_COLOR,
+    lighten_hex,
+)
 from src.control_panel.workflow import WorkflowState
 
 
@@ -46,8 +57,18 @@ class ControlPanelActionsTest(unittest.TestCase):
             set(PALETTE.values()),
             {"#355070", "#6d597a", "#b56576", "#e56b6f", "#eaac8b"},
         )
-        self.assertEqual(TITLE_LETTER_COLORS, tuple(PALETTE.values()))
-        self.assertEqual(PANEL_BG, "#f6ded1")
+        self.assertNotIn(PANEL_BG, TITLE_LETTER_COLORS)
+        self.assertEqual(PANEL_BG, WINDOW_TRANSPARENT_COLOR)
+        self.assertEqual(WINDOW_ALPHA, 1.0)
+        self.assertTrue(WINDOW_TOPMOST)
+        self.assertEqual(BACKGROUND_ALPHA, 0.75)
+        self.assertEqual(lighten_hex("#355070"), "#516884")
+
+    def test_console_lines_receive_semantic_colors(self):
+        self.assertEqual(classify_console_line("WARNING timeout"), "warning")
+        self.assertEqual(classify_console_line("Crash en carga"), "error")
+        self.assertEqual(classify_console_line("Proceso completado correctamente"), "success")
+        self.assertIsNone(classify_console_line("Descargando cartas"))
 
 
 class WorkflowStateTest(unittest.TestCase):

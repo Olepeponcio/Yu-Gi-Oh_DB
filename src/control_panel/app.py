@@ -1,5 +1,6 @@
 from datetime import datetime
 from queue import Empty, Queue
+import sys
 import tkinter as tk
 from tkinter import messagebox
 
@@ -7,28 +8,40 @@ from src.control_panel.actions import PROJECT_ROOT, build_actions
 from src.control_panel.runner import CommandRunner
 from src.control_panel.theme import (
     BLACK,
+    BACKGROUND_ALPHA,
     CONSOLE_BG,
+    CONSOLE_ERROR,
+    CONSOLE_SUCCESS,
+    CONSOLE_WARNING,
     DISABLED_BG,
     PANEL_BG,
     TITLE_FONT,
     TITLE_LETTER_COLORS,
     UI_FONT,
+    WINDOW_ALPHA,
+    WINDOW_TRANSPARENT_COLOR,
+    WINDOW_TOPMOST,
     WHITE,
     register_private_fonts,
+    lighten_hex,
 )
 from src.control_panel.workflow import WorkflowState
 
 
 class ControlPanelApp:
-    def __init__(self, root):
+    def __init__(self, root, backdrop=None):
         self.root = root
+        self.backdrop = backdrop
         self.actions = build_actions()
         self.workflow = WorkflowState(len(self.actions))
         self.root.title("Yu-Gi-Oh DB · Panel operativo")
         self.root.geometry("980x720")
         self.root.minsize(820, 620)
-        self.root.configure(bg=BLACK)
-        self.root.attributes("-alpha", 0.98)
+        self.root.configure(bg=PANEL_BG)
+        self.root.attributes("-alpha", WINDOW_ALPHA)
+        self.root.attributes("-topmost", WINDOW_TOPMOST)
+        if sys.platform == "win32":
+            self.root.attributes("-transparentcolor", WINDOW_TRANSPARENT_COLOR)
         self.events = Queue()
         self.buttons = []
         self.active_action = None
@@ -39,12 +52,14 @@ class ControlPanelApp:
         )
         self._build_ui()
         self._apply_workflow_state()
+        if self.backdrop is not None:
+            self.root.bind("<Configure>", self._sync_backdrop)
+            self.root.protocol("WM_DELETE_WINDOW", self._close_windows)
+            self.root.after_idle(self._sync_backdrop)
         self.root.after(100, self._drain_events)
 
     def _build_ui(self):
-        border = tk.Frame(self.root, bg=BLACK, padx=1, pady=1)
-        border.pack(fill="both", expand=True, padx=12, pady=12)
-        container = tk.Frame(border, bg=PANEL_BG, padx=22, pady=18)
+        container = tk.Frame(self.root, bg=PANEL_BG, padx=22, pady=18)
         container.pack(fill="both", expand=True)
 
         title_frame = tk.Frame(container, bg=PANEL_BG)
@@ -53,7 +68,7 @@ class ControlPanelApp:
             title_frame,
             text="Panel operativo ",
             bg=PANEL_BG,
-            fg=BLACK,
+            fg=WHITE,
             font=(TITLE_FONT, 22, "bold"),
         ).pack(side="left")
         for index, character in enumerate("MySQL + ETL"):
@@ -68,7 +83,7 @@ class ControlPanelApp:
             container,
             text="Un ciclo guiado: schema → validación → snapshots → backup → tests.",
             bg=PANEL_BG,
-            fg=BLACK,
+            fg=WHITE,
             font=(UI_FONT, 11),
         ).pack(anchor="w", pady=(2, 14))
 
@@ -77,12 +92,8 @@ class ControlPanelApp:
         actions_frame.columnconfigure((0, 1), weight=1)
 
         for index, action in enumerate(self.actions):
-            card_border = tk.Frame(actions_frame, bg=BLACK, padx=1, pady=1)
-            card_border.grid(
-                row=index // 2, column=index % 2, sticky="nsew", padx=5, pady=5
-            )
-            card = tk.Frame(card_border, bg=PANEL_BG, padx=7, pady=7)
-            card.pack(fill="both", expand=True)
+            card = tk.Frame(actions_frame, bg=PANEL_BG, padx=7, pady=7)
+            card.grid(row=index // 2, column=index % 2, sticky="nsew", padx=5, pady=5)
             if action.primary:
                 tk.Label(
                     card,
@@ -114,11 +125,19 @@ class ControlPanelApp:
                 ),
             )
             button.pack(fill="x", ipady=13 if action.primary else 8)
+            button.bind(
+                "<Enter>",
+                lambda _event, selected=button, selected_index=index: self._on_button_enter(selected, selected_index),
+            )
+            button.bind(
+                "<Leave>",
+                lambda _event, selected=button, selected_index=index: self._on_button_leave(selected, selected_index),
+            )
             tk.Label(
                 card,
                 text=action.description,
                 bg=PANEL_BG,
-                fg=BLACK,
+                fg=WHITE,
                 font=(UI_FONT, 9),
                 wraplength=410,
                 justify="left",
@@ -131,7 +150,7 @@ class ControlPanelApp:
             status_frame,
             textvariable=self.status,
             bg=PANEL_BG,
-            fg=BLACK,
+            fg=WHITE,
             font=(UI_FONT, 10, "bold"),
         ).pack(side="left")
         tk.Button(
@@ -161,6 +180,9 @@ class ControlPanelApp:
             pady=10,
         )
         self.log.pack(fill="both", expand=True)
+        self.log.tag_configure("warning", foreground=CONSOLE_WARNING)
+        self.log.tag_configure("error", foreground=CONSOLE_ERROR)
+        self.log.tag_configure("success", foreground=CONSOLE_SUCCESS)
 
     def _run_action(self, index, action):
         if not self.workflow.is_enabled(index) and not action.primary:
@@ -260,9 +282,22 @@ class ControlPanelApp:
         for button in self.buttons:
             button.configure(state="disabled", bg=DISABLED_BG, cursor="arrow")
 
+    def _on_button_enter(self, button, index):
+        if str(button.cget("state")) != "disabled":
+            button.configure(bg=lighten_hex(self.actions[index].color))
+
+    def _on_button_leave(self, button, index):
+        enabled = (
+            str(button.cget("state")) != "disabled"
+            and (self.workflow.is_enabled(index) or self.actions[index].primary)
+        )
+        button.configure(bg=self.actions[index].color if enabled else DISABLED_BG)
+
     def _append_log(self, text):
         self.log.configure(state="normal")
-        self.log.insert("end", text)
+        for line in text.splitlines(keepends=True):
+            tag = classify_console_line(line)
+            self.log.insert("end", line, (tag,) if tag else ())
         self.log.see("end")
         self.log.configure(state="disabled")
 
@@ -271,9 +306,50 @@ class ControlPanelApp:
         self.log.delete("1.0", "end")
         self.log.configure(state="disabled")
 
+    def _sync_backdrop(self, _event=None):
+        if self.backdrop is None or not self.root.winfo_exists():
+            return
+        self.root.update_idletasks()
+        width = self.root.winfo_width()
+        height = self.root.winfo_height()
+        x = self.root.winfo_rootx()
+        y = self.root.winfo_rooty()
+        self.backdrop.geometry(f"{width}x{height}+{x}+{y}")
+        self.backdrop.lower(self.root)
+        self.root.lift()
+
+    def _close_windows(self):
+        if self.backdrop is not None and self.backdrop.winfo_exists():
+            self.backdrop.destroy()
+        else:
+            self.root.destroy()
+
 
 def main():
     register_private_fonts(PROJECT_ROOT)
-    root = tk.Tk()
-    ControlPanelApp(root)
-    root.mainloop()
+    backdrop = tk.Tk()
+    backdrop.configure(bg=BLACK)
+    backdrop.overrideredirect(True)
+    backdrop.attributes("-alpha", BACKGROUND_ALPHA)
+    backdrop.attributes("-topmost", WINDOW_TOPMOST)
+
+    overlay = tk.Toplevel(backdrop)
+    ControlPanelApp(overlay, backdrop=backdrop)
+    backdrop.mainloop()
+
+
+def classify_console_line(line):
+    normalized = line.casefold()
+    if any(token in normalized for token in ("traceback", "exception", "crash", "error", "failed", "fallido")):
+        return "error"
+    if any(token in normalized for token in ("warning", "advertencia", "warn")):
+        return "warning"
+    if any(
+        token in normalized
+        for token in (
+            "completado", "correctamente", "restaurado", "guardado", "procesado",
+            "prepared", "success", "status: completed",
+        )
+    ):
+        return "success"
+    return None
