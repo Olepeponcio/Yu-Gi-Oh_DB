@@ -12,6 +12,7 @@ docs/02_marco_analisis_datos/data_model.md     -> modelo relacional madre
 docs/03_powerbi/README.md                      -> proceso de trabajo en Power BI
 docs/03_powerbi/README.md                      -> contrato para reconstruir el modelo semantico
 docs/01_programa_python_etl/control_panel.md   -> panel Tkinter y orden operativo
+docs/02_marco_analisis_datos/view_design/      -> contrato y preguntas para diseñar views
 power_bi/assets/                               -> assets de diseño para Power BI
 power_bi/informes/                             -> informes Power BI guardados del proyecto
 ```

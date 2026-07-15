@@ -2,13 +2,28 @@
 
 El proyecto vuelve a una base controlada: tablas madre, granularidades y calidad de datos. Todavía no hay views de consumo.
 
+## Guía modular de views
+
+El registro de diseño y sus cuatro ramas viven en:
+
+```text
+view_design/README.md
+view_design/01_descriptive/README.md
+view_design/02_diagnostic/README.md
+view_design/03_predictive/README.md
+view_design/04_prescriptive/README.md
+```
+
+Se comienza por el contrato común y después se avanza en ese orden. Cada README contiene preguntas, candidatas, riesgos y criterios de aceptación.
+
 ## Preguntas que deberán ramificarse
 
-- Catálogo: cartas, sets, rarezas válidas e impresiones.
-- Mercado: precios por carta, marketplace, moneda y snapshot.
-- Impresiones: `set_price_usd` por set y rareza.
-- Histórico: cobertura y variación entre snapshots comparables.
-- Calidad: nulos críticos, duplicados, códigos internos y FK huérfanas.
+- Vista general: volumen y condiciones de lectura.
+- Descriptive: precios vigentes por marketplace y valor de impresión por set.
+- Diagnostic: rareza/precio de impresión y concentración de reimpresiones.
+- Predictive: tendencias y variaciones entre snapshots comparables.
+- Prescriptive: señales de seguimiento y casos que permanecen en revisión.
+- Calidad: condición transversal que autoriza o bloquea la interpretación.
 
 ## Regla de avance
 
@@ -19,3 +34,5 @@ pregunta -> tabla fuente -> grano -> PK/FK -> campos -> medida esperada -> riesg
 ```
 
 No se volverá a unir precio general con rareza mediante `card_id`.
+
+La plantilla ampliada y la Definition of Done están en [view_design/README.md](view_design/README.md).

@@ -20,3 +20,5 @@ Power BI: retirar tablas y relaciones del modelo anterior
 - No mezclar EUR y USD sin conversión explícita.
 
 Los exports e informes existentes se conservan como evidencia histórica, no como contrato vigente.
+
+Las nuevas tablas de consumo se definirán desde el [registro modular de views](../02_marco_analisis_datos/view_design/README.md). Power BI no debe incorporar una candidata hasta que su estado sea `validada`.

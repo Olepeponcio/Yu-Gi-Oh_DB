@@ -134,6 +134,20 @@ El panel ordena preparación de DB/schema, validación dry-run, ETL API con snap
 
 Documentación: `docs/01_programa_python_etl/control_panel.md`.
 
+### Diseño modular de views
+
+Antes de escribir SQL, cada view se registra por pregunta, grano, claves, medidas y riesgos en:
+
+```text
+docs/02_marco_analisis_datos/view_design/README.md
+```
+
+Ramas de análisis:
+
+```text
+01_descriptive → 02_diagnostic → 03_predictive → 04_prescriptive
+```
+
 ## 5. Tablas madre
 
 `sql/schema.sql` crea:

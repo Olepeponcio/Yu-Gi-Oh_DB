@@ -33,4 +33,4 @@ cards 1 -> 0..1 card_banlist
 
 ## Siguiente hito
 
-Validar el raw y las tablas cargadas. Después se abrirá el registro de views, declarando para cada una pregunta, grano, claves y uso en Power BI.
+Usar el [registro modular de views](view_design/README.md). La primera rama es descriptive; diagnostic, predictive y prescriptive solo avanzan cuando sus dependencias anteriores están validadas.

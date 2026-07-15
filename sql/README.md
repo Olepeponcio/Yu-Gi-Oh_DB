@@ -6,10 +6,22 @@ Este directorio contiene únicamente el contrato de tablas madre.
 schema.sql        -> crea PK, FK, restricciones, catálogos y hechos base
 drop_tables.sql   -> reset compatible con el esquema anterior
 security_etl_user.sql -> permisos mínimos del ETL
-queries/          -> consultas exploratorias históricas; no forman el modelo semántico
 ```
 
 No existen views mantenidas. Su diseño se documentará en la siguiente fase, después de validar datos, claves y granos.
+
+Contrato de diseño: [`docs/02_marco_analisis_datos/view_design/README.md`](../docs/02_marco_analisis_datos/view_design/README.md).
+
+Cuando una ficha sea aprobada, su SQL se incorporará modularmente:
+
+```text
+sql/views/descriptive/
+sql/views/diagnostic/
+sql/views/predictive/
+sql/views/prescriptive/
+```
+
+Las carpetas se crearán al implementar la primera view de cada módulo; no contienen todavía SQL.
 
 ## Tablas de única verdad
 

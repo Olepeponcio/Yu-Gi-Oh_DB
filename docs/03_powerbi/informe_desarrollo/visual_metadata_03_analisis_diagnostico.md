@@ -1,3 +1,7 @@
+# DOCUMENTO LEGADO — MODELO RETIRADO
+
+Este archivo conserva evidencia del informe anterior. Las views, relaciones y medidas citadas aquí no forman parte del contrato vigente y no deben recrearse sin pasar por `docs/02_marco_analisis_datos/view_design/`.
+
 # Metadatos visual: suma total por set y rareza
 
 ## Ubicacion
