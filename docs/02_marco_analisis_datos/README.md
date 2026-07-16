@@ -2,8 +2,6 @@
 
 [Inicio](../../README.md) → [Documentación](../README.md) → Marco de análisis
 
-El proyecto vuelve a una base controlada: tablas madre, granularidades y calidad de datos. Todavía no hay views de consumo.
-
 ## Guía modular de views
 
 El registro de diseño y sus cuatro ramas viven en:
