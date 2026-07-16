@@ -1,5 +1,7 @@
 # 01 — Descriptive
 
+[Inicio](../../../../README.md) → [Diseño de views](../README.md) → Descriptive
+
 ## Propósito
 
 Responder qué existe, cuánto existe y cómo se distribuye, sin explicar causas ni emitir recomendaciones. Este módulo publica las dimensiones conformadas y los hechos base que consumirán los módulos posteriores.

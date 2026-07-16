@@ -1,5 +1,7 @@
 # Panel operativo Tkinter
 
+[Inicio](../../README.md) → [Programa Python y ETL](README.md) → Panel de control
+
 ## Arranque
 
 Desde la raíz del proyecto y con el entorno virtual activo:
@@ -29,6 +31,9 @@ La ventana conserva el ciclo estructural 1→6, pero el botón 3 permanece habil
 
 - Solo se ejecuta una acción simultánea.
 - Los comandos se muestran en la consola integrada.
+- Sobre la consola, un indicador animado muestra la fase detectada y el tiempo
+  transcurrido mientras el proceso sigue activo. Al terminar cambia a éxito o
+  error; la barra es indeterminada porque el ETL no expone un porcentaje fiable.
 - El reset exige confirmación.
 - La ventana permanece activa mientras el proceso trabaja en segundo plano.
 - Cerrar la ventana no se usa como mecanismo para cancelar procesos.

@@ -1,5 +1,7 @@
 # Flujo ETL
 
+[Inicio](../../README.md) → [Programa Python y ETL](README.md) → Flujo ETL
+
 ## Objetivo
 
 Ejecutar el flujo completo de datos:
@@ -8,7 +10,7 @@ Ejecutar el flujo completo de datos:
 API YGOPRODeck -> JSON raw local -> transformacion Python -> MySQL
 ```
 
-El ETL no crea el esquema. `sql/schema.sql` no es generado por Python: es el modelo SQL definido en el proyecto. El schema `yugioh_db` se crea manualmente en MySQL y las tablas deben existir antes de ejecutar la carga.
+El ETL de carga no crea el esquema. `sql/schema.sql` no es generado por Python: es el modelo SQL definido en el proyecto. La preparación se realiza desde el panel o con `python -m src.etl.reset_mysql --yes` antes de la primera carga.
 
 ## Punto de entrada
 
@@ -70,10 +72,10 @@ El JSON raw incluye:
 
 ## Ejecucion
 
-Crear manualmente el schema `yugioh_db` en MySQL y despues crear tablas antes de la primera carga:
+Preparar la base y las tablas antes de la primera carga:
 
-```sql
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
+```powershell
+python -m src.etl.reset_mysql --yes
 ```
 
 Prueba sin cargar MySQL:

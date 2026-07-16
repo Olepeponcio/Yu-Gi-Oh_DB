@@ -1,8 +1,9 @@
 from datetime import datetime
 from queue import Empty, Queue
 import sys
+import time
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import messagebox, ttk
 
 from src.control_panel.actions import PROJECT_ROOT, build_actions
 from src.control_panel.runner import CommandRunner
@@ -46,7 +47,11 @@ class ControlPanelApp:
         self.buttons = []
         self.active_action = None
         self.active_index = None
+        self.activity_started_at = None
         self.status = tk.StringVar(value="Paso 1 preparado")
+        self.activity_icon = tk.StringVar(value="○")
+        self.activity_phase = tk.StringVar(value="En espera")
+        self.activity_elapsed = tk.StringVar(value="00:00")
         self.runner = CommandRunner(
             PROJECT_ROOT, self._queue_output, self._queue_finished
         )
@@ -164,6 +169,47 @@ class ControlPanelApp:
             bd=1,
         ).pack(side="right")
 
+        activity_frame = tk.Frame(container, bg=CONSOLE_BG, padx=10, pady=7)
+        activity_frame.pack(fill="x", pady=(0, 5))
+        self.activity_icon_label = tk.Label(
+            activity_frame,
+            textvariable=self.activity_icon,
+            bg=CONSOLE_BG,
+            fg=WHITE,
+            font=(UI_FONT, 12, "bold"),
+        )
+        self.activity_icon_label.pack(side="left")
+        tk.Label(
+            activity_frame,
+            textvariable=self.activity_phase,
+            bg=CONSOLE_BG,
+            fg=WHITE,
+            font=(UI_FONT, 10, "bold"),
+        ).pack(side="left", padx=(7, 10))
+        tk.Label(
+            activity_frame,
+            textvariable=self.activity_elapsed,
+            bg=CONSOLE_BG,
+            fg=WHITE,
+            font=(UI_FONT, 10),
+        ).pack(side="right")
+        progress_style = ttk.Style(self.root)
+        progress_style.configure(
+            "Activity.Horizontal.TProgressbar",
+            troughcolor=CONSOLE_BG,
+            background=CONSOLE_SUCCESS,
+            bordercolor=CONSOLE_BG,
+            lightcolor=CONSOLE_SUCCESS,
+            darkcolor=CONSOLE_SUCCESS,
+        )
+        self.activity_progress = ttk.Progressbar(
+            activity_frame,
+            mode="indeterminate",
+            style="Activity.Horizontal.TProgressbar",
+            length=210,
+        )
+        self.activity_progress.pack(side="right", padx=(10, 12))
+
         console_border = tk.Frame(container, bg=BLACK, padx=1, pady=1)
         console_border.pack(fill="both", expand=True)
         self.log = tk.Text(
@@ -210,8 +256,10 @@ class ControlPanelApp:
         )
         try:
             self.runner.start(action.command)
+            self._start_activity(action.label)
         except Exception as error:
             self._append_log(f"ERROR: {error}\n")
+            self._stop_activity(False, "No se pudo iniciar")
             self.active_action = None
             self.active_index = None
             self._apply_workflow_state()
@@ -228,10 +276,14 @@ class ControlPanelApp:
                 event, payload = self.events.get_nowait()
                 if event == "output":
                     self._append_log(payload)
+                    phase = infer_process_phase(payload)
+                    if phase:
+                        self.activity_phase.set(phase)
                 else:
                     self._finish_action(payload.return_code)
         except Empty:
             pass
+        self._update_activity_clock()
         self.root.after(100, self._drain_events)
 
     def _finish_action(self, return_code):
@@ -265,6 +317,7 @@ class ControlPanelApp:
                 self.workflow.complete(index, False)
             self.status.set(f"Error ({return_code}): {label} · repite el paso")
             self._append_log(f"\nProceso finalizado con código {return_code}.\n")
+        self._stop_activity(succeeded, "Completado" if succeeded else "Error")
         self.active_action = None
         self.active_index = None
         self._apply_workflow_state()
@@ -305,6 +358,32 @@ class ControlPanelApp:
         self.log.configure(state="normal")
         self.log.delete("1.0", "end")
         self.log.configure(state="disabled")
+
+    def _start_activity(self, label):
+        self.activity_started_at = time.monotonic()
+        self.activity_icon.set("●")
+        self.activity_icon_label.configure(fg=CONSOLE_WARNING)
+        self.activity_phase.set(f"Ejecutando: {label}")
+        self.activity_elapsed.set("00:00")
+        self.activity_progress.start(12)
+
+    def _update_activity_clock(self):
+        if self.activity_started_at is None:
+            return
+        elapsed = time.monotonic() - self.activity_started_at
+        self.activity_elapsed.set(format_elapsed(elapsed))
+
+    def _stop_activity(self, succeeded, phase):
+        if self.activity_started_at is not None:
+            elapsed = time.monotonic() - self.activity_started_at
+            self.activity_elapsed.set(format_elapsed(elapsed))
+        self.activity_started_at = None
+        self.activity_progress.stop()
+        self.activity_icon.set("✓" if succeeded else "✕")
+        self.activity_icon_label.configure(
+            fg=CONSOLE_SUCCESS if succeeded else CONSOLE_ERROR
+        )
+        self.activity_phase.set(phase)
 
     def _sync_backdrop(self, _event=None):
         if self.backdrop is None or not self.root.winfo_exists():
@@ -352,4 +431,29 @@ def classify_console_line(line):
         )
     ):
         return "success"
+    return None
+
+
+def format_elapsed(seconds):
+    total_seconds = max(0, int(seconds))
+    hours, remainder = divmod(total_seconds, 3600)
+    minutes, seconds = divmod(remainder, 60)
+    if hours:
+        return f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+    return f"{minutes:02d}:{seconds:02d}"
+
+
+def infer_process_phase(text):
+    normalized = text.casefold()
+    phases = (
+        (("descarg", "api", "request"), "Descargando datos"),
+        (("transform", "normaliz", "valid"), "Transformando y validando"),
+        (("mysql", "cargando", "insert", "tabla"), "Actualizando MySQL"),
+        (("backup", "respald"), "Creando backup histórico"),
+        (("restaur",), "Restaurando histórico"),
+        (("test", "ran "), "Ejecutando pruebas"),
+    )
+    for tokens, phase in phases:
+        if any(token in normalized for token in tokens):
+            return phase
     return None

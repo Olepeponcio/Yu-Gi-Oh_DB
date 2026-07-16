@@ -1,5 +1,7 @@
 # Power BI — reinicio del modelo semántico
 
+[Inicio](../../README.md) → [Documentación](../README.md) → Power BI
+
 Las views y el diagrama anteriores se retiraron porque cruzaban precios de carta con rarezas de impresión mediante `card_id`, generando atribuciones y outliers falsos.
 
 Estado actual:

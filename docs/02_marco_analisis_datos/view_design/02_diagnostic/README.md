@@ -1,5 +1,7 @@
 # 02 — Diagnostic
 
+[Inicio](../../../../README.md) → [Diseño de views](../README.md) → Diagnostic
+
 ## Propósito
 
 Explicar por qué una distribución o valor destaca y separar señales reales de problemas de calidad o granularidad.

@@ -2,7 +2,7 @@ import sys
 import unittest
 
 from src.control_panel.actions import PROJECT_ROOT, build_actions
-from src.control_panel.app import classify_console_line
+from src.control_panel.app import classify_console_line, format_elapsed, infer_process_phase
 from src.control_panel.theme import (
     BUTTON_COLORS,
     BACKGROUND_ALPHA,
@@ -69,6 +69,17 @@ class ControlPanelActionsTest(unittest.TestCase):
         self.assertEqual(classify_console_line("Crash en carga"), "error")
         self.assertEqual(classify_console_line("Proceso completado correctamente"), "success")
         self.assertIsNone(classify_console_line("Descargando cartas"))
+
+    def test_elapsed_time_is_readable_for_short_and_long_processes(self):
+        self.assertEqual(format_elapsed(0), "00:00")
+        self.assertEqual(format_elapsed(125), "02:05")
+        self.assertEqual(format_elapsed(3661), "01:01:01")
+
+    def test_console_output_can_update_the_visible_phase(self):
+        self.assertEqual(infer_process_phase("Transformando cartas"), "Transformando y validando")
+        self.assertEqual(infer_process_phase("Creando backup"), "Creando backup histórico")
+        self.assertEqual(infer_process_phase("Restaurando histórico"), "Restaurando histórico")
+        self.assertIsNone(infer_process_phase("línea informativa genérica"))
 
 
 class WorkflowStateTest(unittest.TestCase):

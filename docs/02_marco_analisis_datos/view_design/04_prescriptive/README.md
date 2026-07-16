@@ -1,5 +1,7 @@
 # 04 — Prescriptive
 
+[Inicio](../../../../README.md) → [Diseño de views](../README.md) → Prescriptive
+
 ## Propósito
 
 Convertir evidencias descriptivas, diagnósticas y temporales en señales revisables. No generar recomendaciones automáticas desde un ranking aislado.

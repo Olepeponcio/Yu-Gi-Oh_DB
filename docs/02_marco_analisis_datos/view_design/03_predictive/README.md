@@ -1,5 +1,7 @@
 # 03 — Predictive
 
+[Inicio](../../../../README.md) → [Diseño de views](../README.md) → Predictive
+
 ## Propósito
 
 Estudiar evolución y variación temporal. “Predictive” no implica pronóstico automático: primero exige histórico suficiente, comparable y estable.

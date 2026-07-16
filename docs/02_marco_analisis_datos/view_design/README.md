@@ -1,5 +1,7 @@
 # Registro modular de diseño de views
 
+[Inicio](../../../README.md) → [Marco de análisis](../README.md) → Diseño de views
+
 Este árbol es el contrato anterior al SQL. Una view solo se implementa después de completar su ficha y aprobar su granularidad.
 
 ## Ramas
@@ -11,6 +13,11 @@ view_design/
 ├── 03_predictive/README.md
 └── 04_prescriptive/README.md
 ```
+
+- [01 — Descriptive](01_descriptive/README.md)
+- [02 — Diagnostic](02_diagnostic/README.md)
+- [03 — Predictive](03_predictive/README.md)
+- [04 — Prescriptive](04_prescriptive/README.md)
 
 Orden de madurez:
 

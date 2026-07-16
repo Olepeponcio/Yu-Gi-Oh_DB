@@ -1,5 +1,7 @@
 # Marco de análisis — antes de las views
 
+[Inicio](../../README.md) → [Documentación](../README.md) → Marco de análisis
+
 El proyecto vuelve a una base controlada: tablas madre, granularidades y calidad de datos. Todavía no hay views de consumo.
 
 ## Guía modular de views
@@ -33,6 +35,23 @@ Antes de crear una view se documentará:
 pregunta -> tabla fuente -> grano -> PK/FK -> campos -> medida esperada -> riesgo
 ```
 
+```mermaid
+flowchart LR
+    A["1. Pregunta"] --> B["2. Fuente fiable"]
+    B --> C["3. Una fila representa..."]
+    C --> D["4. Cómo identificar y relacionar"]
+    D --> E["5. Datos necesarios"]
+    E --> F["6. Resultado esperado"]
+    F --> G["7. Riesgos y controles"]
+```
+
 No se volverá a unir precio general con rareza mediante `card_id`.
 
 La plantilla ampliada y la Definition of Done están en [view_design/README.md](view_design/README.md).
+
+## Documentos de la rama
+
+- [Análisis del JSON de origen](api_json_analysis.md)
+- [Línea base de calidad](raw_data_quality_baseline.md)
+- [Modelo de datos](data_model.md)
+- [Registro modular de diseño de views](view_design/README.md)

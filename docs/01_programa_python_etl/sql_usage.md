@@ -1,20 +1,24 @@
 # Uso SQL
 
+[Inicio](../../README.md) → [Programa Python y ETL](README.md) → Uso SQL
+
 ## Crear estructura
 
-Paso previo manual en MySQL:
+Usar el paso **Preparar DB + schema** del panel o su comando equivalente:
 
-```text
-Crear el schema yugioh_db.
+```powershell
+python -m src.etl.reset_mysql --yes
 ```
 
-Despues ejecutar:
+El comando crea `yugioh_db` si falta, ejecuta `schema.sql` y protege el histórico
+mediante backup y restauración. No ejecutar manualmente `drop_tables.sql` y
+`schema.sql` como secuencia operativa.
 
-```sql
-SOURCE C:/ruta/al/proyecto/proyecto_SQL-DB_Yu-Gi-Oh/sql/schema.sql;
-```
-
-`schema.sql` crea las tablas madre del proyecto dentro de `yugioh_db`.
+Limitación actual: `reset_mysql` usa las credenciales del `.env` y necesita
+`CREATE`, `DROP` y `ALTER`. El usuario limitado definido más abajo está pensado
+para la carga ETL normal y no puede ejecutar el reset. Hasta separar credenciales
+operativas y administrativas, hay que cambiar conscientemente de cuenta para esta
+acción y volver después al usuario limitado.
 
 Contrato de actualizacion estructural:
 

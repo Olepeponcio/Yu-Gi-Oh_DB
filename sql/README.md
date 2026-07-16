@@ -1,5 +1,7 @@
 # SQL — punto de partida
 
+[Inicio](../README.md) → Contrato SQL
+
 Este directorio contiene únicamente el contrato de tablas madre.
 
 ```text
@@ -24,6 +26,9 @@ sql/views/prescriptive/
 Las carpetas se crearán al implementar la primera view de cada módulo; no contienen todavía SQL.
 
 ## Tablas de única verdad
+
+La finalidad, claves, relaciones, actualización, uso y limitaciones de cada
+tabla están centralizadas en el [diccionario de tablas madre](../docs/02_marco_analisis_datos/data_model.md#diccionario-de-tablas-madre).
 
 | Tabla | Grano |
 |---|---|
